@@ -1,4 +1,10 @@
 JaSper
 ======
 
-JaSper is a JavaScript framework
+JavaScript framework.
+
+====
+In English:
+
+JavaScript framework.
+
