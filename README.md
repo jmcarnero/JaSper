@@ -1,4 +1,4 @@
-JaSper
+JaSper [José M. Carnero]
 ======
 
 JavaScript framework.

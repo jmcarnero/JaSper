@@ -1,4 +1,4 @@
-/*Copyright (C) 2009 José Manuel Carnero <jmanuel@sargazos.net>
+/*Copyright (C) 2009 José M. Carnero <jm_carnero@sargazos.net>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -1858,8 +1858,8 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 		if(library){
 			JaSper.funcs.loadScriptQueue.push({'fn':tempCall,'ctx':this});
-			JaSper.funcs.loadScript('packer.php?scriptJs=' + library); //version con empaquetador/minificador "class.JavaScriptPacker.php"
-			//if(library) JaSper.funcs.loadScript(library, tempCall, this); //version sin empaquetador
+			//JaSper.funcs.loadScript('packer.php?scriptJs=' + library); //version con empaquetador/minificador "class.JavaScriptPacker.php"
+			JaSper.funcs.loadScript(library); //version sin empaquetador
 		}
 	},
 
