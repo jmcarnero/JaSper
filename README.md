@@ -1,4 +1,4 @@
-# JaSper v3.0b [José M. Carnero](sargazos.net)
+# JaSper v3.0b [José M. Carnero](http://sargazos.net)
 ===
 
 ## JavaScript framework.
