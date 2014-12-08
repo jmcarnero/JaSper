@@ -15,6 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
+'use strict';
+
 /**
  * Selector de elementos DOM, mediante id, clase, tag, etc. (ver detalles en constructor)
  * 
@@ -26,13 +28,13 @@ http://www.gnu.org/copyleft/gpl.html*/
  * @version 3.0b
  * @see Al final del archivo estan las extensiones necesarias de prototipos de objetos del sistema
  */
-(function(){
+(function (window, undefined){
 
-	var window = this, //acelera las referencias a window
-	undefined; //creamos una variable indefinida que podemos usar para probar contra otras indefinidas
+	//window como parametro acelera las referencias a window
+	//undefined como parametro evita confilctos y se puede usar para probar contra otras indefinidas
 
 	//alias, como $ (para simplificar las llamadas al constructor)
-	JaSper = _JaSper = window.JaSper = window.$ = function(sel, context){
+	window.JaSper = window._JaSper = window.$ = function (sel, context){
 		return new JaSper(sel, context);
 	};
 
@@ -46,15 +48,20 @@ http://www.gnu.org/copyleft/gpl.html*/
 	 * [div p span] selecciona todos los elementos que esten contenidos en un tag span que esten contenidos en un tag p que esten contenidos en div (descendientes de div que sean descendientes de p que sean span)
 	 * [<div><span>texto</span></div>] selecciona los elementos que contenga la cadena HTML especificada
 	 */
-	JaSper = function(sel, context){
+	JaSper = function (sel, context){
 		//si no se pasa ningun selector se usa document
 		sel = sel || document;
 
-		this.version = 'JaSper v3.0b',
+		this.version = JaSper.version = 'JaSper v3.0b',
 		this.nodes = this.nodes || [],
+		this.funcs = {},
 		this.context = context || window.document; //contexto por defecto es document
 
-		this.debug = window.JaSperDebug || false; //TODO revisar si debe ser una variable global; al ser global el valor se conserva hasta que se cambia explicitamente
+		this.debug = JaSper.debug = JaSper.debug || false; //TODO revisar si debe ser una variable global; al ser global el valor se conserva hasta que se cambia explicitamente
+
+		//lenguaje para las traducciones, puede asignarse desde PHP para ser consistente con lo recibido desde el servidor
+		//si no se proporciona detecta el lenguaje del navegador (no los configurados por el usuario); si no se detecta fuerza castellano (es)
+		this.lang = JaSper.lang = JaSper.lang || (navigator.language ? navigator.language.substr(0,2) : (navigator.userLanguage ? navigator.userLanguage.substr(0,2) : 'es'));
 
 		//si se ha pasado una cadena (sin distincion inicial), puede ser un ID, clase CSS, tag HTML o una cadena HTML
 		if(typeof sel === 'string'){
@@ -156,11 +163,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 		gecko: /gecko/.test(navigator.userAgent.toLowerCase()) && !/khtml/.test(navigator.userAgent.toLowerCase()),
 
 		/**
-		 * Referencia automatica a la funcion foreach pasandole la lista de nodos, ej. $('<SPAN>').each(function(){});
+		 * Referencia automatica a la funcion foreach pasandole la lista de nodos, ej. $('<SPAN>').each(function (){});
 		 * 
 		 * @return object JaSper
 		 */
-		each: function(callback, args){
+		each: function (callback, args){
 			if(!!this.nodes && this.nodes.length){ //no se hace nada si no hay nodos
 				if(!args) JaSper.funcs.foreach(this.nodes, callback);
 				else JaSper.funcs.foreach(this.nodes, callback, args);
@@ -172,7 +179,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 		/**
 		 * Ejecuta la funcion pasada cuando se haya cargado todo el arbol DOM
 		 * 
-		 * $().ready(function(){[...]});
+		 * $().ready(function (){[...]});
 		 * 
 		 * http://snipplr.com/view.php?codeview&id=6156
 		 */
@@ -199,21 +206,23 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 * @param debug Se muestran mensajes de debug (true) o no (false)
 		 * @return object JaSper
 		 */
-		setDebug: function(debug){
-			if(!debug) window.JaSperDebug = false;
-			else this.debug = window.JaSperDebug = debug || true;
-	
+		setDebug: function (debug){
+			if(!debug) this.debug = false;
+			else this.debug = debug || true;
+
+			JaSper.debug = this.debug;
+
 			return this;
 		}
 
 	};
 
-	//funciones estaticas referenciables por si mismas,  ej. var a = JaSper.funcs.getDetails(obj)
+	//funciones estaticas referenciables por si mismas,  ej. var winPos = JaSper.funcs.windowPosition()
 	JaSper.funcs = {
 
 		/**
 		 * Muestra mensajes de debug, si "this.debug" es true
-		 * Muestra los mensajes en el elemento con id "JaSperDebug" o en un elemento nuevo bajo el primer nodo de this
+		 * Muestra los mensajes en el elemento con id "JaSperDebug" o lo crea bajo el primer nodo de this
 		 * Ej. de uso:
 		 * <code>
 $('#capa').setDebug(true).ajax('ej_respuesta.php');
@@ -225,8 +234,8 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @param integer lev Nivel de error a mostrar; 0 -> info (por defecto), 1 -> warn, 2 -> error
 		 * @return boolean
 		 */
-		log: function(mens, lev){
-			if(!window.JaSperDebug) return false;
+		log: function (mens, lev){
+			if(!JaSper.debug) return false;
 			if(!mens) var mens = 'JaSper debug';
 			if(!lev) var lev = 0;
 
@@ -270,7 +279,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @param object extendObj Objeto original a extender
 		 * @param object addObj Objeto con metodos que se agregaran a extendObj
 		 */
-		extend: function(extendObj, addObj){
+		extend: function (extendObj, addObj){
 			for(var a in addObj){
 				extendObj[a] = addObj[a];
 			}
@@ -283,7 +292,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @param object obj Objeto con nuevas traducciones, ej. {'en':{'key':'key traduction'}, 'es':{'clave':'clave traduccion'}},
 		 * @return void
 		 */
-		extendTrads: function(obj){
+		extendTrads: function (obj){
 			for(var lang in obj){
 				if(!JaSper.funcs.trads[lang]) JaSper.funcs.trads[lang] = {};
 
@@ -299,7 +308,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * 
 		 * @return list Lista de nodos u objetos
 		 */
-		foreach: function(list, callback, args){
+		foreach: function (list, callback, args){
 			if(this.isFunction(list)){ //si se ha pasado una funcion se ejecuta para generar la lista de nodos
 				list = list.call();
 			}
@@ -323,7 +332,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		},
 
 		//devuelve elementos filtrados por className, nodo y tag
-		getElementsByClassName: function(clsName, node, tag){
+		getElementsByClassName: function (clsName, node, tag){
 			node = node || this.context || document,
 			tag = tag || '*';
 			//usa funcion nativa si existe, FF3 Safari Opera
@@ -352,22 +361,22 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			}
 		},
 
-		isArray: function(o){
+		isArray: function (o){
 			return Object.prototype.toString.call(o) == '[object Array]';
 		},
 
 		//objetos con propiedades tipo array (array/nodelist)
-		isArrayLike: function(o){
+		isArrayLike: function (o){
 			// window, strings (y functions) tambien tienen 'length'
 			return (o && o.length && !this.isFunction(o) && !this.isString(o) && o !== window);
 		},
 
-		isFunction: function(o){
+		isFunction: function (o){
 			return ((o) instanceof Function);
 		},
 
-		isString: function(o){
-			return (typeof(o) == 'string');
+		isString: function (o){
+			return (typeof o == 'string');
 		},
 
 		/**
@@ -377,7 +386,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @since 2011-05-10
 		 * @param string scrPath Ruta absoluta ("http://ruta/script.js") o relativa a donde se encuentre "JaSper.js" (como "ruta/script.js")
 		 */
-		loadScript: function(scrPath){
+		loadScript: function (scrPath){
 			var scrId = 'JaSper_script_' + scrPath.replace(/[^a-zA-Z\d_]+/, '');
 			if(document.getElementById(scrId)){
 				JaSper.funcs.log('-JaSper::loadScript- Script (id->' + scrId + ') ya cargado.');
@@ -412,15 +421,15 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 				script.src = scrPath; //relativo o absoluto, ej: 'http://path.to.javascript/file.js'
 
 				if(script.readyState){ //IE
-					script.onreadystatechange = function(){
+					script.onreadystatechange = function (){
 						if(script.readyState == "loaded" || script.readyState == "complete"){
 							script.onreadystatechange = null;
 							var scriptQueue = JaSper.funcs.loadScriptQueue;
 							JaSper.funcs.loadScriptQueue = [];
 							JaSper.funcs.log('-JaSper::loadScript- Script [' + script.src + '] listo! ... en IE');
-							for(mt in scriptQueue){
+							for(var mt in scriptQueue){
 								try{
-									(function(cb, ctx){
+									(function (cb, ctx){
 										return(cb.call(ctx));
 									})(scriptQueue[mt]['fn'], scriptQueue[mt]['ctx']);
 								}
@@ -434,13 +443,13 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 					};
 				}
 				else{
-					script.onload = function(){
+					script.onload = function (){
 						var scriptQueue = JaSper.funcs.loadScriptQueue;
 						JaSper.funcs.loadScriptQueue = [];
 						JaSper.funcs.log('-JaSper::loadScript- Script [' + script.src + '] cargado!');
-						for(mt in scriptQueue){
+						for(var mt in scriptQueue){
 							try{
-								(function(cb, ctx){
+								(function (cb, ctx){
 									return(cb.call(ctx));
 								})(scriptQueue[mt]['fn'], scriptQueue[mt]['ctx']);
 							}
@@ -462,7 +471,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		//cola de ejecucion de los metodos pedientes de la carga de algun script dinamico
 		loadScriptQueue: [],
 
-		makeArray: function(a){
+		makeArray: function (a){
 			var ret = [];
 			if(a != null){
 				// window, strings (y functions) tambien tienen 'length'
@@ -497,7 +506,7 @@ JaSper.expr[":"] = JaSper.expr.filters;
 		 * @param string query Cadena con selector o selectores a buscar
 		 * @return array Nodos
 		 */
-		selector: function(query){
+		selector: function (query){
 			try{
 				// Always ensure results are array like - not had a problem so far but...
 				return this.makeArray(document.querySelectorAll(query));
@@ -514,7 +523,7 @@ JaSper.expr[":"] = JaSper.expr.filters;
 		 * @since 2011-06-20
 		 * @return string
 		 */
-		sprintf: function(){
+		sprintf: function (){
 			if(!arguments || !arguments.length) return;
 			if(arguments.length == 1) return arguments[0]; //devuelve la cadena (primer argumento) si no se pasa nada mas
 			var cadena = arguments[0];
@@ -544,34 +553,26 @@ JaSper.expr[":"] = JaSper.expr.filters;
 
 		/**
 		 * Traduccion de los textos de funciones.
-		 * Con la variable "window.jsAcceptLanguage" (generada por PHP por ejemplo: $_SESSION['l10n']) 
+		 * Con la variable "JaSper.lang" (generada por PHP por ejemplo: $_SESSION['l10n']) 
 		 * que contenga el codigo de lenguaje que actualmente solicita el navegador; 
 		 * ya que javascript no puede leer directamente las cabeceras que envia el navegador;
-		 * si no se proporciona detecta el lenguaje del navegador (no los configurados por el usuario).
 		 * 
 		 * Devuelve el mensaje traducido o falso
 		 * NO permite encadenado de metodos
 		 * 
 		 * @todo optimizar codigo
-		 * @param array func Clave de la traduccion a devolver y parametros que requiera
-		 * @param string langDef Lenguaje por defecto
+		 * @param array trad Clave de la traduccion a devolver y parametros que requiera, ej. 'clave a traducir'; otro ej. ['%s a %s', 'clave', 'traducir'], la clave que se busca para la traduccion es el parametro unico o el primer indice y el resto del array parametros para sprintf
+		 * @param string lang Lenguaje al que traducir, si no se pasa ninguno se toma el de JaSper.lang
 		 * @return string/boolean
 		 */
-		_t: function(func, langDef){
-			if(!JaSper.funcs.isArray(func)) func = [func];
+		_t: function (trad, lang){
+			if(!trad) return '';
+			if(!lang) var lang = JaSper.lang;
 
-			if(!langDef) var langDef = 'es'; //castellano
-			if(window.jsAcceptLanguage) lang = window.jsAcceptLanguage; //codigo de lenguaje proporcionado por PHP
-			else{
-				var lang = navigator.language ? navigator.language.substr(0,2) : navigator.userLanguage.substr(0,2); //lenguaje actual del navegador
-			}
+			if(!JaSper.funcs.isArray(trad)) trad = [trad];
+			if(JaSper.funcs.trads[lang] && JaSper.funcs.trads[lang][trad[0]]) trad[0] = JaSper.funcs.trads[lang][trad[0]];
 
-			//textos (array "trads") en el mismo orden que el array "trads_keys"
-
-			if(JaSper.funcs.trads[lang] && JaSper.funcs.trads[lang][func[0]]) func[0] = JaSper.funcs.trads[lang][func[0]];
-			else if(JaSper.funcs.trads[langDef] && JaSper.funcs.trads[langDef][func[0]]) func[0] = JaSper.funcs.trads[langDef][func[0]]; //lenguaje por defecto
-
-			return(JaSper.funcs.sprintf.apply(this, func));
+			return(JaSper.funcs.sprintf.apply(this, trad));
 		},
 
 		trads: {'en':{}, 'es':{}}, //traducciones en todos los lenguajes que sean necesarios, definidos por codigo iso 639
@@ -581,7 +582,7 @@ JaSper.expr[":"] = JaSper.expr.filters;
 		 * 
 		 * ej. para comprobar si se ha llegado al final de la pagina y se esta intentando intentando bajar mas:
 		 * <code>
-$('<body>').addEvent('mousewheel', function(ev){
+$('<body>').addEvent('mousewheel', function (ev){
 	if(JaSper.funcs.pagePosition().indexOf('bottom') > -1 && ev.wheelDelta == -3) alert('fin de pagina');
 });
 
@@ -591,9 +592,9 @@ $('<body>').addEvent('mousewheel', function(ev){
 		 * @todo devolver posicion de elementos en lugar de la ventana?
 		 * @return string Devuelve que bordes del documento estan visibles respecto a la ventana visible (center si no esta en alguno de los bordes)
 		 */
-		windowPosition: function() {
+		windowPosition: function () {
 			//TODO probar en mas navegadores
-			var isScrollToPageEnd = function(coordinate) { //comprueba si la ventana esta en los limites del documento
+			var isScrollToPageEnd = function (coordinate) { //comprueba si la ventana esta en los limites del documento
 				if(coordinate == 'x') return (window.innerWidth + window.scrollX) >= document.body.offsetWidth;
 				else if (coordinate == 'y') return (window.innerHeight + window.scrollY) >= document.documentElement.clientHeight;
 			};
@@ -637,7 +638,7 @@ $('<body>').addEvent('mousewheel', function(ev){
 	//puede extenderse el prototipo con los metodos encontrados en JaSper.funcs con:
 	//JaSper.funcs.extend(JaSper.prototype, JaSper.funcs);
 
-})();
+})(window);
 
 /****************
 ** Metodos css **
@@ -647,7 +648,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	/**
 	 * recupera una regla css de document o del elemento pasado
 	 */
-	getStyle: function(elem, cssRule){
+	getStyle: function (elem, cssRule){
 		elem = (!elem)?document.defaultView:elem; 
 		var sRet = '';
 		if(elem.nodeType == 1){
@@ -661,7 +662,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	/**
 	 * pone una regla css de document o del elemento pasado al valor pasado
 	 */
-	setStyle: function(elem, cssRule, value){
+	setStyle: function (elem, cssRule, value){
 		elem = (!elem)?document.defaultView:elem; 
 
 		if(elem.nodeType == 1){
@@ -677,9 +678,9 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * 
 	 * @return object JaSper
 	 */
-	toggle: function() {
+	toggle: function () {
 		this.each(
-			function(){
+			function (){
 				//TODO deberia aceptar otros tipos de nodo?
 				if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
 
@@ -725,7 +726,7 @@ if(typeof window.eventTrigger != 'function'){
  * 
  * para controlar el movimiento de la rueda:
  * <code>
-$('<p>').addEvent('mousewheel', function(ev){
+$('<p>').addEvent('mousewheel', function (ev){
 	var rolled = 0;
 	if('wheelDelta' in ev) {
 		rolled = ev.wheelDelta; //devuelve 3 (se ha movido la rueda hacia arriba) o -3 (rueda hacia abajo)
@@ -739,8 +740,8 @@ $('<p>').addEvent('mousewheel', function(ev){
  */
 JaSper.funcs.extend(JaSper.funcs, {
 
-	mouseEnter: function(func){
-		var isAChildOf = function(_parent, _child){
+	mouseEnter: function (func){
+		var isAChildOf = function (_parent, _child){
 			if(_parent === _child) {return false;}
 			while(_child && _child !== _parent) {_child = _child.parentNode;}
 			return _child === _parent;
@@ -754,15 +755,15 @@ JaSper.funcs.extend(JaSper.funcs, {
 		};
 	},
 
-	mouseWheel: function(func){
-		if(typeof f === 'undefined'){
-			f = function(e){
+	mouseWheel: function (func){
+		if(typeof func === 'undefined'){
+			func = function (e){
 				e.wheelDelta = -(e.detail);
 				func.call(this, e);
 				e.wheelDelta = null;
 			};
 		}
-		return f;
+		return func;
 	}
 
 });
@@ -776,7 +777,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * Manejador de eventos.
 	 * 
 	 * @param string evento Nombre del evento, ej: "click" (como "onclick" sin "on")
-	 * @param function funcion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function(){ alert('hello!'); }"
+	 * @param function funcion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
 	 * @param boolean capt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
 	 * @return object JaSper
 	 */
@@ -822,7 +823,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 					if(!elemento || elemento.nodeType == 3 || elemento.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
 
 					elemento['e' + clave] = func;
-					elemento[clave] = function(){elemento['e' + clave](window.event);};
+					elemento[clave] = function (){elemento['e' + clave](window.event);};
 					elemento.attachEvent('on' + evt, elemento[clave]);
 				}, [evento, funcion]);
 			if(window.eventTrigger) this.each(
@@ -832,7 +833,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 					if(!elemento || elemento.nodeType == 3 || elemento.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
 
 					elemento['e' + clave] = function (){window.eventTrigger.call(elemento, evt);};
-					elemento[clave] = function(){elemento['e' + clave](window.event);};
+					elemento[clave] = function (){elemento['e' + clave](window.event);};
 					elemento.attachEvent('on' + evt, elemento[clave]);
 				}, [evento]);
 		}
@@ -845,7 +846,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 					var old_evt = this['on' + evt];
 					if(typeof this['on' + evt] != 'function') this['on' + evt] = func;
 					else{
-						this['on' + evt] = function(){
+						this['on' + evt] = function (){
 							if(old_evt) old_evt();
 							func();
 						}
@@ -883,18 +884,18 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @param e Objeto evento
 	 * @return object JaSper
 	 */
-	evPreventDefault: function (e){
-		var e = e || window.event;
+	evPreventDefault: function (ev){
+		var ev = ev || window.event;
 
-		if(e.preventDefault){ //modelo DOM
-			//e.stopPropagation();
-			e.preventDefault();
+		if(ev.preventDefault){ //modelo DOM
+			//ev.stopPropagation();
+			ev.preventDefault();
 		}
 		else if(window.event){ //modelo MSIE
-			//e.keyCode = 0;  //<<< esto ayuda a que funcione bien en iExplorer
-			//e.cancelBubble = true;
-			e.returnValue = false;
-			e.retainFocus = true;
+			//ev.keyCode = 0;  //<<< esto ayuda a que funcione bien en iExplorer
+			//ev.cancelBubble = true;
+			ev.returnValue = false;
+			ev.retainFocus = true;
 		}
 
 		return this;
@@ -904,7 +905,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * Elimina eventos
 	 * 
 	 * @param string evento Nombre del evento, ej: "click" (como "onclick" sin "on")
-	 * @param function funcion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function(){ alert('hello!'); }"
+	 * @param function funcion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
 	 * @param boolean capt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
 	 * @return object JaSper
 	 */
@@ -977,11 +978,11 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @param e Objeto evento
 	 * @return object JaSper
 	 */
-	evStop: function (e){
-		var e = e || window.event;
+	evStop: function (ev){
+		var ev = ev || window.event;
 
-		if(e.stopPropagation) e.stopPropagation(); //modelo DOM
-		else e.cancelBubble = true; //modelo MSIE
+		if(ev.stopPropagation) ev.stopPropagation(); //modelo DOM
+		else ev.cancelBubble = true; //modelo MSIE
 
 		return this;
 	},
@@ -1016,9 +1017,10 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @param ancla Elemento al que se añadira nodo; si va vacio se usa this (los nodos de JaSper)
 	 * @return object JaSper
 	 */
-	append: function(nodo, ancla){
+	append: function (nodo, ancla){
 		nodo = nodo || this; //se usa el objeto JaSper actual si no se pasa ninguno (o si se pasa null); util para clonar, por ej.
 
+		var elem = null;
 		if(JaSper.funcs.isArray(nodo)){
 			elem = document.createElement(nodo[0]);
 			elem.innerHTML = nodo[1];
@@ -1051,7 +1053,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @param string html HTML que sustituira el de los nodos
 	 * @return string HTML encontrado
 	 */
-	html: function(html, separador) {
+	html: function (html, separador) {
 		var ret = [];
 		if(!html) var html = false;
 		if(!separador) var separador = '';
@@ -1129,7 +1131,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @param ancla Elemento al que se añadira nodo; si va vacio se usa this (los nodos de JaSper)
 	 * @return object JaSper
 	 */
-	prepend: function(nodo, ancla){
+	prepend: function (nodo, ancla){
 		nodo = nodo || this; //se usa el objeto JaSper actual si no se pasa ninguno; util para clonar, por ej.
 
 		if(JaSper.funcs.isArray(nodo)){
@@ -1159,7 +1161,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @param elem Elemento a eliminar
 	 * @return object JaSper
 	 */
-	remove: function(elem) {
+	remove: function (elem) {
 		//var el = this.get(el);
 		this.each(function (el){
 			el.parentNode.removeChild(el);
@@ -1185,7 +1187,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @return object
 	 */
 	//TODO devolver los id para controlarlos fuera; this en la funcion pasada deben ser los nodos JaSper?
-	callPeriodic: function(func, intervalo, lapso){
+	callPeriodic: function (func, intervalo, lapso){
 		if(!!func){ //si no hay nada que ejecutar se sale
 
 			this.each(function (fn, it, lp){
@@ -1221,7 +1223,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @param array args Argumentos del metodo
 	 * @param string library JS a cargar
 	 */
-	loadMethod: function(method, args, library){
+	loadMethod: function (method, args, library){
 		if(!library) var library = method;
 
 		switch(library){
@@ -1239,7 +1241,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 		var tempCall = (function (obj, as){
 			return(function (){eval('obj.' + method + '.apply(obj, as);');});
 		})(this, args);
-		tempId = method + args.toString() + library;
+		//tempId = method + args.toString() + library;
 
 		if(library){
 			JaSper.funcs.loadScriptQueue.push({'fn':tempCall,'ctx':this});
@@ -1248,12 +1250,12 @@ JaSper.funcs.extend(JaSper.prototype, {
 		}
 	},
 
-	ajax: function(){return(this.loadMethod('ajax', arguments));},
+	ajax: function (){return(this.loadMethod('ajax', arguments));},
 
 	/*
 	 * Movimiento de elementos *
 	 */
-	move: function(){return(this.loadMethod('move', arguments));},
+	move: function (){return(this.loadMethod('move', arguments));},
 
 });
 

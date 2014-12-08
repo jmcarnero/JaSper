@@ -15,6 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
+'use strict';
+
 /**************************************
  * Funciones de movimiento de objetos *
  * (div, p, ...)                      *
@@ -25,24 +27,31 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * Movimiento de objetos
 	 * 
 	 * @since 2011-07-08
+	 * @param object props Propiedades con que se hara el movimiento
 	 * @return object
 	 */
-	move: function (){
+	move: function (props){
+
+		if(typeof props !== 'object') var props = {};
+		props.endPos = props.endPos || 'reset'; //posicion final del objeto: reset (devuelve a la posicion de inicio), 'stay' (se queda donde se suelte)
+		props.placeHolder = props.placeHolder || false; //mientras el objeto se mueve pone un objeto sombra con su tamaño en la posicion actual (true), o se mueve sin mover el resto de objetos (false)
 
 		/* finaliza movimiento */
-		var finMovElemento = function(event, obj, funcs){
-			obj.style.left = obj.posInicioElem['x'] + 'px';
-			obj.style.top = obj.posInicioElem['y'] + 'px';
+		var finMovElemento = function (event, obj, funcs){
+			_JaSper(obj).evStop(event);
 
-			obj.style.position = obj.posStyle;
+			if(props.endPos == 'reset'){
+				obj.style.left = obj.posInicioElem['x'] + 'px';
+				obj.style.top = obj.posInicioElem['y'] + 'px';
+
+				obj.style.position = obj.posStyle;
+			}
 
 			//devolver el elemento a su nivel
 			obj.style.zIndex -= 10;
 
 			_JaSper(document).evRemove('mousemove', funcs[0]);
 			_JaSper(document).evRemove('mouseup', funcs[1]);
-			//evita la propagacion del evento
-			_JaSper(this).evStop(event);
 
 			/*var pos = posMouse(event);
 			window.ultimoElemento = detectaElemento(pos, elemento.id);
@@ -51,16 +60,13 @@ JaSper.funcs.extend(JaSper.prototype, {
 		};
 
 		/* inicia movimiento */
-		var inicioMovElemento = function(event, obj){
+		var inicioMovElemento = function (event, obj){
+			_JaSper(obj).evStop(event);
+
 			var normalclick;
 			if(event.which) normalclick = event.which;
 			else if(event.button) normalclick = event.button;
 			if(normalclick != 1) return(false);
-
-			var funMov = function (e){movElemento(e, obj);}, funFin = function (e){finMovElemento(e, obj, [funMov, arguments.callee]);}; //"arguments.calle es imprescindible para poder desregistrar el evento, problemas pasando la definicion de la funcion...
-
-			_JaSper(document).evAdd('mousemove', funMov);
-			_JaSper(document).evAdd('mouseup', funFin);
 
 			obj.posInicioElem = posElemento(obj);
 			obj.posMouseInicial = posMouse(event);
@@ -72,12 +78,18 @@ JaSper.funcs.extend(JaSper.prototype, {
 			//poner el elemento sobre los demas
 			obj.style.zIndex += 10;
 
-			//evita la propagacion del evento
-			_JaSper(this).evStop(event);
+			//var funMov = function (e){movElemento(e, obj);}, funFin = function (e){finMovElemento(e, obj, [funMov, arguments.callee]);}; //"arguments.calle es imprescindible para poder desregistrar el evento, problemas pasando la definicion de la funcion...
+			var funMov = function (e){movElemento(e, obj);}, funFin = function funFinCalle(e){finMovElemento(e, obj, [funMov, funFinCalle]);};
+
+			_JaSper(document).evAdd('mousemove', funMov);
+			_JaSper(document).evAdd('mouseup', funFin);
+
 		};
 
 		/* mover */
-		var movElemento = function(event, obj){
+		var movElemento = function (event, obj){
+			_JaSper(obj).evStop(event);
+
 			var pos = posMouse(event);
 
 			obj.style.left = obj.posInicioElem['x'] + pos['x'] - obj.posMouseInicial['x'] + 'px';
@@ -86,12 +98,9 @@ JaSper.funcs.extend(JaSper.prototype, {
 			$('origen').html = _JaSper(this).evSource(event);//obj;
 			//document.getElementById('destino').innerHTML = _JaSper(this).evTarget(event);
 			$('evento').html = _JaSper(this).evName(event);
-
-			//evita la propagacion del evento
-			_JaSper(this).evStop(event);
 		};
 
-		/*var mueveObj = function(e){
+		/*var mueveObj = function (e){
 			evt = e || window.event;
 			var moz = document.getElementById && !document.all;
 			var obj = $(this).evSource(e);
@@ -114,14 +123,15 @@ JaSper.funcs.extend(JaSper.prototype, {
 		};*/
 
 		/* devuelve la posicion del elemento con respecto a su contenedor (left y top), (array=>['x'] - ['y']) */
-		var posElemento = function(obj){
+		var posElemento = function (obj){
 			var pos = new Array();
 
 			pos['w'] = parseInt(obj.offsetWidth); //ancho del elemento
 			pos['h'] = parseInt(obj.offsetHeight); //alto del elemento
 
 			//http://www.quirksmode.org/js/findpos.html
-			var curleft = curtop = 0;
+			var curleft = 0;
+			var curtop = 0;
 			do{
 				curleft += obj.offsetLeft;
 				curtop += obj.offsetTop;
@@ -129,8 +139,6 @@ JaSper.funcs.extend(JaSper.prototype, {
 			pos['x'] = curleft;
 			pos['y'] = curtop;
 
-			//pos['x'] = parseInt(elemento.offsetLeft); //esquina superior izquierda
-			//pos['y'] = parseInt(elemento.offsetTop);
 			pos['x2'] = pos['x'] + pos['w']; //esquina inferior derecha
 			pos['y2'] = pos['y'] + pos['h'];
 
@@ -138,7 +146,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 		};
 
 		/* devuelve la posicion del puntero, (array=>["x"] - ["y"]) */
-		var posMouse = function(event){
+		var posMouse = function (event){
 			var pos = new Array();
 			if(navigator.userAgent.toLowerCase().indexOf("msie") >= 0){
 				/* document.body.clientLeft/clientTop es el tamaño del borde (usualmente 2px) que encierra al documento ya que en IE este no empieza en (0,0) */

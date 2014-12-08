@@ -15,6 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
+'use strict';
+
 /*traducciones*/
 JaSper.funcs.extendTrads({
 "en":{
@@ -46,7 +48,7 @@ JaSper.funcs.extend(JaSper.funcs, { //IE cachea las respuestas con la misma url;
 	 * @since 2010-12-14
 	 * @return object
 	 */
-	nuevoAjax: function(){
+	nuevoAjax: function (){
 		var xmlhttp = false;
 		if(typeof XMLHttpRequest != 'undefined'){ //no IE
 			xmlhttp = new XMLHttpRequest();
@@ -94,9 +96,9 @@ JaSper.funcs.extend(JaSper.prototype, {
 valores: 'param1=val1&param2=val2', //string Valores que se enviaran, si la peticion es POST
 metodo: 'post', //string Metodo de comunicacion con url (GET o POST)
 asincrono: true, //boolean Si true -> asincrono (continua ejecucion sin esperar), false -> isocrono
-cbEnd: function(jsf, xhr){if(jsf.tagName == 'INPUT'){jsf.value = xhr.responseText;}else{jsf.innerHTML = xhr.responseText;}return;}, //function Callback a ejecutar cuando se ha recibido la respuesta AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
-cbStart: function(jsf, xhr){jsf.innerHTML = JaSper.funcs._t('ajax/ajax_2') + '...';return;}, //function Callback a ejecutar cuando se inicia la peticion AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
-cbFail: function(jsf, xhr){return;}, //function Callback a ejecutar cuando falla la peticion AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
+cbEnd: function (jsf, xhr){if(jsf.tagName == 'INPUT'){jsf.value = xhr.responseText;}else{jsf.innerHTML = xhr.responseText;}return;}, //function Callback a ejecutar cuando se ha recibido la respuesta AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
+cbStart: function (jsf, xhr){jsf.innerHTML = JaSper.funcs._t('ajax/ajax_2') + '...';return;}, //function Callback a ejecutar cuando se inicia la peticion AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
+cbFail: function (jsf, xhr){return;}, //function Callback a ejecutar cuando falla la peticion AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
 }
 	 * </code>
 	 * 
@@ -108,7 +110,7 @@ cbFail: function(jsf, xhr){return;}, //function Callback a ejecutar cuando falla
 	 * @param string metodo Metodo de comunicacion con url (GET o POST)
 	 * @return object
 	 */
-	ajax: function(url, valores, metodo){
+	ajax: function (url, valores, metodo){
 
 		if(typeof url === 'object'){
 			var obj = url;
@@ -128,11 +130,11 @@ cbFail: function(jsf, xhr){return;}, //function Callback a ejecutar cuando falla
 		if(!metodo) var metodo = 'get';
 
 		//callback de fin de peticion (con exito), carga el texto devuelto en el objeto
-		if(!cbEnd) var cbEnd = function(jsf, xhr){if(jsf.tagName == 'INPUT'){jsf.value = xhr.responseText;}else{jsf.innerHTML = xhr.responseText;}return;};
+		if(!cbEnd) var cbEnd = function (jsf, xhr){if(jsf.tagName == 'INPUT'){jsf.value = xhr.responseText;}else{jsf.innerHTML = xhr.responseText;}return;};
 		//callback de inicio de peticion, por defecto pone en el objeto el mensaje "Cargando..." al inicio de la petición AJAX
-		if(!cbStart) var cbStart = function(jsf, xhr){jsf.innerHTML = JaSper.funcs._t('ajax/ajax_2') + '...';return;};
+		if(!cbStart) var cbStart = function (jsf, xhr){jsf.innerHTML = JaSper.funcs._t('ajax/ajax_2') + '...';return;};
 		//callback de fin de peticion (con error), muestra un mensaje en el objeto para error 404 y otro para el resto
-		if(!cbFail) var cbFail = function(jsf, xhr){
+		if(!cbFail) var cbFail = function (jsf, xhr){
 			switch(xhr.status){
 				case 0: //0 Respuesta vacia, puede ser peticion a otro dominio
 					JaSper.funcs.log('-JaSper::ajax- ' + JaSper.funcs._t('ajax/ajax_3'), 1);
@@ -172,7 +174,7 @@ cbFail: function(jsf, xhr){return;}, //function Callback a ejecutar cuando falla
 
 //HEAD request
 /*xmlhttp.open("HEAD", "/faq/index.html",true);
-xmlhttp.onreadystatechange = function(){
+xmlhttp.onreadystatechange = function (){
 	if(xmlhttp.readyState == 4){
 		alert(xmlhttp.getAllResponseHeaders());
 		alert("File was last modified on - " + xmlhttp.getResponseHeader("Last-Modified"));
@@ -202,8 +204,8 @@ if ( s.username ) xhr.open( s.type, s.url, s.async, s.username, s.password );*/
 
 			var obj = this;
 
-			_callback = function(){
-			//ajax.onreadystatechange = function(){ //debe ir despues de "ajax.send()" o no funciona en firefox (4 o superior), no esta claro en que orden deben ir send y onreadystatechange (revisar)
+			var _callback = function (){
+			//ajax.onreadystatechange = function (){ //debe ir despues de "ajax.send()" o no funciona en firefox (4 o superior), no esta claro en que orden deben ir send y onreadystatechange (revisar)
 				/*0: (No inicializado) - Los datos de la petición no se han definido // The request is uninitialized (before you've called open()).
 				1: (Abierto) - La recepción de datos está en curso // The request is set up, but not sent (before you've called send()).
 				2: (Cargado) - La recepción de datos ha finalizado pero los datos no están disponibles // The request was sent and is in process (you can usually get content headers from the response at this point).
@@ -227,7 +229,7 @@ if ( s.username ) xhr.open( s.type, s.url, s.async, s.username, s.password );*/
 			else if(ajax.readyState === 4) setTimeout(_callback, 0); //(IE6 & IE7) necesario si esta en cache y ha sido recuperado directamente
 			else ajax.onreadystatechange = _callback;
 
-			delete ajax; //limpia de memoria el objeto
+			//delete ajax; //limpia de memoria el objeto
 		}, [url, valores, metodo, asincrono]);
 
 		return;
