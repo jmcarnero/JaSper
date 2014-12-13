@@ -221,59 +221,6 @@ http://www.gnu.org/copyleft/gpl.html*/
 	JaSper.funcs = {
 
 		/**
-		 * Muestra mensajes de debug, si "this.debug" es true
-		 * Muestra los mensajes en el elemento con id "JaSperDebug" o lo crea bajo el primer nodo de this
-		 * Ej. de uso:
-		 * <code>
-$('#capa').setDebug(true).ajax('ej_respuesta.php');
-		 * </code>
-		 * 
-		 * @todo mostrar el mensaje con la linea correcta en que se ha producido (no la linea de este metodo)
-		 * @since 2011-03-24
-		 * @param string mens Mensaje de debug a mostrar
-		 * @param integer lev Nivel de error a mostrar; 0 -> info (por defecto), 1 -> warn, 2 -> error
-		 * @return boolean
-		 */
-		log: function (mens, lev){
-			if(!JaSper.debug) return false;
-			if(!mens) var mens = 'JaSper debug';
-			if(!lev) var lev = 0;
-
-			if(typeof console != 'object'){
-				//contenedor de los mensajes de debug
-				var e = document.getElementById('JaSperDebug'); //TODO en firefox adquiere los metodos de JaSper, en ie no
-				if(!e){
-					e = document.createElement('ul');
-					e.className = 'JaSperDebug ';
-					e.id = 'JaSperDebug'; //TODO diferenciar id's, por si se crea mas de uno
-					_JaSper('<body>').insertAfter(e);
-				}
-
-				//cada uno de los mensajes de debug
-				var m = document.createElement('li');
-				m.className = 'JaSperDebug' + (lev == 2?'error':(lev == 1?'warn':'info'));
-				m.appendChild(document.createTextNode(mens));
-				_JaSper('<body>').append(m, e);
-			}else{
-				if(typeof mens != 'string') console.dir(mens); //show objects
-
-				switch(lev){
-				case 2: //error
-					console.error(mens);
-					//console.trace();
-					break;
-				case 1: //warn
-					console.warn(mens);
-					break;
-				case 0: //info
-				default:
-					console.info(mens);
-				}
-			}
-			return;
-		},
-
-		/**
 		 * Extiende un objeto con otro
 		 * 
 		 * @param object extendObj Objeto original a extender
@@ -359,6 +306,20 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 				}
 				return retVal;
 			}
+		},
+
+		/**
+		 * recupera una regla css de document o del elemento pasado
+		 */
+		getStyle: function (elem, cssRule){
+			elem = (!elem)?document.defaultView:elem; 
+			var sRet = '';
+			if(elem.nodeType == 1){
+				if(document.defaultView && document.defaultView.getComputedStyle) sRet = document.defaultView.getComputedStyle(elem, "")[cssRule]; //Firefox
+				else if(elem.currentStyle) sRet = elem.currentStyle[cssRule]; //IE
+				else sRet = elem.style[cssRule]; //try and get inline style
+			}
+			return sRet;
 		},
 
 		isArray: function (o){
@@ -471,6 +432,59 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		//cola de ejecucion de los metodos pedientes de la carga de algun script dinamico
 		loadScriptQueue: [],
 
+		/**
+		 * Muestra mensajes de debug, si "this.debug" es true
+		 * Muestra los mensajes en el elemento con id "JaSperDebug" o lo crea bajo el primer nodo de this
+		 * Ej. de uso:
+		 * <code>
+$('#capa').setDebug(true).ajax('ej_respuesta.php');
+		 * </code>
+		 * 
+		 * @todo mostrar el mensaje con la linea correcta en que se ha producido (no la linea de este metodo)
+		 * @since 2011-03-24
+		 * @param string mens Mensaje de debug a mostrar
+		 * @param integer lev Nivel de error a mostrar; 0 -> info (por defecto), 1 -> warn, 2 -> error
+		 * @return boolean
+		 */
+		log: function (mens, lev){
+			if(!JaSper.debug) return false;
+			if(!mens) var mens = 'JaSper debug';
+			if(!lev) var lev = 0;
+
+			if(typeof console != 'object'){
+				//contenedor de los mensajes de debug
+				var e = document.getElementById('JaSperDebug'); //TODO en firefox adquiere los metodos de JaSper, en ie no
+				if(!e){
+					e = document.createElement('ul');
+					e.className = 'JaSperDebug ';
+					e.id = 'JaSperDebug'; //TODO diferenciar id's, por si se crea mas de uno
+					_JaSper('<body>').insertAfter(e);
+				}
+
+				//cada uno de los mensajes de debug
+				var m = document.createElement('li');
+				m.className = 'JaSperDebug' + (lev == 2?'error':(lev == 1?'warn':'info'));
+				m.appendChild(document.createTextNode(mens));
+				_JaSper('<body>').append(m, e);
+			}else{
+				if(typeof mens != 'string') console.dir(mens); //show objects
+
+				switch(lev){
+				case 2: //error
+					console.error(mens);
+					//console.trace();
+					break;
+				case 1: //warn
+					console.warn(mens);
+					break;
+				case 0: //info
+				default:
+					console.info(mens);
+				}
+			}
+			return;
+		},
+
 		makeArray: function (a){
 			var ret = [];
 			if(a != null){
@@ -513,6 +527,20 @@ JaSper.expr[":"] = JaSper.expr.filters;
 			}catch(e){
 				return [];
 			}
+		},
+
+		/**
+		 * pone una regla css de document o del elemento pasado al valor pasado
+		 */
+		setStyle: function (elem, cssRule, value){
+			elem = (!elem)?document.defaultView:elem; 
+
+			if(elem.nodeType == 1){
+				//elem.style.cssText = value;
+				elem.style[cssRule] = value;
+				return true;
+			}
+			return false;
 		},
 
 		/**
@@ -648,29 +676,21 @@ JaSper.funcs.extend(JaSper.prototype, {
 	/**
 	 * recupera una regla css de document o del elemento pasado
 	 */
-	getStyle: function (elem, cssRule){
-		elem = (!elem)?document.defaultView:elem; 
-		var sRet = '';
-		if(elem.nodeType == 1){
-			if(document.defaultView && document.defaultView.getComputedStyle) sRet = document.defaultView.getComputedStyle(elem, "")[cssRule]; //Firefox
-			else if(elem.currentStyle) sRet = elem.currentStyle[cssRule]; //IE
-			else sRet = elem.style[cssRule]; //try and get inline style
-		}
-		return sRet;
+	getStyle: function (cssRule){
+		var elem = this.nodes[0];
+		return JaSper.funcs.getStyle(elem, cssRule);
 	},
 
 	/**
 	 * pone una regla css de document o del elemento pasado al valor pasado
 	 */
-	setStyle: function (elem, cssRule, value){
-		elem = (!elem)?document.defaultView:elem; 
+	setStyle: function (cssRule, value){
+		this.each(function (rul, val){
+			var elem = this;
+			return JaSper.funcs.setStyle(elem, rul, val);
+		}, [cssRule, value]);
 
-		if(elem.nodeType == 1){
-			//elem.style.cssText = value;
-			elem.style[cssRule] = value;
-			return true;
-		}
-		return false;
+		return this;
 	},
 
 	/**
@@ -684,22 +704,22 @@ JaSper.funcs.extend(JaSper.prototype, {
 				//TODO deberia aceptar otros tipos de nodo?
 				if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
 
-				var sActDisplay = _JaSper(this).getStyle(this, 'display');
+				var sActDisplay = JaSper.funcs.getStyle(this, 'display');
 				if(this.style.display == 'none' || !this.style.display){
 
 					var elem = document.createElement(this.nodeName);
 					_JaSper(document.body).append(elem);
 
-					this.origDisp = _JaSper(this).getStyle(elem, 'display');
+					this.originalDisplay = JaSper.funcs.getStyle(elem, 'display');
 
 					_JaSper(document.body).remove(elem);
 				}
-				this.origDisp = (this.origDisp || (sActDisplay != 'none' ? sActDisplay : ''));
+				this.originalDisplay = (this.originalDisplay || (sActDisplay != 'none' ? sActDisplay : ''));
 
 				if(sActDisplay != 'none' ) sActDisplay = 'none';
-				else sActDisplay = this.origDisp;
+				else sActDisplay = this.originalDisplay;
 
-				_JaSper(this).setStyle(this, 'display', sActDisplay);
+				JaSper.funcs.setStyle(this, 'display', sActDisplay);
 			}
 		);
 
@@ -800,6 +820,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 							this.addEventListener('mouseout', JaSper.funcs.mouseEnter(func), ct);
 							break;
 						case 'mousewheel':
+							//recoger el movimiento de la rueda con "ev.wheelDelta = ev.wheelDelta || -(ev.detail);" (3 rueda arriba, -3 rueda abajo)
 							if(_JaSper().gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
 								evt = 'DOMMouseScroll';
 								func = JaSper.funcs.mouseWheel(func);
@@ -1012,6 +1033,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * Añade un nodo hijo al seleccionado, despues de los existentes
 	 * 
 	 * @todo debe funcionar con each (para toda la lista de nodos que se le pase)
+	 * @todo si "nodo" es un objeto JaSper debe moverlo en lugar de añadir
 	 * @since 2010-12-14
 	 * @param nodo Elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
 	 * @param ancla Elemento al que se añadira nodo; si va vacio se usa this (los nodos de JaSper)
@@ -1025,7 +1047,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			elem = document.createElement(nodo[0]);
 			elem.innerHTML = nodo[1];
 			elem.className = nodo[1];
-			elem.id = nodo[1];
+			elem.id = nodo[1]; //TODO no repetir
 		}
 		else elem = nodo;
 
@@ -1045,7 +1067,6 @@ JaSper.funcs.extend(JaSper.prototype, {
 	/**
 	 * Devuelve el HTML de los nodos si no se le pasa nada
 	 * Sustituye el HTML de los nodos con el que se pase por parametro devolviendo el HTML que hubiese previamente
-	 * Devuelve NULL si se le pasa una lista vacia de nodos
 	 * 
 	 * NO permite encadenado de metodos
 	 * 
@@ -1085,7 +1106,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			elem = document.createElement(nodo[0]);
 			elem.innerHTML = nodo[1];
 			elem.className = nodo[1];
-			elem.id = nodo[1];
+			elem.id = nodo[1]; //TODO no repetir
 		}
 		else elem = nodo;
 
@@ -1111,7 +1132,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			elem = document.createElement(nodo[0]);
 			elem.innerHTML = nodo[1];
 			elem.className = nodo[2];
-			elem.id = nodo[3];
+			elem.id = nodo[3]; //TODO no repetir
 		}
 		else elem = nodo;
 
@@ -1126,6 +1147,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * Añade un nodo hijo al seleccionado, antes de los existentes
 	 * 
 	 * @todo debe funcionar con each (para toda la lista de nodos que se le pase)
+	 * @todo si "nodo" es un objeto JaSper debe moverlo en lugar de añadir
 	 * @since 2010-12-16
 	 * @param nodo Elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
 	 * @param ancla Elemento al que se añadira nodo; si va vacio se usa this (los nodos de JaSper)
@@ -1138,7 +1160,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			elem = document.createElement(nodo[0]);
 			elem.innerHTML = nodo[1];
 			elem.className = nodo[1];
-			elem.id = nodo[1];
+			elem.id = nodo[1]; //TODO no repetir
 		}
 		else elem = nodo;
 
@@ -1158,6 +1180,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	/**
 	 * Elimina un elemento
 	 * 
+	 * @todo eliminar eventos asociados y cualquier otra informacion
 	 * @param elem Elemento a eliminar
 	 * @return object JaSper
 	 */
