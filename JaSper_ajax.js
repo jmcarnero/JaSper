@@ -18,7 +18,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 'use strict';
 
 /*traducciones*/
-JaSper.funcs.extendTrads({
+JaSper.funcs.extend(JaSper.langs, {
 "en":{
 	'ajax/ajax_1':'This browser can\'t create AJAX objects.',
 	'ajax/ajax_2':'Loading',

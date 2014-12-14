@@ -1,0 +1,10 @@
+.JaSperRating {display:block;width:150px;height:30px;margin:0px;padding:0px;background: url('../imgs/rating_stars.png') top left repeat-x;}
+.JaSperRating_inactive {width:30px;height:30px;margin:0px;padding:0px;position:absolute;float:left;}
+.JaSperRating_over {width:30px;height:30px;margin:0px;padding:0px;position:absolute;float:left;background: url('../imgs/rating_stars.png') left center;}
+.JaSperRating_active {width:30px;height:30px;margin:0px;padding:0px;position:absolute;float:left;background: url('../imgs/rating_stars.png') left bottom;}
+
+.JaSperRating_text {font-family:arial;font-size:10px;background-color:#999999;}
+
+.JaSperRating_target {width:202px;height:15px;border:1px solid #333333;margin:0px;padding:0px;background-color:#555555;position:absolute;float:left;} /* the bar only */
+.JaSperRating_text {width:40px;height:15px;border:1px solid #333333;margin:0px;margin-left:202px;margin-bottom:2px;padding:0px;font-family:arial;font-size:10px;background-color:#999999;position:absolute;float:left;} /* the rating only */
+

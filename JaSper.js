@@ -217,6 +217,8 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 	};
 
+	JaSper.langs = {'en':{}, 'es':{}}; //traducciones en todos los lenguajes que sean necesarios, definidos por codigo iso 639
+
 	//funciones estaticas referenciables por si mismas,  ej. var winPos = JaSper.funcs.windowPosition()
 	JaSper.funcs = {
 
@@ -227,6 +229,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 * @param object addObj Objeto con metodos que se agregaran a extendObj
 		 */
 		extend: function (extendObj, addObj){
+			if(extendObj === JaSper.langs){ //extiende traducciones
+				JaSper.funcs.extendTrads(addObj);
+				return;
+			}
+
 			for(var a in addObj){
 				extendObj[a] = addObj[a];
 			}
@@ -241,10 +248,10 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 */
 		extendTrads: function (obj){
 			for(var lang in obj){
-				if(!JaSper.funcs.trads[lang]) JaSper.funcs.trads[lang] = {};
+				if(!JaSper.langs[lang]) JaSper.langs[lang] = {};
 
 				for(var key in obj[lang]){
-					JaSper.funcs.trads[lang][key] = obj[lang][key];
+					JaSper.langs[lang][key] = obj[lang][key];
 				}
 			}
 			return;
@@ -276,6 +283,29 @@ http://www.gnu.org/copyleft/gpl.html*/
 				}
 			}
 			return list;
+		},
+
+		/**
+		 * Crea un identificador unico
+		 *
+		 * @todo revisar funcionamiento, random no garantiza unico
+		 * @since 2011-06-09
+		 * @param int len Longitud minima del identificador
+		 * @return string
+		 */
+		genId: function(len){
+			var gid = 'JaSper_';
+			if(!len || (len.length < gid.length)) len = gid.length + 1;
+
+			var chars = "0123456789abcdefghijklmnopqurstuvwxyzABCDEFGHIJKLMNOPQURSTUVWXYZ";
+			var rnum;
+
+			while(gid.length < len || document.getElementById(gid)){
+				rnum = Math.floor(Math.random() * (chars.length - 1));
+				gid += chars.substr(rnum, 1 );
+			}
+
+			return gid;
 		},
 
 		//devuelve elementos filtrados por className, nodo y tag
@@ -598,12 +628,10 @@ JaSper.expr[":"] = JaSper.expr.filters;
 			if(!lang) var lang = JaSper.lang;
 
 			if(!JaSper.funcs.isArray(trad)) trad = [trad];
-			if(JaSper.funcs.trads[lang] && JaSper.funcs.trads[lang][trad[0]]) trad[0] = JaSper.funcs.trads[lang][trad[0]];
+			if(JaSper.langs[lang] && JaSper.langs[lang][trad[0]]) trad[0] = JaSper.langs[lang][trad[0]];
 
 			return(JaSper.funcs.sprintf.apply(this, trad));
 		},
-
-		trads: {'en':{}, 'es':{}}, //traducciones en todos los lenguajes que sean necesarios, definidos por codigo iso 639
 
 		/**
 		 * Posicion de la ventana de visualizacion respecto al total de la pagina cargada
@@ -1256,6 +1284,9 @@ JaSper.funcs.extend(JaSper.prototype, {
 			case 'move':
 				library = 'JaSper_move.js';
 				break;
+			case 'rating':
+				library = 'JaSper_rating.js';
+				break;
 			default:
 				library = false;
 				JaSper.funcs.log('-JaSper::loadMethod- Intenta cargar dinamicamente una librería desconocida para el metodo: ' + method, 1);
@@ -1275,10 +1306,11 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 	ajax: function (){return(this.loadMethod('ajax', arguments));},
 
-	/*
-	 * Movimiento de elementos *
-	 */
+	/* Movimiento de elementos */
 	move: function (){return(this.loadMethod('move', arguments));},
+
+	/* Movimiento de elementos */
+	rating: function (){return(this.loadMethod('rating', arguments));}
 
 });
 
