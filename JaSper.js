@@ -287,26 +287,54 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 		/**
 		 * Crea un identificador unico
+		 * Solo debe ser unico mientras exista la pagina y para la propia pagina
 		 *
 		 * @todo revisar funcionamiento, random no garantiza unico
 		 * @since 2011-06-09
 		 * @param int len Longitud minima del identificador
 		 * @return string
 		 */
-		genId: function(len){
+		genId: function (len){
 			var gid = 'JaSper_';
-			if(!len || (len.length < gid.length)) len = gid.length + 1;
+			if(!len || (len.length < (gid.length + 3))) len = gid.length + 3;
 
 			var chars = "0123456789abcdefghijklmnopqurstuvwxyzABCDEFGHIJKLMNOPQURSTUVWXYZ";
 			var rnum;
 
 			while(gid.length < len || document.getElementById(gid)){
+				/*rnum = Math.abs(Math.sin(JaSper.funcs.getTimer())) * (chars.length - 1); //sin es ciclica, no garantiza unicos
+				gid += chars.substr(rnum, 1 );*/
 				rnum = Math.floor(Math.random() * (chars.length - 1));
 				gid += chars.substr(rnum, 1 );
 			}
 
 			return gid;
 		},
+
+		/**
+		 * Medir tiempos
+		 * Performance cuenta desde el inicio de la carga de la pagina y no se ve afectado por cambios en el reloj del sistema; pero no es estandar, puede no funcionar en algun navegador
+		 * Date().getTime() puede verse afectado por cambios en el reloj del sistema operativo (como si este se actualiza desde un servidor de tiempos mientras corre el script)
+		 * 
+			var tIni = performance.now();
+			[codigo]
+			var tFin = performance.now();
+			alert('Tiempo transcurrido ' + (tFin - tIni) + ' ms.');
+			window.performance = window.performance || {};
+			performance.now = (function (){
+				return performance.now || performance.mozNow || performance.msNow || performance.oNow || performance.webkitNow || function (){return new Date().getTime();};
+			})();
+		 * 
+		 * @todo guardar en una propiedad de JaSper tiempos desde que se inicia el objeto, ejecuciones, etc
+		 */
+		/*getTimer: function (){
+			var performance = window.performance || {};
+			performance.now = (function (){
+				return performance.now || performance.mozNow || performance.msNow || performance.oNow || performance.webkitNow || function (){return new Date().getTime();};
+			})();
+
+			return performance.now();
+		},*/
 
 		//devuelve elementos filtrados por className, nodo y tag
 		getElementsByClassName: function (clsName, node, tag){
@@ -477,6 +505,20 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @return boolean
 		 */
 		log: function (mens, lev){
+
+			//intenta recuperar donde se origino el mensaje de aviso, basta con buscar desde donde se llama a este metodo
+			var sStack = '', aStack = [];
+			try{
+				JaSper._fail(); //genera una excepcion para ver la traza de ejecucion; NO CREAR ESTE METODO o no habra excepcion
+			}catch(ex){
+				if (ex.stack) sStack = e.stack;
+				else if(ex.stacktrace) sStack = e.stacktrace; //TODO pendiente de verificacion
+			}
+
+			//TODO pendiente, hacer con expresiones regulares?
+			//aStack = sStack.split('');
+			//"JaSper.funcs.log@http://itaca/~jmanuel/sargazos_net/scripts/JaSper.js:513:5 JaSper.funcs.loadScript/script.onload@http://itaca/~jmanuel/sargazos_net/scripts/JaSper.js:468:7 "
+
 			if(!JaSper.debug) return false;
 			if(!mens) var mens = 'JaSper debug';
 			if(!lev) var lev = 0;

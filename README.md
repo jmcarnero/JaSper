@@ -7,8 +7,9 @@
 - Carga dinámica de componentes.
 - Gestión de nodos y eventos.
 - Traducción automática de textos.
-- AJAX con callbacks para inicio, fin y fallo de peticion.
-- Movimiento de objetos (en desarrollo).
+- [AJAX](JaSper_ajax.js) con callbacks para inicio, fin y fallo de peticion.
+- [Movimiento de objetos](JaSper_move.js) (en desarrollo).
+- [Valoración](JaSper_rating.js).
 
 *Ejemplo:*
 ```javascript
@@ -20,6 +21,9 @@ $(document).setDebug(true).ready(function(){
 	});
 });
 ```
+
+_Testeo en Firefox_
+
 ====
 **In English:**
 
@@ -28,9 +32,10 @@ $(document).setDebug(true).ready(function(){
 - XPath selector and CSS selector.
 - Dynamic loading of components.
 - Node and events management.
-- Text translation automatic.
-- AJAX with start callback, end callback and fail callback.
-- Object movement (draft version).
+- Text translation.
+- [AJAX](JaSper_ajax.js) with start callback, end callback and fail callback.
+- [Object movement](JaSper_move.js) (draft version).
+- [Rating](JaSper_rating.js).
 
 *Example:*
 ```javascript
@@ -43,3 +48,4 @@ $(document).setDebug(true).ready(function(){
 });
 ```
 
+_Tested on Firefox_
