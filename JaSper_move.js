@@ -33,11 +33,10 @@ JaSper.funcs.extend(JaSper.prototype, {
 	move: function (props){
 
 		if(typeof props !== 'object') var props = {};
-		props.box = false; //limita el movimiento del objeto a nada (false), la caja en la que este contenido ('parent')
 		props.container = props.container || false; //limita el movimiento del objeto al contendedor en que se encuentra (si true) //TODO de momento solo limita a parentNode, pasar como parametro el objeto contenedor
-		props.endPos = props.endPos || 'reset'; //posicion final del objeto: reset (devuelve a la posicion de inicio), 'stay' (se queda donde se suelte)
-		props.place = props.place || false; //true -> ocupara un espacio (desplazando su entorno) o false -> se situara sobre los demas (via z-index y position absolute, sin molestar)
-		props.placeHolder = props.placeHolder || false; //mientras el objeto se mueve pone un objeto sombra con su tamaño en la posicion actual (true), o se mueve sin mover el resto de objetos (false)
+		props.reset = props.reset == undefined ? true : props.reset; //posicion final del objeto: true (devuelve a la posicion de inicio), false (se queda donde se suelte)
+		props.place = props.place || false; //true -> mueve la sombra indicando el lugar que ocupara el elemento cuando se suelte (desplazando su entorno), si reset == false; o false -> se situara sobre los demas (via z-index y position absolute, sin molestar) si reset == false (si no volvera a su lugar original)
+		props.shadow = props.shadow || false; //mientras el objeto se mueve pone un objeto sombra con su tamaño en la posicion actual (true), o se mueve sin mover el resto de objetos (false)
 		props.restrict = props.restrict || false; //limita el movimiento del objeto al eje 'x', eje 'y' o sin limites false
 
 		//CALLBACKS en los tres casos reciben como primer parametro el objeto que se esta moviendo, referenciable como this //TODO pensar que hacer con lo que se devuelve (si se devuelve algo)
@@ -49,10 +48,10 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 		var createShadow = function (obj){
 			JaSperShadow = document.createElement(obj.tagName);
-			JaSperShadow.id = 'JaSperShadow';
+			JaSperShadow.id = 'JaSper_shadow';
 			JaSperShadow.innerHTML = '&nbsp';
 			JaSperShadow.style = obj.style;
-			JaSperShadow.className = obj.className;
+			JaSperShadow.className = obj.className + ' JaSper_shadow';
 			//JaSperShadow.className = nodo[1]; //TODO asignar una clase "sombra"?
 			/*JaSperShadow.style.position = obj.posStyle;
 			JaSperShadow.style.top = obj.offsetTop;
@@ -70,14 +69,14 @@ JaSper.funcs.extend(JaSper.prototype, {
 		var moveEnd = function (event, obj, funcs){
 			_JaSper(obj).evPreventDefault(event).evStop(event);
 
-			if(props.endPos == 'reset'){
+			if(props.reset){
 				obj.style.left = obj.posMoveStart['x'] + 'px';
 				obj.style.top = obj.posMoveStart['y'] + 'px';
 
 				obj.style.position = obj.posStyle;
 			}
 
-			if(props.placeHolder){
+			if(props.shadow){
 				JaSperShadow.parentNode.removeChild(JaSperShadow); //TODO desenganchar del arbol DOM en lugar de borrarlo para no estar continuamente creandolo?
 			}
 
@@ -105,8 +104,15 @@ JaSper.funcs.extend(JaSper.prototype, {
 			var top = obj.posMoveStart['y'] + (props.restrict == 'x' ? 0 : pos['y'] - obj.posMouseInicial['y']);
 			var left = obj.posMoveStart['x'] + (props.restrict == 'y' ? 0 : pos['x'] - obj.posMouseInicial['x']);
 
-			if(props.container){ //TODO limitar el movimiento del objeto a su contenedor
-				//if(obj.posMoveStart['y']) obj.posMoveStartParent
+			//limita el movimiento del objeto a la caja que lo contiene
+			if(props.container){ //TODO controlar en que direccion se mueve el raton para simplificar hacia donde se limita el movimiento
+				var bottom = top + obj.posMoveStart['h'];
+				var right = left + obj.posMoveStart['w'];
+
+				if(top < obj.posMoveStartParent['y']) top = obj.posMoveStartParent['y'];
+				if(left < obj.posMoveStartParent['x']) left = obj.posMoveStartParent['x'];
+				if(bottom > obj.posMoveStartParent['y2']) top = obj.posMoveStartParent['y2'] - obj.posMoveStart['h'];
+				if(right > obj.posMoveStartParent['x2']) left = obj.posMoveStartParent['x2'] - obj.posMoveStart['w'];
 			}
 
 			obj.style.top = top + 'px';
@@ -150,14 +156,20 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 			if(typeof props.onMoveStart === 'function') props.onMoveStart.call(obj);
 
-			if(props.placeHolder){
+			if(props.shadow){
 				createShadow(obj);
 			}
 
 			obj.posMoveStart = posObject(obj);
 			obj.posMouseInicial = posMouse(event);
+
 			if(props.container){
 				obj.posMoveStartParent = posObject(obj.parentNode);
+
+				obj.parentNode.style.top = obj.posMoveStartParent['y'] + 'px'; //fuerza al contenedor a que conserve su tamaño; cuando los objetos en movimiento cambian a absolute desaparece el hueco y cambia el tamaño del parent
+				obj.parentNode.style.left = obj.posMoveStartParent['x'] + 'px';
+				obj.parentNode.style.width = obj.posMoveStartParent['w'] + 'px';
+				obj.parentNode.style.height = obj.posMoveStartParent['h'] + 'px';
 			}
 
 			//TODO de momento solo mueve con position:absolute
@@ -182,6 +194,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 		/* devuelve la posicion del elemento con respecto a su contenedor (left y top), (array=>['x'] - ['y']) */
 		var posObject = function (obj){
+			//TODO el tamaño de las cajas no se calcula igual en todos los navegadores
 			var boxLeft = parseInt(JaSper.funcs.getStyle(obj, 'marginLeft'));
 			var boxTop = parseInt(JaSper.funcs.getStyle(obj, 'marginTop'));
 
@@ -193,7 +206,6 @@ JaSper.funcs.extend(JaSper.prototype, {
 				curleft += objLT.offsetLeft;
 				curtop += objLT.offsetTop;
 			}
-
 
 			var pos = new Array();
 			pos['w'] = parseInt(JaSper.funcs.getStyle(obj, 'width')); //pos['w'] = obj.offsetWidth; //ancho del elemento

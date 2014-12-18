@@ -505,22 +505,36 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @return boolean
 		 */
 		log: function (mens, lev){
+			if(!JaSper.debug) return false;
 
 			//intenta recuperar donde se origino el mensaje de aviso, basta con buscar desde donde se llama a este metodo
 			var sStack = '', aStack = [];
 			try{
-				JaSper._fail(); //genera una excepcion para ver la traza de ejecucion; NO CREAR ESTE METODO o no habra excepcion
+				sStack = new Error().stack; //fuerza error para generar la traza
 			}catch(ex){
-				if (ex.stack) sStack = e.stack;
-				else if(ex.stacktrace) sStack = e.stacktrace; //TODO pendiente de verificacion
+				//alert("name:" + ex.name + "\nmessage:" + ex.message);
+				if (ex.stack) sStack = ex.stack;
+				else if(ex.stacktrace) sStack = ex.stacktrace; //TODO pendiente de verificacion
+				else sStack = ex.message; //opera
+			}finally{
+				if(sStack){
+					var lineas = sStack.split('\n');
+					for(var i = 0, len = lineas.length; i < len; i++){
+						if(lineas[i].match(/^\s*[A-Za-z0-9\-_$]+/)){
+							aStack.push(lineas[i]);
+
+							//en opera las lineas impares tienen el mensaje de error, las impares donde se ha producido
+							/*var entry = lineas[i];
+							if(lineas[i+1]) entry += ' at ' + lineas[++i];
+							aStack.push(entry);*/
+						}
+					}
+					//aStack.shift(); //elimina la llamada a este metodo
+				}
 			}
 
-			//TODO pendiente, hacer con expresiones regulares?
-			//aStack = sStack.split('');
-			//"JaSper.funcs.log@http://itaca/~jmanuel/sargazos_net/scripts/JaSper.js:513:5 JaSper.funcs.loadScript/script.onload@http://itaca/~jmanuel/sargazos_net/scripts/JaSper.js:468:7 "
-
-			if(!JaSper.debug) return false;
 			if(!mens) var mens = 'JaSper debug';
+			mens += '\n[' + aStack[1] + ']'; //hacer esta informacion opcional o solo mostrar fichero y linea de la llamada?
 			if(!lev) var lev = 0;
 
 			if(typeof console != 'object'){
@@ -544,7 +558,6 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 				switch(lev){
 				case 2: //error
 					console.error(mens);
-					//console.trace();
 					break;
 				case 1: //warn
 					console.warn(mens);
