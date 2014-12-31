@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
+<head>
+	<title>Ejemplo de uso de Rating</title>
+	<link rel="stylesheet" type="text/css" media="screen,projection" href="../css/rating_styles.css" />
+<style type="text/css">
+/*corrige la transparencia de png en ie*/
+* img {background: transparent;
+-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#00FFFFFF,endColorstr=#00FFFFFF)"; /* IE8 */
+filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#00FFFFFF,endColorstr=#00FFFFFF);   /* IE7 */
+zoom: 1;}
+</style>
+	<script type="text/javascript" src="../JaSper.js"></script>
+	<script type="text/javascript">
+	<!--
+		window.jsAcceptLanguage = 'en';
+		$().ready(function(){
+			$('.rating').setDebug(true).rating();
+		});
+
+//problemas de transparencia en IE con PNG
+/*(function ($) {
+if (!$) return;
+$.fn.extend({
+    fixPNG: function(sizingMethod, forceBG) {
+            if (!($.browser.msie)) return this;
+            var emptyimg = "x.gif"; //Path to empty 1x1px GIF goes here
+            sizingMethod = sizingMethod || "scale"; //sizingMethod, defaults to scale (matches image dimensions)
+            this.each(function() {
+                    var isImg = (forceBG) ? false : jQuery.nodeName(this, "img"),
+                            imgname = (isImg) ? this.src : this.currentStyle.backgroundImage,
+                            src = (isImg) ? imgname : imgname.substring(5,imgname.length-2);
+                    this.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" + src + "', sizingMethod='" + sizingMethod + "')";
+                    if (isImg) this.src = emptyimg;
+                    else this.style.backgroundImage = "url(" + emptyimg + ")";
+            });
+            return this;
+    }
+});
+})(jQuery);*/
+
+	-->
+	</script>
+</head>
+<body>
+	<h1>Ejemplo de uso de Rating</h1>
+	<p>estrellas 1: <span class="rating">activar javascript para rating 1</span></p>
+	<p>estrellas 2: <span id="capaRating2" class="rating">activar javascript para rating 2</span></p>
+</body>
+</html>

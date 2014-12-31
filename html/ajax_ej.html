@@ -1,0 +1,21 @@
+<html>
+<head>
+	<title>Ejemplo de uso de AJAX</title>
+	<script type="text/javascript" src="../JaSper.js"></script>
+	<script type="text/javascript">
+	<!--
+		$().ready(function(){
+			//alert('version: ' + $().navegador + "\nmsie: " + $().msie + "\nmozilla: " + $().mozilla + "\nopera: " + $().opera + "\nwebkit: " + $().webkit);
+			$('#capaAjaxA').evAdd('click', function(){
+				$('#capaAjax').setDebug(true).ajax('ajax_ej_respuesta.php');
+			});
+		});
+	-->
+	</script>
+</head>
+<body>
+	<h1>Ejemplo de uso de AJAX</h1>
+	<p><a id="capaAjaxA" href="#">Pincha aqu&iacute;</a></p>
+	<p id="capaAjax">Esto desaparecer&aacute; cuando pinches arriba</p>
+</body>
+</html>

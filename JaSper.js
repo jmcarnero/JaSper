@@ -1325,6 +1325,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 *
 	 * @since 2011-05-16
 	 * @todo funcionan cadenas?
+	 * @todo decidir si devolver algo
 	 * @param string method Nombre del metodo
 	 * @param array args Argumentos del metodo
 	 * @param string library JS a cargar
@@ -1342,6 +1343,12 @@ JaSper.funcs.extend(JaSper.prototype, {
 			case 'rating':
 				library = 'JaSper_rating.js';
 				break;
+			case 'canvas':
+				library = 'JaSper_canvas.js';
+				break;
+			case 'rtb':
+				library = 'JaSper_rtb.js';
+				break;
 			default:
 				library = false;
 				JaSper.funcs.log('-JaSper::loadMethod- Intenta cargar dinamicamente una librería desconocida para el metodo: ' + method, 1);
@@ -1356,7 +1363,9 @@ JaSper.funcs.extend(JaSper.prototype, {
 			JaSper.funcs.loadScriptQueue.push({'fn':tempCall,'ctx':this});
 			//JaSper.funcs.loadScript('packer.php?scriptJs=' + library); //version con empaquetador/minificador "class.JavaScriptPacker.php"
 			JaSper.funcs.loadScript(library); //version sin empaquetador
-		}
+		};
+
+		return this;
 	},
 
 	ajax: function (){return(this.loadMethod('ajax', arguments));},
@@ -1364,9 +1373,14 @@ JaSper.funcs.extend(JaSper.prototype, {
 	/* Movimiento de elementos */
 	move: function (){return(this.loadMethod('move', arguments));},
 
-	/* Movimiento de elementos */
-	rating: function (){return(this.loadMethod('rating', arguments));}
+	/* Sistema de valoracion, Rating */
+	rating: function (){return(this.loadMethod('rating', arguments));},
 
+	/* Canvas */
+	canvas: function (){return(this.loadMethod('canvas', arguments));},
+
+	/* Rich Text Box */
+	rtb: function (){return(this.loadMethod('rtb', arguments));}
 });
 
 /**************************
@@ -1391,4 +1405,38 @@ if(typeof this.indexOf != "function"){
 		}
 		return -1;
 	};
+}
+
+//From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+if(!Object.keys){
+	Object.keys = (function(){
+		'use strict';
+		var hasOwnProperty = Object.prototype.hasOwnProperty,
+		hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
+		dontEnums = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'],
+		dontEnumsLength = dontEnums.length;
+
+		return function(obj){
+			if(typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)){
+				throw new TypeError('Object.keys called on non-object');
+			}
+
+			var result = [], prop, i;
+
+			for(prop in obj){
+				if(hasOwnProperty.call(obj, prop)){
+					result.push(prop);
+				}
+			}
+
+			if(hasDontEnumBug){
+				for(i = 0; i < dontEnumsLength; i++){
+					if(hasOwnProperty.call(obj, dontEnums[i])){
+						result.push(dontEnums[i]);
+					}
+				}
+			}
+			return result;
+		};
+	}());
 }

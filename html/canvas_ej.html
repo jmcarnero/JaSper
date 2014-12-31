@@ -1,0 +1,24 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
+<head>
+	<title>Ejemplo de uso de Canvas con JaSper</title>
+	<script type="text/javascript" src="../JaSper.js"></script>
+	<script type="text/javascript"><!--
+		$().ready(function(){
+			$('#canvas1').setDebug(true).canvas(
+				{polygon: {sides: 5, r: 10, x: 55, y: 23}},
+				{polygon: {sides: 4, r: 100, angle: 90}},
+				{polygon: {sides: 9, r: 20, x: 205, y: 48, fill: 'red'}},
+				{circle: {r: 15, x: 250, y: 130, fill: 'green', angleStart: 100}},
+				{text: {}},
+				{image: {x: 10, y: -15}}
+			);
+		});
+	--></script>
+</head>
+<body>
+	<h1>Ejemplo de uso de Canvas con JaSper</h1>
+	<canvas id="canvas1">Tu navegador no soporta Canvas</canvas>
+	<canvas id="canvas2">Tu navegador no soporta Canvas</canvas>
+</body>
+</html>

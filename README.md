@@ -8,6 +8,7 @@
 - Gestión de nodos y eventos.
 - Traducción automática de textos.
 - [AJAX](JaSper_ajax.js) con callbacks para inicio, fin y fallo de peticion.
+- [Canvas](JaSper_canvas.js)  (en desarrollo).
 - [Movimiento de objetos](JaSper_move.js) (en desarrollo).
 - [Valoración](JaSper_rating.js).
 
@@ -34,6 +35,7 @@ _Testeo en Firefox_
 - Node and events management.
 - Text translation.
 - [AJAX](JaSper_ajax.js) with start callback, end callback and fail callback.
+- [Canvas](JaSper_canvas.js)  (draft version).
 - [Object movement](JaSper_move.js) (draft version).
 - [Rating](JaSper_rating.js).
 
