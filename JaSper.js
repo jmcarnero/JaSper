@@ -1343,6 +1343,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			case 'rating':
 				library = 'JaSper_rating.js';
 				break;
+			case 'animate':
 			case 'canvas':
 				library = 'JaSper_canvas.js';
 				break;
@@ -1377,6 +1378,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	rating: function (){return(this.loadMethod('rating', arguments));},
 
 	/* Canvas */
+	animate: function (){return(this.loadMethod('animate', arguments));},
 	canvas: function (){return(this.loadMethod('canvas', arguments));},
 
 	/* Rich Text Box */

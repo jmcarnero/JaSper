@@ -32,7 +32,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 		var callFuncs = function (jasperObj, props){
 			jasperObj.each(function (){
-				if(this.nodeName.toLowerCase() != 'canvas'){
+				if(typeof this != 'object' || this.nodeName.toLowerCase() != 'canvas'){
 					JaSper.funcs.log('-JaSper::canvas.callFuncs- el objeto no es canvas', 1);
 					return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
 				}
@@ -45,8 +45,9 @@ JaSper.funcs.extend(JaSper.prototype, {
 				if(props.id == undefined || props.id === false){
 					props.id =  this.JaSperItems.length;
 				}
+
 				//cada elemento de este array debe guardar todo lo necesario para volver a pintarlo si fuera necesario
-				this.JaSperItems[props.id] = props;
+				this.JaSperItems[props.id] = props; //cada elemento tiene como nombre su id, y sus propiedades como un objeto
 
 				//props = context.canvas.JaSperItems[id];
 
@@ -58,8 +59,8 @@ JaSper.funcs.extend(JaSper.prototype, {
 			}, props);
 		};
 
-		//metodos llamables
-		var validFuncs = {'animate': 'canvasAnimate', 'circle': 'canvasCircle', 'image': 'canvasImage', 'path': 'canvasPath', 'polygon': 'canvasPolygon', 'text': 'canvasText'};
+		//metodos disponibles
+		var validFuncs = {'circle': 'canvasCircle', 'image': 'canvasImage', 'path': 'canvasPath', 'polygon': 'canvasPolygon', 'text': 'canvasText'};
 
 		for(var arg in arguments){
 			var func = false;
@@ -88,23 +89,72 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @param object props Propiedades del circulo {"id": "id_circulo", "centroX": nn, "centroY": nn, "radio": nn, "fondo": "color_fondo"}
 	 * @return boolean
 	 */
-	animateCanvas: function (){
+	animate: function (){
+		//devolver la posicion del raton cuando se hace click en el canvas
+		/*this.addEventListener('click',function(evt){
+			alert(evt.clientX + ',' + evt.clientY);
+			},false);*/
+
+		var args = arguments;
+
+		this.each(function (){
+			if(this.nodeName.toLowerCase() != 'canvas'){
+				JaSper.funcs.log('-JaSper::animate- el objeto no es canvas', 1);
+				return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
+			}
+
+			return JaSper.funcs.canvasAnimate(null, this, args);
+		}, args);
+
+		return this;
 	}
 
 });
 
 JaSper.funcs.extend(JaSper.funcs, {
 
-	//anima un canvas (tendra que hacerlo el metodo de redibujado), llamando a esta misma funcion a intervalos regulares (cada frame se redibuja)
-	canvasAnimate: function (){
-		JaSper.funcs.canvasRequestAnimationFrame(JaSper.funcs.canvasAnimate());
-		JaSper.funcs.canvasRedraw();
+	//anima un canvas, llamando a esta misma funcion a intervalos regulares (cada frame se redibuja)
+	//el primer parametro es, obligatoriamente timestamp, creado automaticamente por "window.requestAnimationFrame"
+	canvasAnimate: function (timestamp, canvas, props){
+		window.requestAnimationFrame(function(){
+			JaSper.funcs.canvasAnimate(null, canvas, props);
+		});
 
+		var callFuncs = function (canvasObj, callProps){
+			if(typeof canvasObj != 'object' || canvasObj.nodeName.toLowerCase() != 'canvas'){
+				JaSper.funcs.log('-JaSper::canvasAnimate.callFuncs- el objeto no es canvas', 1);
+				return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
+			}
 
-		//devolver la posicion del raton cuando se hace click en el canvas
-		/*this.addEventListener('click',function(evt){
-			alert(evt.clientX + ',' + evt.clientY);
-			},false);*/
+			var JaSperFunc = JaSper.funcs[callProps.func];
+			if(typeof JaSperFunc === 'function')
+				return JaSperFunc.call(null, canvasObj, callProps);
+
+			return false;
+		};
+
+		//metodos disponibles
+		var validFuncs = {'move': 'canvasMove'};
+
+		for(var pr in props){
+			var func = false;
+			try{
+				func = Object.keys(props[pr])[0];
+			}
+			catch(ex){}
+
+			var callProps = props[pr][func];
+			if(func !== false && validFuncs[func] !== undefined){
+				callProps.func = validFuncs[func];
+				callFuncs(canvas, callProps);
+			}
+			else{
+				JaSper.funcs.log('-JaSper::canvasAnimate- submetodo desconocido: ' + props[pr], 2);
+				return false;
+			}
+		}
+
+		JaSper.funcs.canvasRedraw(canvas);
 	},
 
 	/**
@@ -169,6 +219,31 @@ JaSper.funcs.extend(JaSper.funcs, {
 	},
 
 	/**
+	 * Mueve objetos en el canvas
+	 * 
+	 * @since 2015-01-06
+	 * @param object canvas Canvas object
+	 * @param object props Propiedades
+	 * @return boolean
+	 */
+	canvasMove: function (canvas, props){
+		if(typeof canvas !== 'object' || canvas.nodeName.toLowerCase() != 'canvas')
+			return false;
+
+		if(!props.id || !canvas.JaSperItems[props.id])
+			return false;
+
+		props.angle = props.angle || 0; //angulo del movimiento
+		var radianes = props.angle * Math.PI / 180;
+		props.speed = props.speed || 1; //velocidad, en pixels, del movimiento
+
+		canvas.JaSperItems[props.id].x += (Math.cos(radianes) * props.speed);
+		canvas.JaSperItems[props.id].y += (Math.sin(radianes) * props.speed);
+
+		return true;
+	},
+
+	/**
 	 * Dibuja una forma a partir de una serie (array) de puntos
 	 * 
 	 * @since 2014-12-30
@@ -181,20 +256,6 @@ JaSper.funcs.extend(JaSper.funcs, {
 
 		return true;
 	},
-
-	//devuelve un "animation loop" nativo de canvas, si existe, o un timeout ciclico; ambos usables para dibujar frames en una animacion
-	//ver JaSper.funcs.canvasAnimate()
-	//debe ser un objeto global? [TypeError: 'requestAnimationFrame' called on an object that does not implement interface Window.]
-	canvasRequestAnimationFrame: (
-		window.requestAnimationFrame 
-		|| window.webkitRequestAnimationFrame
-		|| window.mozRequestAnimationFrame
-		|| window.oRequestAnimationFrame
-		|| window.msRequestAnimationFrame
-		|| function (callback){
-				window.setTimeout(callback, 15);
-			}
-	),
 
 	/**
 	 * Dibuja un poligono cerrado de N lados
@@ -245,6 +306,33 @@ JaSper.funcs.extend(JaSper.funcs, {
 	},
 
 	/**
+	 * Redibujado de canvas (de todos los objetos definidos como tal)
+	 * 
+	 * @since 2015-01-05
+	 * @param object canvas Objeto canvas a redibujar
+	 * @return boolean
+	 */
+	canvasRedraw: function (canvas){
+		if(typeof canvas !== 'object' || canvas.nodeName.toLowerCase() != 'canvas'){
+			JaSper.funcs.log('-JaSper::canvasRedraw- el objeto no es canvas', 1);
+			return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
+		}
+
+		var context = canvas.getContext('2d');
+		context.fillStyle = '#fff'; //TODO limpia el canvas antes de redibujarlo, parametrizar este color de fondo; si no se limpia los objetos en movimiento dejan estela (no se borran las posiciones anteriores); tal vez el fondo deberia ser un objeto mas
+		context.fillRect(0, 0, canvas.width, canvas.height);
+
+		var items = canvas.JaSperItems;
+		for(var item in items){
+			var JaSperFunc = JaSper.funcs[items[item].func];
+			if(typeof JaSperFunc === 'function')
+				JaSperFunc.call(null, context, items[item]); //TODO decidir que hacer con el retorno de la funcion
+		}
+
+		return true;
+	},
+
+	/**
 	 * Dibuja texto
 	 * 
 	 * @since 2014-12-27
@@ -257,20 +345,63 @@ JaSper.funcs.extend(JaSper.funcs, {
 
 		props.x = props.x || 100; //centro, coordenada x
 		props.y = props.y || 100; //centro, coordenada y
-		props.fillStyle = props.fillStyle || '#ccc'; //color
+		props.fillStyle = props.fillStyle || '#01f'; //color
 		if(!props.font){
 			props.fontItalic = props.fontItalic || 'italic';
 			props.fontWeight = props.fontWeight || 'bold';
-			props.fontSize = props.fontSize || '35pt';
+			props.fontSize = props.fontSize || '15pt';
 			props.fontName = props.fontName || 'Tahoma';
 			props.font = props.fontItalic + ' ' + props.fontWeight + ' ' + props.fontSize + ' ' + props.fontName;
 		}
 		props.fillText = props.fillText || 'Hello world!';
 
-		context.fillStyle = "red";
-		context.font = "italic   ";
+		context.fillStyle = props.fillStyle;
+		context.font = props.font;
 		context.fillText(props.fillText, props.x, props.y);
 
 		return true;
 	}
 });
+
+//devuelve un "animation loop" nativo de canvas, si existe, o un timeout ciclico; ambos usables para dibujar frames en una animacion
+//ver JaSper.funcs.canvasAnimate()
+//debe ser un objeto global? [TypeError: 'requestAnimationFrame' called on an object that does not implement interface Window.]
+/*window.JaSper_canvasRequestAnimationFrame = (function(){
+	return window.requestAnimationFrame
+	|| window.webkitRequestAnimationFrame
+	|| window.mozRequestAnimationFrame
+	|| window.oRequestAnimationFrame
+	|| window.msRequestAnimationFrame
+	|| function (callback){
+			window.setTimeout(callback, 1000 / 60);
+		};
+})();*/
+
+/*http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+
+requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
+
+MIT license*/
+(function(){
+	var lastTime = 0;
+	var vendors = ['ms', 'moz', 'webkit', 'o'];
+	for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x){
+		window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+		window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame']
+		|| window[vendors[x] + 'CancelRequestAnimationFrame'];
+	}
+	if(!window.requestAnimationFrame)
+		window.requestAnimationFrame = function(callback, element){
+			var currTime = new Date().getTime();
+			var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+			var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+				timeToCall);
+			lastTime = currTime + timeToCall;
+			return id;
+		};
+	if(!window.cancelAnimationFrame)
+		window.cancelAnimationFrame = function(id){
+			clearTimeout(id);
+		};
+}());

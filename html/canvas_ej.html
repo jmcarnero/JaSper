@@ -4,14 +4,22 @@
 	<title>Ejemplo de uso de Canvas con JaSper</title>
 	<script type="text/javascript" src="../JaSper.js"></script>
 	<script type="text/javascript"><!--
+		//numero aleatorio entre min y max
+		function getRandom(min, max){
+			return Math.random() * (max - min) + min;
+		}
+
 		$().ready(function(){
 			$('#canvas1').setDebug(true).canvas(
-				{polygon: {sides: 5, r: 10, x: 55, y: 23}},
-				{polygon: {sides: 4, r: 100, angle: 90}},
-				{polygon: {sides: 9, r: 20, x: 205, y: 48, fill: 'red'}},
-				{circle: {r: 15, x: 250, y: 130, fill: 'green', angleStart: 100}},
-				{text: {}},
-				{image: {x: 10, y: -15}}
+				{polygon: {id: 'poly5', sides: 5, r: 10, x: 55, y: 23}},
+				{polygon: {id: 'poly4', sides: 4, r: 100, angle: 90}},
+				{polygon: {id: 'poly9', sides: 9, r: 20, x: 205, y: 48, fill: 'red'}},
+				{circle: {id: 'circle1', r: 15, x: 250, y: 130, fill: 'green', angleStart: 100}},
+				{text: {id: 'text1', }}/*,
+				{image: {id: 'img1', x: 10, y: -15}}*/
+			).animate(
+				{move: {id: 'poly9', angle: (function(){return getRandom(0, 360);})(), speed: 1}},
+				{move: {id: 'poly5', angle: 10, speed: 1}}
 			);
 		});
 	--></script>
