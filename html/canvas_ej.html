@@ -15,26 +15,26 @@
 				{background: {func: 'background', fillStyle: '#abc', width: 500, height: 500}},
 				{poly5: {func: 'polygon', sides: 5, r: 10, x: 55, y: 23}},
 				{poly4: {func: 'polygon', sides: 4, r: 100, angle: 90}},
-				{poly9: {func: 'polygon', sides: 9, r: 20, x: 205, y: 48, fill: 'red'}},
-				{circle1: {func: 'circle', r: 15, x: 250, y: 130, fill: 'green', angleStart: 100}},
+				{poly9: {func: 'polygon', sides: 9, r: 20, x: 205, y: 48, fill: 'red', drag: true}},
+				{circle1: {func: 'circle', r: 15, x: 250, y: 130, fill: 'green', angleStart: 100, drag: true}},
 				{text1: {func: 'text'}}/*,
 				{img1: {func: 'image', x: 10, y: -15}}*/
 			).animate(
-				{move: {id: 'poly9', angle: function(){return getRandom(0, 360);}, speed: 1, frames: 100}},
+				{move: {id: 'poly9', angle: function(){return getRandom(0, 360);}, speed: 5, frames: 500}},
 				{move: {id: 'poly5', angle: (function(){return getRandom(0, 360);})(), speed: 1}}
 			);
 
 			$('#canvas2').setDebug(true).canvas(
-					{background: {func: 'background', fillStyle: '#fff', width: 500, height: 500}},
-					{bar1: {func: 'polygon', sides: 4, r: 20, x: 20, y: 450, fill: 'red'}},
-					{bar2: {func: 'polygon', sides: 4, r: 20, x: 80, y: 450, fill: 'green'}},
-					{bar3: {func: 'polygon', sides: 4, r: 20, x: 140, y: 450, fill: 'blue'}},
-					{text1: {func: 'text', fillText: 'text 1', fontSize: '8pt', x: 20, y: 480}},
-					{text2: {func: 'text', fillText: 'text 2', fontSize: '8pt', x: 80, y: 480}},
-					{text3: {func: 'text', fillText: 'text 3', fontSize: '8pt', x: 140, y: 480}}
-				).animate(
-					{scale: {id: 'bar3', scaleY: -1, speed: 1, frames: 10}},
-					{scale: {id: 'bar1', scaleX: 0.1, speed: 1, frames: 100}}
+				{background: {func: 'background', fillStyle: '#fff', width: 500, height: 500}},
+				{bar1: {func: 'polygon', sides: 4, r: 20, x: 20, y: 450, fill: 'red'}},
+				{bar2: {func: 'polygon', sides: 4, r: 20, x: 80, y: 450, fill: 'green', drag: true}},
+				{bar3: {func: 'polygon', sides: 4, r: 20, x: 140, y: 450, fill: 'blue'}},
+				{text1: {func: 'text', fillText: 'text 1', fontSize: '8pt', x: 20, y: 480}},
+				{text2: {func: 'text', fillText: 'text 2', fontSize: '8pt', x: 80, y: 480}},
+				{text3: {func: 'text', fillText: 'text 3', fontSize: '8pt', x: 140, y: 480}}
+			).animate(
+				{scale: {id: 'bar3', scaleY: -1, speed: 1, frames: 10}},
+				{scale: {id: 'bar1', scaleX: 0.1, speed: 1, frames: 100}}
 			);
 
 		});

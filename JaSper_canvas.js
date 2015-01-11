@@ -22,34 +22,38 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 JaSper.funcs.extend(JaSper.prototype, {
 	/**
-	 * Manipulacion de HTML5 Canvas
+	 * HTML5 Canvas
 	 *
 	 * @since 2014-12-28
 	 * @param object
-	 * @return object
+	 * @returns object
 	 */
 	canvas: function (){
 
 		var callFuncs = function (jasperObj, props){
 			jasperObj.each(function (){
-				if(typeof this != 'object' || this.nodeName.toLowerCase() != 'canvas'){
-					JaSper.funcs.log('-JaSper::canvas.callFuncs- el objeto no es canvas', 1);
-					return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
-				}
+				if(!JaSper.funcs.canvasValid(this))
+					return false;
 
-				var context = this.getContext('2d');
-
-				if(this.JaSperItems == undefined)
+				//'animable' bandera que indica si se esta animando este canvas
+				//'draggable' bandera que indica si este elemento tiene elementos arrastrables
+				if(this.JaSperItems === undefined)
 					this.JaSperItems = [];
+				this.JaSperItems.flags = this.JaSperItems.flags || {};
+				this.JaSperItems.flags.animable = this.JaSperItems.flags.animable || false; //bandera que indica si se esta animando este canvas
+				this.JaSperItems.flags.draggable = this.JaSperItems.flags.draggable || false; //bandera que indica si este elemento tiene elementos arrastrables
 
 				//cada elemento de este array debe guardar todo lo necesario para volver a pintarlo si fuera necesario
 				this.JaSperItems[props.id] = props; //cada elemento tiene como nombre su id, y sus propiedades como un objeto
 
-				//props = context.canvas.JaSperItems[id];
-
 				var JaSperFunc = JaSper.funcs[props.func];
-				if(typeof JaSperFunc === 'function')
-					return JaSperFunc.call(null, context, props);
+				if(typeof JaSperFunc === 'function'){
+					if(props.drag != undefined && props.drag && !this.JaSperItems.flags.draggable){ //este elemento es arrastrable con el raton
+						this.JaSperItems.flags.draggable = true;
+						_JaSper(this).eventAdd('mousedown', JaSper.funcs.canvasMouseDown);
+					}
+					return JaSperFunc.call(null, this, props);
+				}
 
 				return false;
 			}, props);
@@ -84,10 +88,9 @@ JaSper.funcs.extend(JaSper.prototype, {
 	/**
 	 * Animaciones
 	 *
-	 * @todo finalizar la animacion cuando no haya nada que animar (todos quietos o fuera y sin vuelta)
 	 * @since 2014-11-28
 	 * @param object props Propiedades del circulo {"id": "id_circulo", "centroX": nn, "centroY": nn, "radio": nn, "fondo": "color_fondo"}
-	 * @return boolean
+	 * @returns boolean
 	 */
 	animate: function (){
 		//devolver la posicion del raton cuando se hace click en el canvas
@@ -103,7 +106,8 @@ JaSper.funcs.extend(JaSper.prototype, {
 				return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
 			}
 
-			return JaSper.funcs.canvasAnimate(null, this, args);
+			this.JaSperItems.flags.animable = true; //bandera que indica que se esta animando este canvas
+			return JaSper.funcs.canvasAnimate(this, args);
 		}, args);
 
 		return this;
@@ -114,18 +118,16 @@ JaSper.funcs.extend(JaSper.prototype, {
 JaSper.funcs.extend(JaSper.funcs, {
 
 	//anima un canvas, llamando a esta misma funcion a intervalos regulares (cada frame se redibuja)
-	//el primer parametro es, obligatoriamente timestamp, creado automaticamente por "window.requestAnimationFrame"
-	canvasAnimate: function (timestamp, canvas, props){
+	//TODO finalizar la animacion cuando no haya nada que animar (todos quietos o fuera y sin vuelta) //canvas.JaSperItems.flags.animable = false;
+	canvasAnimate: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+
 		window.requestAnimationFrame(function(){
-			JaSper.funcs.canvasAnimate(null, canvas, props);
+			JaSper.funcs.canvasAnimate(canvas, props);
 		});
 
 		var callFuncs = function (canvasObj, callProps){
-			if(typeof canvasObj != 'object' || canvasObj.nodeName.toLowerCase() != 'canvas'){
-				JaSper.funcs.log('-JaSper::canvasAnimate.callFuncs- el objeto no es canvas', 1);
-				return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
-			}
-
 			var JaSperFunc = JaSper.funcs[callProps.func];
 			if(typeof JaSperFunc === 'function')
 				return JaSperFunc.call(null, canvasObj, callProps);
@@ -141,7 +143,7 @@ JaSper.funcs.extend(JaSper.funcs, {
 			try{
 				func = Object.keys(props[pr])[0];
 			}
-			catch(ex){}
+			catch(ex){;}
 
 			//si hay limite de frames para este objeto y se ha alcanzado se salta
 			if(props[pr][func].frames !== undefined && props[pr][func].frames-- < 1)
@@ -191,21 +193,24 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * Fondo; color, degradado, imagen, ...
 	 * 
 	 * @since 2015-01-07
-	 * @param object canvas Objeto canvas a redibujar
-	 * @return boolean
+	 * @param object canvas Objeto canvas
+	 * @param object props Propiedades del objeto
+	 * @returns boolean
 	 */
-	canvasBackground: function (context, props){
-		if(!context || !context.canvas) return false;
+	canvasBackground: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+		var context = canvas.getContext('2d');
 
 		props.fillStyle = props.fillStyle || '#fff'; //color de fondo //TODO degradados, imagenes de fondo
-		props.width = props.width || context.canvas.style.width || false; //ancho del canvas
-		props.height = props.height || context.canvas.style.height || false; //alto del canvas
+		props.width = props.width || canvas.style.width || false; //ancho del canvas
+		props.height = props.height || canvas.style.height || false; //alto del canvas
 
-		if(props.width) context.canvas.width = props.width;
-		if(props.height) context.canvas.height = props.height;
+		if(props.width) canvas.width = props.width;
+		if(props.height) canvas.height = props.height;
 
 		context.fillStyle = props.fillStyle; //limpia el canvas antes de redibujarlo; si no se limpia los objetos en movimiento dejan estela (no se borran las posiciones anteriores)
-		context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+		context.fillRect(0, 0, canvas.width, canvas.height);
 
 		return true;
 	},
@@ -214,12 +219,14 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * Dibuja un circulo
 	 *
 	 * @since 2014-11-27
-	 * @param object context Canvas context
+	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades del circulo
-	 * @return boolean
+	 * @returns boolean
 	 */
-	canvasCircle: function (context, props){
-		if(!context || !context.canvas) return false;
+	canvasCircle: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+		var context = canvas.getContext('2d');
 
 		props.r = props.r || 50; //radio de la circunferencia
 		props.x = props.x || 100; //centro, coordenada x
@@ -239,7 +246,7 @@ JaSper.funcs.extend(JaSper.funcs, {
 			context.translate(props.x, props.y);
 			x = props.r;
 			y = props.r;
-			JaSper.funcs.canvasScale(context, props);
+			JaSper.funcs.canvasScale(canvas, props);
 		}
 
 		context.beginPath();
@@ -259,15 +266,39 @@ JaSper.funcs.extend(JaSper.funcs, {
 	},
 
 	/**
+	 * Detecta que objeto (dentro de canvas) se ha pulsado
+	 *
+	 * Sobre una idea original de Dan Gries
+	 * http://rectangleworld.com/blog/archives/15
+	 * 
+	 * @todo mejorar con http://en.wikipedia.org/wiki/Point_in_polygon
+	 * @todo convertir en detector de colisiones, ademas de deteccion de clicks
+	 * @since 2015-01-11
+	 * @param shape
+	 * @param mx
+	 * @param my
+	 * @returns boolean
+	 */
+	canvasHitTest: function (shape, mx, my){
+		var dx = mx - shape.x;
+		var dy = my - shape.y;
+
+		//a "hit" will be registered if the distance away from the center is less than the radius of the circular object
+		return ((dx * dx + dy * dy) < (shape.r * shape.r));
+	},
+
+	/**
 	 * Dibuja una imagen
 	 * 
 	 * @since 2014-12-27
-	 * @param object context Canvas context
+	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
-	 * @return boolean
+	 * @returns boolean
 	 */
-	canvasImage: function (context, props){
-		if(!context || !context.canvas) return false;
+	canvasImage: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+		var context = canvas.getContext('2d');
 
 		props.x = props.x || 100; //centro, coordenada x
 		props.y = props.y || 100; //centro, coordenada y
@@ -284,15 +315,116 @@ JaSper.funcs.extend(JaSper.funcs, {
 	},
 
 	/**
+	 * Se presiona el raton sobre un objeto dentro de canvas
+	 * 
+	 * Sobre una idea original de Dan Gries
+	 * http://rectangleworld.com/blog/archives/15
+	 * 
+	 * @since 2015-01-11
+	 * @param ev
+	 * @returns boolean
+	 */
+	canvasMouseDown: function(ev){
+		var canvas = JaSper.funcs.eventSource(ev);
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+
+		_JaSper(canvas).eventRemove('mousedown', JaSper.funcs.canvasMouseDown);
+
+		//getting mouse position correctly, being mindful of resizing that may have occured in the browser:
+		var bRect = canvas.getBoundingClientRect();
+		var mouseX = (ev.clientX - bRect.left) * (canvas.width / bRect.width);
+		var mouseY = (ev.clientY - bRect.top) * (canvas.height / bRect.height);
+
+		var items = canvas.JaSperItems;
+		var itemsKeys = Object.keys(items); //se comprueban en el orden de visualizacion, se hace click sobre el que este visible (mas arriba)
+		for(var cont = itemsKeys.length;cont >= 0;--cont){
+			if(!items[itemsKeys[cont]] || !items[itemsKeys[cont]].drag) continue; //solo para elementos draggables
+
+			if(JaSper.funcs.canvasHitTest(items[itemsKeys[cont]], mouseX, mouseY)){
+				items[itemsKeys[cont]].dragging = true;
+				_JaSper(window).eventAdd('mousemove', JaSper.funcs.canvasMouseMove);
+				break;
+			}
+		}
+
+		_JaSper(window).eventAdd('mouseup', JaSper.funcs.canvasMouseUp);
+
+		JaSper.funcs.eventPreventDefault(ev);
+		return false;
+	},
+
+	/**
+	 * Se mueve el raton dentro de canvas
+	 *
+	 * Sobre una idea original de Dan Gries
+	 * http://rectangleworld.com/blog/archives/15
+	 *
+	 * @since 2015-01-11
+	 * @param ev
+	 * @returns boolean
+	 */
+	canvasMouseMove: function (ev){
+		var canvas = JaSper.funcs.eventSource(ev);
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+
+		var items = canvas.JaSperItems, item = false;
+		for(var it in items){
+			if(items[it].dragging !== undefined && items[it].dragging){
+				item = it;
+				break;
+			}
+		};
+
+		var bRect = canvas.getBoundingClientRect();
+		var mouseX = (ev.clientX - bRect.left) * (canvas.width / bRect.width);
+		var mouseY = (ev.clientY - bRect.top) * (canvas.height / bRect.height);
+
+		items[item].x = mouseX;
+		items[item].y = mouseY;
+
+		if(!canvas.JaSperItems.flags.animable) JaSper.funcs.canvasRedraw(canvas);
+	},
+
+	/**
+	 * Se suelta el raton
+	 *
+	 * Sobre una idea original de Dan Gries
+	 * http://rectangleworld.com/blog/archives/15
+	 *
+	 * @since 2015-01-11
+	 * @param ev
+	 */
+	canvasMouseUp: function (ev){
+		var canvas = JaSper.funcs.eventSource(ev);
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+
+		_JaSper(window).eventRemove('mouseup', JaSper.funcs.canvasMouseUp);
+
+		var items = canvas.JaSperItems;
+		for(var item in items){
+			if(items[item].dragging !== undefined && items[item].dragging){
+				items[item].dragging = false;
+				_JaSper(window).eventRemove('mousemove', JaSper.funcs.canvasMouseMove);
+			}
+		}
+
+		_JaSper(canvas).eventAdd('mousedown', JaSper.funcs.canvasMouseDown);
+		return false;
+	},
+
+	/**
 	 * Mueve objetos en el canvas
 	 * 
 	 * @since 2015-01-06
-	 * @param object canvas Canvas object
+	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
-	 * @return boolean
+	 * @returns boolean
 	 */
 	canvasMove: function (canvas, props){
-		if(typeof canvas !== 'object' || canvas.nodeName.toLowerCase() != 'canvas')
+		if(!JaSper.funcs.canvasValid(canvas))
 			return false;
 
 		if(!props.id || !canvas.JaSperItems[props.id])
@@ -318,12 +450,14 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * Dibuja una forma a partir de una serie (array) de puntos
 	 * 
 	 * @since 2014-12-30
-	 * @param object context Canvas context
+	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
-	 * @return boolean
+	 * @returns boolean
 	 */
-	canvasPath: function (context, props){
-		if(!context || !context.canvas) return false;
+	canvasPath: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+		var context = canvas.getContext('2d');
 
 		return true;
 	},
@@ -333,12 +467,14 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * centrado en x, y
 	 * 
 	 * @since 2014-12-19
-	 * @param object context Canvas context
+	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
-	 * @return boolean
+	 * @returns boolean
 	 */
-	canvasPolygon: function (context, props){
-		if(!context || !context.canvas) return false;
+	canvasPolygon: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+		var context = canvas.getContext('2d');
 
 		props.sides = props.sides || 3; //numero de lados //TODO 0 -> circulo
 		props.r = props.r || 50; //radio de la circunferencia para los vertices del poligono //TODO por defecto debe ser la media del alto y ancho del canvas o similar
@@ -358,7 +494,7 @@ JaSper.funcs.extend(JaSper.funcs, {
 			context.translate(props.x, props.y);
 			x = props.r;
 			y = props.r;
-			JaSper.funcs.canvasScale(context, props);
+			JaSper.funcs.canvasScale(canvas, props);
 		}
 
 		context.beginPath(); //inicia el poligono
@@ -393,21 +529,17 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * 
 	 * @since 2015-01-05
 	 * @param object canvas Objeto canvas a redibujar
-	 * @return boolean
+	 * @returns boolean
 	 */
 	canvasRedraw: function (canvas){
-		if(typeof canvas !== 'object' || canvas.nodeName.toLowerCase() != 'canvas'){
-			JaSper.funcs.log('-JaSper::canvasRedraw- el objeto no es canvas', 1);
-			return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
-		}
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
 
-		var context = canvas.getContext('2d');
-
-		var items = canvas.JaSperItems;
-		for(var item in items){
+		var items = canvas.JaSperItems, item = false;
+		for(item in items){
 			var JaSperFunc = JaSper.funcs[items[item].func];
 			if(typeof JaSperFunc === 'function')
-				JaSperFunc.call(null, context, items[item]); //TODO decidir que hacer con el retorno de la funcion
+				JaSperFunc.call(null, canvas, items[item]); //TODO decidir que hacer con el retorno de la funcion
 		}
 
 		return true;
@@ -419,10 +551,12 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * @since 2015-01-07
 	 * @param object canvas Canvas object
 	 * @param object props Propiedades
-	 * @return boolean
+	 * @returns boolean
 	 */
-	canvasScale: function (context, props){
-		if(!context || !context.canvas) return false;
+	canvasScale: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+		var context = canvas.getContext('2d');
 
 		if(!props)
 			var props = {};
@@ -442,12 +576,14 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * Dibuja texto
 	 * 
 	 * @since 2014-12-27
-	 * @param object context Canvas context
+	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
-	 * @return boolean
+	 * @returns boolean
 	 */
-	canvasText: function (context, props){
-		if(!context || !context.canvas) return false;
+	canvasText: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+		var context = canvas.getContext('2d');
 
 		props.x = props.x || 100; //centro, coordenada x
 		props.y = props.y || 100; //centro, coordenada y
@@ -469,7 +605,7 @@ JaSper.funcs.extend(JaSper.funcs, {
 			context.translate(props.x, props.y);
 			x = props.r;
 			y = props.r;
-			JaSper.funcs.canvasScale(context, props);
+			JaSper.funcs.canvasScale(canvas, props);
 		}
 
 		context.fillStyle = props.fillStyle;
@@ -478,10 +614,27 @@ JaSper.funcs.extend(JaSper.funcs, {
 
 		context.restore();
 		return true;
+	},
+
+	/**
+	 * Comprueba si canvas es un objeto html5 canvas valido
+	 *
+	 * @todo mejorar deteccion
+	 * @since 2015-01-11
+	 * @returns boolean
+	 */
+	canvasValid: function (canvas){
+		if(typeof canvas !== 'object' || typeof canvas.getContext !== 'function'){
+			JaSper.funcs.log('-JaSper::canvasValid- el objeto no es canvas', 1);
+			return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
+		}
+
+		return true;
 	}
+
 });
 
-//devuelve un "animation loop" nativo de canvas, si existe, o un timeout ciclico; ambos usables para dibujar frames en una animacion
+//devuelve un "animation loop" nativo de canvas, si existe, o un timeout a 60 fps; ambos usables para dibujar frames en una animacion
 //ver JaSper.funcs.canvasAnimate()
 //debe ser un objeto global? [TypeError: 'requestAnimationFrame' called on an object that does not implement interface Window.]
 /*window.JaSper_canvasRequestAnimationFrame = (function(){

@@ -67,7 +67,8 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 		/* finaliza movimiento */
 		var moveEnd = function (event, obj, funcs){
-			_JaSper(obj).evPreventDefault(event).evStop(event);
+			JaSper.funcs.eventPreventDefault(event);
+			JaSper.funcs.eventStop(event);
 
 			if(props.reset){
 				obj.style.left = obj.posMoveStart['x'] + 'px';
@@ -83,8 +84,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			//devolver el elemento a su nivel
 			obj.style.zIndex -= 10;
 
-			_JaSper(document).evRemove('mousemove', funcs[0]);
-			_JaSper(document).evRemove('mouseup', funcs[1]);
+			_JaSper(document).eventRemove('mousemove', funcs[0]).eventRemove('mouseup', funcs[1]);
 
 			if(typeof props.onMoveEnd === 'function') props.onMoveEnd.call(obj);
 
@@ -96,7 +96,8 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 		/* mover */
 		var moveObject = function (event, obj){
-			_JaSper(obj).evPreventDefault(event).evStop(event);
+			JaSper.funcs.eventPreventDefault(event);
+			JaSper.funcs.eventStop(event);
 
 			if(typeof props.onMove === 'function') props.onMove.call(obj);
 
@@ -118,15 +119,15 @@ JaSper.funcs.extend(JaSper.prototype, {
 			obj.style.top = top + 'px';
 			obj.style.left = left + 'px';
 
-			$('origen').html = _JaSper(this).evSource(event);//obj;
-			//document.getElementById('destino').innerHTML = _JaSper(this).evTarget(event);
-			$('evento').html = _JaSper(this).evName(event);
+			$('origen').html = JaSper.funcs.eventSource(event);//obj;
+			//document.getElementById('destino').innerHTML = JaSper.funcs.eventTarget(event);
+			$('evento').html = JaSper.funcs.eventName(event);
 		};
 
 		/*var mueveObj = function (e){
 			evt = e || window.event;
 			var moz = document.getElementById && !document.all;
-			var obj = $(this).evSource(e);
+			var obj = JaSper.funcs.eventSource(e);
 
 			document.getElementById('origen').innerHTML = obj;
 			document.getElementById('destino').innerHTML = $(this).destinoEvento(e);
@@ -147,7 +148,8 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 		/* inicia movimiento */
 		var moveStart = function (event, obj){
-			_JaSper(obj).evPreventDefault(event).evStop(event);
+			JaSper.funcs.eventPreventDefault(event);
+			JaSper.funcs.eventStop(event);
 
 			var normalclick;
 			if(event.which) normalclick = event.which;
@@ -187,8 +189,8 @@ JaSper.funcs.extend(JaSper.prototype, {
 			//var funMov = function (e){moveObject(e, obj);}, funFin = function (e){moveEnd(e, obj, [funMov, arguments.callee]);}; //"arguments.calle es imprescindible para poder desregistrar el evento, problemas pasando la definicion de la funcion...
 			var funMov = function (e){moveObject(e, obj);}, funFin = function funFinCalle(e){moveEnd(e, obj, [funMov, funFinCalle]);};
 
-			_JaSper(document).evAdd('mousemove', funMov);
-			_JaSper(document).evAdd('mouseup', funFin);
+			_JaSper(document).eventAdd('mousemove', funMov);
+			_JaSper(document).eventAdd('mouseup', funFin);
 
 		};
 
@@ -234,7 +236,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 		};
 
 		//pone los eventos que lanzaran el movimiento de cada elemento
-		this.evAdd('mousedown', function (e){moveStart(e, this);}); //TODO eliminar este evento al finalizar el movimiento?
+		this.eventAdd('mousedown', function (e){moveStart(e, this);}); //TODO eliminar este evento al finalizar el movimiento?
 	}
 
 });

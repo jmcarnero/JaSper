@@ -92,7 +92,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			}
 
 			//evento de encima de estrellas
-			_JaSper(starIds).evAdd('mouseover', function (){
+			_JaSper(starIds).eventAdd('mouseover', function (){
 				var idNum = this.id.substr(objContId.length); //parte numerica
 
 				for(var j=1;j <= idNum;j++){
@@ -101,7 +101,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			});
 
 			//evento de salida de estrellas
-			_JaSper(starIds).evAdd('mouseout', function (){
+			_JaSper(starIds).eventAdd('mouseout', function (){
 				var idNum = this.id.substr(objContId.length); //parte numerica
 
 				for(var j=1;j <= idNum;j++){
@@ -111,7 +111,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			});
 
 			//evento de click en estrellas
-			_JaSper(starIds).evAdd('click', function (){
+			_JaSper(starIds).eventAdd('click', function (){
 				this.rating = this.id.substr(objContId.length); //parte numerica
 				if(this.rating == props.rating) this.rating = props.rating = 0; //si se vuelve a pulsar el numero que ya estaba seleccionado se pone a cero el valor
 				props.rating = this.rating; //deja marcado el valor que se haya pulsado

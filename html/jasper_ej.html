@@ -7,14 +7,18 @@
 	<!--
 		//window.onload = function(){alert(jsframe.prototype.toString());}
 		$().ready(function(){
-			$(".formb * li").evAdd("mouseenter", function (){this.style.backgroundColor = "red";}).evAdd("mouseleave", function (){this.style.backgroundColor = "yellow";});
+			$(".formb * li").eventAdd("mouseenter", function (){
+				this.style.backgroundColor = "red";}).eventAdd("mouseleave", function (){this.style.backgroundColor = "yellow";
+			});
 			$('.mueveme').move();
 			$('<input>')
-			.evAdd('click', function (){alert(this.value?this.value:'valor desconocido');})
-			.evAdd('mouseup', function (e){document.getElementById('destino').innerHTML = _JaSper(this).destinoEvento(e);});
-			$('<body>').evAdd('mousemove', function (e){
-				document.getElementById('destino').innerHTML = _JaSper(this).destinoEvento(e);
-			});
+				.eventAdd('click', function (){
+					alert(this.value?this.value:'valor desconocido');})
+				.eventAdd('mouseup', function (ev){
+					document.getElementById('destino').innerHTML = JaSper.funcs.eventTarget(ev);});
+			$('<body>')
+				.eventAdd('mousemove', function (ev){
+					document.getElementById('destino').innerHTML = JaSper.funcs.eventTarget(ev);});
 		});
 	-->
 	</script>
