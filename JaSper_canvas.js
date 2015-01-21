@@ -216,6 +216,35 @@ JaSper.funcs.extend(JaSper.funcs, {
 	},
 
 	/**
+	 * Dibuja una caja alrededor del elemento seleccionado, como feedback para el usuario
+	 *
+	 * @todo personalizar la apariencia de la caja
+	 * @since 2015-01-15
+	 * @param object canvas Objeto canvas
+	 * @param object props Propiedades del objeto
+	 * @returns boolean
+	 */
+	canvasBoundingBox: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas) || !props.boundingBox)
+			return false;
+		var context = canvas.getContext('2d');
+
+		var iMargin = 2; //separacion entre la caja y el objeto
+
+		if(props.selected){ //pone la caja
+			context.beginPath();
+			context.rect(props.boundingBox[0] - iMargin, props.boundingBox[1] - iMargin, props.boundingBox[2] + (iMargin * 2), props.boundingBox[3] + (iMargin * 2));
+			/*context.fillStyle = 'yellow';
+			context.fill();*/
+			context.lineWidth = 1;
+			context.strokeStyle = 'green';
+		context.stroke();
+		}
+
+		return true;
+	},
+
+	/**
 	 * Dibuja un circulo
 	 *
 	 * @since 2014-11-27
@@ -249,6 +278,10 @@ JaSper.funcs.extend(JaSper.funcs, {
 			JaSper.funcs.canvasScale(canvas, props);
 		}
 
+		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
+		props.boundingBox = [props.x - props.r, props.y - props.r, props.r * 2, props.r * 2]; //[x, y, width, height]
+		if(props.selected != undefined && props.selected) JaSper.funcs.canvasBoundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
+
 		context.beginPath();
 		//context.arc(x, y, r, (Math.PI/180) * grados_inicio_de_arco, (Math.PI/180) * grados_fin_de_arco, counterclockwise);
 		context.arc(x, y, props.r, (Math.PI/180) * props.angleStart, (Math.PI/180) * props.angleEnd, props.cclock);
@@ -280,11 +313,18 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * @returns boolean
 	 */
 	canvasHitTest: function (shape, mx, my){
-		var dx = mx - shape.x;
-		var dy = my - shape.y;
+		if(shape.r){
+			var dx = mx - shape.x;
+			var dy = my - shape.y;
+			return ((dx * dx + dy * dy) < (shape.r * shape.r)); //a "hit" will be registered if the distance away from the center is less than the radius of the circular object
+		}
+		else if(shape.boundingBox){ //[x, y, width, height] //FIXME funciona como con el radio, incorrecto para cajas no cuadradas
+			var dx = mx - (shape.boundingBox[0] + (shape.boundingBox[2] / 2));
+			var dy = my - (shape.boundingBox[1] + (shape.boundingBox[3] / 2));
+			return ((dx * dx + dy * dy) < ((shape.boundingBox[2] / 2) * (shape.boundingBox[3] / 2))); //hay pulsacion si las coordenas del raton estan dentro de la caja que rodea al objeto
+		}
 
-		//a "hit" will be registered if the distance away from the center is less than the radius of the circular object
-		return ((dx * dx + dy * dy) < (shape.r * shape.r));
+		return false; //no se puede detectar la posicion del click con respecto a la figura
 	},
 
 	/**
@@ -324,7 +364,7 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * @param ev
 	 * @returns boolean
 	 */
-	canvasMouseDown: function(ev){
+	canvasMouseDown: function (ev){
 		var canvas = JaSper.funcs.eventSource(ev);
 		if(!JaSper.funcs.canvasValid(canvas))
 			return false;
@@ -337,11 +377,18 @@ JaSper.funcs.extend(JaSper.funcs, {
 		var mouseY = (ev.clientY - bRect.top) * (canvas.height / bRect.height);
 
 		var items = canvas.JaSperItems;
+
+		//deselecciona todos los elementos cuando se pulsa el raton; luego selecciona el correcto si corresponde
+		for(var item in items){
+			items[item].selected = false;
+		}
+
 		var itemsKeys = Object.keys(items); //se comprueban en el orden de visualizacion, se hace click sobre el que este visible (mas arriba)
 		for(var cont = itemsKeys.length;cont >= 0;--cont){
 			if(!items[itemsKeys[cont]] || !items[itemsKeys[cont]].drag) continue; //solo para elementos draggables
 
 			if(JaSper.funcs.canvasHitTest(items[itemsKeys[cont]], mouseX, mouseY)){
+				items[itemsKeys[cont]].selected = true;
 				items[itemsKeys[cont]].dragging = true;
 				_JaSper(window).eventAdd('mousemove', JaSper.funcs.canvasMouseMove);
 				break;
@@ -360,6 +407,7 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * Sobre una idea original de Dan Gries
 	 * http://rectangleworld.com/blog/archives/15
 	 *
+	 * @todo guardar la posicion del objeto donde se hace click para "sujetarlo" por esa posicion (no por el centro) al arrastrarlo
 	 * @since 2015-01-11
 	 * @param ev
 	 * @returns boolean
@@ -411,6 +459,7 @@ JaSper.funcs.extend(JaSper.funcs, {
 			}
 		}
 
+		if(!canvas.JaSperItems.flags.animable) JaSper.funcs.canvasRedraw(canvas);
 		_JaSper(canvas).eventAdd('mousedown', JaSper.funcs.canvasMouseDown);
 		return false;
 	},
@@ -496,6 +545,10 @@ JaSper.funcs.extend(JaSper.funcs, {
 			y = props.r;
 			JaSper.funcs.canvasScale(canvas, props);
 		}
+
+		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
+		props.boundingBox = [props.x - props.r, props.y - props.r, props.r * 2, props.r * 2]; //[x, y, width, height]
+		if(props.selected != undefined && props.selected) JaSper.funcs.canvasBoundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
 
 		context.beginPath(); //inicia el poligono
 
@@ -611,6 +664,12 @@ JaSper.funcs.extend(JaSper.funcs, {
 		context.fillStyle = props.fillStyle;
 		context.font = props.font;
 		context.fillText(props.fillText, x, y);
+
+		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
+		var iTextWidth = context.measureText(props.fillText).width;
+		var iTextHeight = context.measureText('m').width; //FIXME solo funciona para una linea y no tiene en cuenta signos con mas altura
+		props.boundingBox = [props.x, props.y - iTextHeight, iTextWidth, iTextHeight]; //[x, y, width, height]
+		if(props.selected != undefined && props.selected) JaSper.funcs.canvasBoundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
 
 		context.restore();
 		return true;

@@ -17,7 +17,7 @@
 				{poly4: {func: 'polygon', sides: 4, r: 100, angle: 90}},
 				{poly9: {func: 'polygon', sides: 9, r: 20, x: 205, y: 48, fill: 'red', drag: true}},
 				{circle1: {func: 'circle', r: 15, x: 250, y: 130, fill: 'green', angleStart: 100, drag: true}},
-				{text1: {func: 'text'}}/*,
+				{text1: {func: 'text', drag: true}}/*,
 				{img1: {func: 'image', x: 10, y: -15}}*/
 			).animate(
 				{move: {id: 'poly9', angle: function(){return getRandom(0, 360);}, speed: 5, frames: 500}},
