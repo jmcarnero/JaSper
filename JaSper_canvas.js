@@ -35,6 +35,8 @@ JaSper.funcs.extend(JaSper.prototype, {
 				if(!JaSper.funcs.canvasValid(this))
 					return false;
 
+				this.JaSperItemSelected = undefined; //elemento actualmente seleccionado
+
 				//'animable' bandera que indica si se esta animando este canvas
 				//'draggable' bandera que indica si este elemento tiene elementos arrastrables
 				if(this.JaSperItems === undefined)
@@ -44,23 +46,12 @@ JaSper.funcs.extend(JaSper.prototype, {
 				this.JaSperItems.flags.draggable = this.JaSperItems.flags.draggable || false; //bandera que indica si este elemento tiene elementos arrastrables
 
 				//cada elemento de este array debe guardar todo lo necesario para volver a pintarlo si fuera necesario
-				this.JaSperItems[props.id] = props; //cada elemento tiene como nombre su id, y sus propiedades como un objeto
-
-				var JaSperFunc = JaSper.funcs[props.func];
-				if(typeof JaSperFunc === 'function'){
-					if(props.drag != undefined && props.drag && !this.JaSperItems.flags.draggable){ //este elemento es arrastrable con el raton
-						this.JaSperItems.flags.draggable = true;
-						_JaSper(this).eventAdd('mousedown', JaSper.funcs.canvasMouseDown);
-					}
-					return JaSperFunc.call(null, this, props);
-				}
+				//this.JaSperItems[props.id] = props; //cada elemento tiene como nombre su id, y sus propiedades como un objeto
+				if(!JaSper.funcs.canvasAdd(this, props)) return false;
 
 				return false;
 			}, props);
 		};
-
-		//metodos disponibles
-		var validFuncs = {'background': 'canvasBackground', 'circle': 'canvasCircle', 'image': 'canvasImage', 'path': 'canvasPath', 'polygon': 'canvasPolygon', 'text': 'canvasText'};
 
 		for(var arg in arguments){
 			var id = false;
@@ -69,11 +60,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			}
 			catch(ex){}
 
-			if(id !== false && arguments[arg][id].func !== undefined){
-				if(validFuncs[arguments[arg][id].func] !== undefined){
-					arguments[arg][id].func = validFuncs[arguments[arg][id].func]; //se pone el nombre correcto de la funcion si se ha llamado a la abreviada
-				}
-				arguments[arg][id].id = id; //comodidad para siguientes usos
+			if(id !== false){
 				callFuncs(this, arguments[arg][id]);
 			}
 			else{
@@ -116,6 +103,45 @@ JaSper.funcs.extend(JaSper.prototype, {
 });
 
 JaSper.funcs.extend(JaSper.funcs, {
+
+	/**
+	 * Suma un objeto al array de objetos del canvas
+	 * 
+	 * @since 2015-02-17
+	 * @param object canvas Objeto canvas
+	 * @param object props Propiedades del objeto
+	 * @returns boolean
+	 */
+	canvasAdd: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas))
+			return false;
+
+		props.id = props.id || JaSper.funcs.genId();
+
+		//metodos disponibles
+		var validFuncs = {'background': 'canvasBackground', 'circle': 'canvasCircle', 'image': 'canvasImage', 'path': 'canvasPath', 'polygon': 'canvasPolygon', 'text': 'canvasText'};
+
+		if(!props.func || (!JaSper.funcs[props.func] && !validFuncs[props.func])){
+			JaSper.funcs.log('-JaSper::canvasAdd- metodo desconocido', 2);
+			return false;
+		}
+		else{
+			if(validFuncs[props.func] !== undefined)
+				props.func = validFuncs[props.func]; //se pone el nombre correcto de la funcion si se ha llamado a la abreviada
+		}
+		canvas.JaSperItems[props.id] = props;
+
+		var JaSperFunc = JaSper.funcs[props.func];
+		if(typeof JaSperFunc === 'function'){
+			if(props.drag != undefined && props.drag && !canvas.JaSperItems.flags.draggable){ //este elemento es arrastrable con el raton
+				canvas.JaSperItems.flags.draggable = true;
+				_JaSper(canvas).eventAdd('mousedown', JaSper.funcs.canvasMouseDown);
+			}
+			return JaSperFunc.call(null, canvas, props);
+		}
+
+		return false;
+	},
 
 	//anima un canvas, llamando a esta misma funcion a intervalos regulares (cada frame se redibuja)
 	//TODO finalizar la animacion cuando no haya nada que animar (todos quietos o fuera y sin vuelta) //canvas.JaSperItems.flags.animable = false;
@@ -231,14 +257,48 @@ JaSper.funcs.extend(JaSper.funcs, {
 
 		var iMargin = 2; //separacion entre la caja y el objeto
 
-		if(props.selected){ //pone la caja
+		if(props.selected){
+			var iBBx = props.boundingBox[0] - iMargin;
+			var iBBy = props.boundingBox[1] - iMargin;
+			var iBBw = props.boundingBox[2] + (iMargin * 2);
+			var iBBh = props.boundingBox[3] + (iMargin * 2);
+
+			context.save();
 			context.beginPath();
-			context.rect(props.boundingBox[0] - iMargin, props.boundingBox[1] - iMargin, props.boundingBox[2] + (iMargin * 2), props.boundingBox[3] + (iMargin * 2));
+	
+			context.rect(iBBx, iBBy, iBBw, iBBh); //pone la caja
 			/*context.fillStyle = 'yellow';
 			context.fill();*/
 			context.lineWidth = 1;
 			context.strokeStyle = 'green';
-		context.stroke();
+			context.stroke();
+
+			context.beginPath(); //inicia el poligono
+
+			context.lineWidth = 1; //color y borde para anclas
+			context.strokeStyle = 'yellow';
+			var iRad = 5; //radio de anclas //TODO configurable por el usuario y por objeto?
+
+			var iAngIni = 3.3; //ancla para estiramiento, superior izquierda
+			context.moveTo(iBBx + iRad * Math.sin(iAngIni), iBBy - iRad * Math.cos(iAngIni));
+			var delta = (2 * Math.PI / 3); //angulo entre vertices
+			context.lineTo(iBBx + iRad * Math.sin(iAngIni + delta), iBBy - iRad * Math.cos(iAngIni + delta));
+			context.lineTo(iBBx + iRad * Math.sin(iAngIni + delta + delta), iBBy - iRad * Math.cos(iAngIni + delta + delta));
+			context.stroke();
+
+			iAngIni = 0.22; //ancla para estiramiento, inferior derecha
+			context.moveTo(iBBx + iBBw + iRad * Math.sin(iAngIni), iBBy + iBBh - iRad * Math.cos(iAngIni));
+			delta = (2 * Math.PI / 3); //angulo entre vertices
+			context.lineTo(iBBx + iBBw + iRad * Math.sin(iAngIni + delta), iBBy + iBBh - iRad * Math.cos(iAngIni + delta));
+			context.lineTo(iBBx + iBBw + iRad * Math.sin(iAngIni + delta + delta), iBBy + iBBh - iRad * Math.cos(iAngIni + delta + delta));
+			context.stroke();
+
+			context.beginPath(); //ancla para rotacion
+			context.arc(iBBx + iBBw, iBBy, iRad, (Math.PI/180) * 0, (Math.PI/180) * 270);
+			context.stroke();
+
+			context.closePath();
+			context.restore();
 		}
 
 		return true;
@@ -271,15 +331,19 @@ JaSper.funcs.extend(JaSper.funcs, {
 		context.save();
 
 		//transforms
-		if(props.scaleX !== undefined || props.scaleY !== undefined){
+		if(props.scaleX !== undefined || props.scaleY !== undefined || props.rotation !== undefined){
 			context.translate(props.x, props.y);
-			x = props.r;
-			y = props.r;
-			JaSper.funcs.canvasScale(canvas, props);
+			x = 0; //props.r;
+			y = 0; //props.r;
+
+			if(props.scaleX !== undefined || props.scaleY !== undefined)
+				JaSper.funcs.canvasScale(canvas, props);
+			if(props.rotation !== undefined)
+				JaSper.funcs.canvasRotate(canvas, props);
 		}
 
 		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
-		props.boundingBox = [props.x - props.r, props.y - props.r, props.r * 2, props.r * 2]; //[x, y, width, height]
+		props.boundingBox = [x - props.r, y - props.r, props.r * 2, props.r * 2, x + props.r, y + props.r]; //[left, top, width, height, right, bottom]
 		if(props.selected != undefined && props.selected) JaSper.funcs.canvasBoundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
 
 		context.beginPath();
@@ -295,6 +359,9 @@ JaSper.funcs.extend(JaSper.funcs, {
 		context.fill();
 
 		context.restore();
+
+		props.boundingBox[0] = props.x - props.r;
+		props.boundingBox[1] = props.y - props.r;
 		return true;
 	},
 
@@ -307,21 +374,32 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * @todo mejorar con http://en.wikipedia.org/wiki/Point_in_polygon
 	 * @todo convertir en detector de colisiones, ademas de deteccion de clicks
 	 * @since 2015-01-11
-	 * @param shape
-	 * @param mx
-	 * @param my
+	 * @param objeto oItem Objeto a comprobar
+	 * @param integer iMouseX Coordenada X del raton
+	 * @param integer fMouseY Coordenada Y del raton
 	 * @returns boolean
 	 */
-	canvasHitTest: function (shape, mx, my){
-		if(shape.r){
-			var dx = mx - shape.x;
-			var dy = my - shape.y;
-			return ((dx * dx + dy * dy) < (shape.r * shape.r)); //a "hit" will be registered if the distance away from the center is less than the radius of the circular object
+	canvasMouseHit: function (oItem, iMouseX, iMouseY){
+		if(oItem.selected){ //comprobar si se pulsa sobre un ancla
+			var iRad = 5; //radio de anclas //TODO configurable por el usuario y por objeto?
+			var aRotacion = [Math.abs(oItem.boundingBox[4] - iMouseX), Math.abs(oItem.boundingBox[1] - iMouseY)];
+			var aNW = [Math.abs(oItem.boundingBox[0] - iMouseX), Math.abs(oItem.boundingBox[1] - iMouseY)];
+			var aSE = [Math.abs(oItem.boundingBox[4] - iMouseX), Math.abs(oItem.boundingBox[5] - iMouseY)];
+
+			if(aRotacion[0] < iRad && aRotacion[1] < iRad) return 'r'; //rotacion
+			else if(aNW[0] < iRad && aNW[1] < iRad) return 'nw'; //superior izquierda
+			else if(aSE[0] < iRad && aSE[1] < iRad) return 'se'; //inferior derecha
 		}
-		else if(shape.boundingBox){ //[x, y, width, height] //FIXME funciona como con el radio, incorrecto para cajas no cuadradas
-			var dx = mx - (shape.boundingBox[0] + (shape.boundingBox[2] / 2));
-			var dy = my - (shape.boundingBox[1] + (shape.boundingBox[3] / 2));
-			return ((dx * dx + dy * dy) < ((shape.boundingBox[2] / 2) * (shape.boundingBox[3] / 2))); //hay pulsacion si las coordenas del raton estan dentro de la caja que rodea al objeto
+
+		if(oItem.r){
+			var dx = iMouseX - oItem.x;
+			var dy = iMouseY - oItem.y;
+			return ((dx * dx + dy * dy) < (oItem.r * oItem.r)); //distancia menor que el radio del objeto
+		}
+		else if(oItem.boundingBox){ //[x, y, width, height]
+			var dx = (oItem.boundingBox[0] < iMouseX) && (iMouseX < (oItem.boundingBox[4]));
+			var dy = (oItem.boundingBox[1] < iMouseY) && (iMouseY < (oItem.boundingBox[5]));
+			return dx && dy; //hay pulsacion si las coordenas del raton estan dentro de la caja que rodea al objeto
 		}
 
 		return false; //no se puede detectar la posicion del click con respecto a la figura
@@ -371,96 +449,154 @@ JaSper.funcs.extend(JaSper.funcs, {
 
 		_JaSper(canvas).eventRemove('mousedown', JaSper.funcs.canvasMouseDown);
 
-		//getting mouse position correctly, being mindful of resizing that may have occured in the browser:
 		var bRect = canvas.getBoundingClientRect();
-		var mouseX = (ev.clientX - bRect.left) * (canvas.width / bRect.width);
-		var mouseY = (ev.clientY - bRect.top) * (canvas.height / bRect.height);
+		var aItems = canvas.JaSperItems;
+		var oItemSelected = undefined;
 
-		var items = canvas.JaSperItems;
+		var iDxClick = 0, iDyClick = 0; //diferencia entre el x, y del objeto y posicion donde se ha hecho click, para compensar el punto desde el que es "cogido"
 
-		//deselecciona todos los elementos cuando se pulsa el raton; luego selecciona el correcto si corresponde
-		for(var item in items){
-			items[item].selected = false;
-		}
+		/**
+		 * Se mueve el raton dentro de canvas
+		 *
+		 * @todo guardar la posicion del objeto donde se hace click para "sujetarlo" por esa posicion (no por el centro) al arrastrarlo
+		 * @param ev
+		 * @returns boolean
+		 */
+		var mouseMove = function (ev){
+			if(!oItemSelected) return false; //ningun elemento seleccionado
 
-		var itemsKeys = Object.keys(items); //se comprueban en el orden de visualizacion, se hace click sobre el que este visible (mas arriba)
-		for(var cont = itemsKeys.length;cont >= 0;--cont){
-			if(!items[itemsKeys[cont]] || !items[itemsKeys[cont]].drag) continue; //solo para elementos draggables
+			var iMouseX = (ev.clientX - bRect.left) * (canvas.width / bRect.width);
+			var iMouseY = (ev.clientY - bRect.top) * (canvas.height / bRect.height);
 
-			if(JaSper.funcs.canvasHitTest(items[itemsKeys[cont]], mouseX, mouseY)){
-				items[itemsKeys[cont]].selected = true;
-				items[itemsKeys[cont]].dragging = true;
-				_JaSper(window).eventAdd('mousemove', JaSper.funcs.canvasMouseMove);
-				break;
+			if(oItemSelected.dragging !== undefined && oItemSelected.dragging){
+				if(oItemSelected.dragging == 'r'){ //rotacion
+					var dx = Math.abs(oItemSelected.boundingBox[4] - iMouseX);
+					var dy = Math.abs(oItemSelected.boundingBox[1] - iMouseY);
+					var iRotacion = Math.sqrt(dx * dx + dy * dy); //distancia del centro del ancla a la posicion del raton
+					oItemSelected.rotation = iRotacion;
+				}
+				else{
+					oItemSelected.x = iMouseX - iDxClick;
+					oItemSelected.y = iMouseY - iDyClick;
+				}
+
+				if(!canvas.JaSperItems.flags.animable) JaSper.funcs.canvasRedraw(canvas); //TODO borrar bounding box cuando no hay fondo
 			}
-		}
+			else if(oItemSelected.selected !== undefined && oItemSelected.selected){ //TODO simplificar calculos de deteccion
+				if(oItemSelected.boundingBox){ //[x, y, width, height]
+					var iRad = 5; //radio de anclas //TODO configurable por el usuario y por objeto? //ver canvasBoundginBox
 
-		_JaSper(window).eventAdd('mouseup', JaSper.funcs.canvasMouseUp);
+					var iMouseXr = iMouseX; //posicion relativa del raton si hay rotacion de la caja
+					var iMouseYr = iMouseY;
 
-		JaSper.funcs.eventPreventDefault(ev);
-		return false;
-	},
+					//posiciones relativas de las esquinas de la caja si hay rotacion
+					var aCaja = [oItemSelected.boundingBox[0], oItemSelected.boundingBox[1], oItemSelected.boundingBox[4], oItemSelected.boundingBox[5]]; //left, top, right, bottom
 
-	/**
-	 * Se mueve el raton dentro de canvas
-	 *
-	 * Sobre una idea original de Dan Gries
-	 * http://rectangleworld.com/blog/archives/15
-	 *
-	 * @todo guardar la posicion del objeto donde se hace click para "sujetarlo" por esa posicion (no por el centro) al arrastrarlo
-	 * @since 2015-01-11
-	 * @param ev
-	 * @returns boolean
-	 */
-	canvasMouseMove: function (ev){
-		var canvas = JaSper.funcs.eventSource(ev);
-		if(!JaSper.funcs.canvasValid(canvas))
-			return false;
+					if(oItemSelected.rotation){ //caja girada
+						//calcula la posicion de un punto 'p[x, y]' girado 'angle' radianes, respecto a un centro origen 'o[x, y]'
+						var puntoGirado = function(p, o, angle){
+							var sin = Math.sin(angle), cos = Math.cos(angle);
+							p[0] -= o[0];
+							p[1] -= o[1];
+							var rx = p[0] * cos - p[1] * sin,
+								ry = p[0] * sin + p[1] * cos;
+							return [parseInt(rx + o[0]), parseInt(ry + o[1])];
+						};
 
-		var items = canvas.JaSperItems, item = false;
-		for(var it in items){
-			if(items[it].dragging !== undefined && items[it].dragging){
-				item = it;
-				break;
+						var fAngle = (oItemSelected.rotation > 360 ? Math.floor(oItemSelected.rotation % 360) : oItemSelected.rotation) * Math.PI / 180;
+						var iCenterX = oItemSelected.boundingBox[0] + (oItemSelected.boundingBox[2] / 2);
+						var iCenterY = oItemSelected.boundingBox[1] + (oItemSelected.boundingBox[3] / 2);
+
+						var aPoint = puntoGirado([iMouseXr, iMouseYr], [iCenterX, iCenterY], fAngle);
+						iMouseXr = aPoint[0];
+						iMouseYr = aPoint[1];
+
+						var aPointCaja = puntoGirado([aCaja[0], aCaja[1]], [iCenterX, iCenterY], fAngle);
+						aCaja[0] = aPointCaja[0];aCaja[1] = aPointCaja[1];
+						aPointCaja = puntoGirado([aCaja[2], aCaja[3]], [iCenterX, iCenterY], fAngle);
+						aCaja[2] = aPointCaja[0];aCaja[3] = aPointCaja[1];
+					}
+
+					var aRotacion = [Math.abs(aCaja[2] - iMouseXr), Math.abs(aCaja[1] - iMouseYr)];
+					var aNW = [Math.abs(aCaja[0] - iMouseXr), Math.abs(aCaja[1] - iMouseYr)];
+					var aSE = [Math.abs(aCaja[2] - iMouseXr), Math.abs(aCaja[3] - iMouseYr)];
+
+					//cursor: url(images/cursor.png) x y, auto;
+					if(aRotacion[0] < iRad && aRotacion[1] < iRad) canvas.style.cursor = 'crosshair'; //rotacion
+					else if(aNW[0] < iRad && aNW[1] < iRad) canvas.style.cursor = 'NW-resize'; //superior izquierda
+					else if(aSE[0] < iRad && aSE[1] < iRad) canvas.style.cursor = 'SE-resize'; //inferior derecha
+					else{
+						var bHitx = (aCaja[0] < iMouseXr) && (iMouseXr < aCaja[2]);
+						var bHity = (aCaja[1] < iMouseYr) && (iMouseYr < aCaja[3]);
+
+						if(bHitx && bHity) canvas.style.cursor = 'pointer'; //bounding box
+						else canvas.style.cursor = 'default';
+					}
+				}
 			}
+
+			return true;
 		};
 
-		var bRect = canvas.getBoundingClientRect();
+		/**
+		 * Se suelta el raton
+		 *
+		 * @param ev
+		 * @return boolean
+		 */
+		var mouseUp = function (ev){
+			_JaSper(window).eventRemove('mouseup', mouseUp);
+
+			for(var item in aItems){
+				if(aItems[item].dragging !== undefined && aItems[item].dragging){
+					iDxClick = iDyClick = 0;
+					aItems[item].dragging = false;
+				}
+			}
+
+			if(!canvas.JaSperItems.flags.animable) JaSper.funcs.canvasRedraw(canvas);
+			_JaSper(canvas).eventAdd('mousedown', JaSper.funcs.canvasMouseDown);
+			canvas.style.cursor = 'default';
+			return true;
+		};
+
+		//posicion correcta del raton, independiente de redimensionado del navegador
 		var mouseX = (ev.clientX - bRect.left) * (canvas.width / bRect.width);
 		var mouseY = (ev.clientY - bRect.top) * (canvas.height / bRect.height);
 
-		items[item].x = mouseX;
-		items[item].y = mouseY;
+		var itemsKeys = Object.keys(aItems); //se comprueban en el orden de visualizacion, se hace click sobre el que este visible (mas arriba)
+		hitTest: for(var cont = itemsKeys.length;cont >= 0;--cont){
+			if(!aItems[itemsKeys[cont]] || !aItems[itemsKeys[cont]].drag) continue hitTest; //solo para elementos draggables
 
-		if(!canvas.JaSperItems.flags.animable) JaSper.funcs.canvasRedraw(canvas);
-	},
-
-	/**
-	 * Se suelta el raton
-	 *
-	 * Sobre una idea original de Dan Gries
-	 * http://rectangleworld.com/blog/archives/15
-	 *
-	 * @since 2015-01-11
-	 * @param ev
-	 */
-	canvasMouseUp: function (ev){
-		var canvas = JaSper.funcs.eventSource(ev);
-		if(!JaSper.funcs.canvasValid(canvas))
-			return false;
-
-		_JaSper(window).eventRemove('mouseup', JaSper.funcs.canvasMouseUp);
-
-		var items = canvas.JaSperItems;
-		for(var item in items){
-			if(items[item].dragging !== undefined && items[item].dragging){
-				items[item].dragging = false;
-				_JaSper(window).eventRemove('mousemove', JaSper.funcs.canvasMouseMove);
+			var iHit = JaSper.funcs.canvasMouseHit(aItems[itemsKeys[cont]], mouseX, mouseY); //devuelve si se ha pulsado en un objeto, su caja de seleccion o en sus arrastradores
+			if(iHit){
+				canvas.style.cursor = 'pointer';
+				iDxClick = mouseX - aItems[itemsKeys[cont]].x;
+				iDyClick = mouseY - aItems[itemsKeys[cont]].y;
+				oItemSelected = aItems[itemsKeys[cont]];
+				if(aItems[itemsKeys[cont]].selected){
+					_JaSper(window).eventRemove('mousemove', aItems[itemsKeys[cont]].mouseMove);
+					delete(aItems[itemsKeys[cont]].mouseMove);
+				}
+				oItemSelected.mouseMove = mouseMove;
+				_JaSper(window).eventAdd('mousemove', oItemSelected.mouseMove); //conserva la llamada a la funcion como propiedad para poder eliminar posteriormente el evento; si la firma cambia no se puede eliminar el evento
+				oItemSelected.selected = true;
+				oItemSelected.dragging = iHit;
+				//break;
+			}
+			else{ //deselecciona todos los elementos cuando se pulsa el raton; luego selecciona el correcto si corresponde
+				if(aItems[itemsKeys[cont]].selected){
+					_JaSper(window).eventRemove('mousemove', aItems[itemsKeys[cont]].mouseMove);
+					delete(aItems[itemsKeys[cont]].mouseMove);
+				}
+				aItems[itemsKeys[cont]].selected = false;
 			}
 		}
 
-		if(!canvas.JaSperItems.flags.animable) JaSper.funcs.canvasRedraw(canvas);
-		_JaSper(canvas).eventAdd('mousedown', JaSper.funcs.canvasMouseDown);
+		canvas.JaSperItemSelected = oItemSelected;
+		_JaSper(window).eventAdd('mouseup', mouseUp);
+
+		//JaSper.funcs.eventPreventDefault(ev);
 		return false;
 	},
 
@@ -483,14 +619,14 @@ JaSper.funcs.extend(JaSper.funcs, {
 		if(typeof props.angle === 'function')
 			angle = props.angle.call(null); //callback
 
-		var radianes = angle * Math.PI / 180;
+		var fRadianes = angle * Math.PI / 180;
 
 		var speed = props.speed || 1; //velocidad, en pixels, del movimiento
 		if(typeof props.speed === 'function')
 			speed = props.speed.call(null); //callback
 
-		canvas.JaSperItems[props.id].x += (Math.cos(radianes) * speed);
-		canvas.JaSperItems[props.id].y += (Math.sin(radianes) * speed);
+		canvas.JaSperItems[props.id].x += (Math.cos(fRadianes) * speed);
+		canvas.JaSperItems[props.id].y += (Math.sin(fRadianes) * speed);
 
 		return true;
 	},
@@ -529,35 +665,40 @@ JaSper.funcs.extend(JaSper.funcs, {
 		props.r = props.r || 50; //radio de la circunferencia para los vertices del poligono //TODO por defecto debe ser la media del alto y ancho del canvas o similar
 		props.x = props.x || 0; //centro, coordenada x
 		props.y = props.y || 0; //centro, coordenada y
-		props.angle = props.angle || 0; //
+		props.angle = props.angle || 0;
 		props.cclock = props.cclock || false; //se dibuja en el sentido de las agujas del reloj o al contrario
 		props.fill = props.fill || '#ccc';
 		props.borderWidth = props.borderWidth || 1;
 		props.border = props.border || '#3ab';
 		var x = props.x, y = props.y;
+		var fRadianes = props.angle * Math.PI / 180;
 
 		context.save();
 
 		//transforms
-		if(props.scaleX !== undefined || props.scaleY !== undefined){
+		if(props.scaleX !== undefined || props.scaleY !== undefined || props.rotation !== undefined){
 			context.translate(props.x, props.y);
-			x = props.r;
-			y = props.r;
-			JaSper.funcs.canvasScale(canvas, props);
+			x = 0;
+			y = 0;
+
+			if(props.scaleX !== undefined || props.scaleY !== undefined)
+				JaSper.funcs.canvasScale(canvas, props);
+			if(props.rotation !== undefined)
+				JaSper.funcs.canvasRotate(canvas, props);
 		}
 
 		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
-		props.boundingBox = [props.x - props.r, props.y - props.r, props.r * 2, props.r * 2]; //[x, y, width, height]
+		props.boundingBox = [x - props.r, y - props.r, props.r * 2, props.r * 2, x + props.r, y + props.r]; //[left, top, width, height, right, bottom]
 		if(props.selected != undefined && props.selected) JaSper.funcs.canvasBoundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
 
 		context.beginPath(); //inicia el poligono
 
 		//calcula las posiciones de los vertices y comienza el path
-		context.moveTo(x + props.r * Math.sin(props.angle), y - props.r * Math.cos(props.angle));
+		context.moveTo(x + props.r * Math.sin(fRadianes), y - props.r * Math.cos(fRadianes));
 		var delta = 2 * Math.PI / props.sides; //angulo entre vertices
 		for(var i = 1;i < props.sides;i++){ //resto de vertices
-			props.angle += props.cclock ? -delta : delta; //angulo de este vertice
-			context.lineTo(x + props.r * Math.sin(props.angle), y - props.r * Math.cos(props.angle)); //calcula la posicion del vertice y dibuja una linea hasta el
+			fRadianes += props.cclock ? -delta : delta; //angulo de este vertice
+			context.lineTo(x + props.r * Math.sin(fRadianes), y - props.r * Math.cos(fRadianes)); //calcula la posicion del vertice y dibuja una linea hasta el
 		}
 		context.closePath(); //cierra el poligono
 
@@ -574,6 +715,9 @@ JaSper.funcs.extend(JaSper.funcs, {
 		context.stroke(); //pinta el borde
 
 		context.restore();
+
+		props.boundingBox[0] = props.x - props.r;
+		props.boundingBox[1] = props.y - props.r;
 		return true;
 	},
 
@@ -599,6 +743,28 @@ JaSper.funcs.extend(JaSper.funcs, {
 	},
 
 	/**
+	 * Gira objetos en el canvas
+	 * 
+	 * @since 2015-01-27
+	 * @param object canvas Objeto canvas
+	 * @param object props Propiedades
+	 * @returns boolean
+	 */
+	canvasRotate: function (canvas, props){
+		if(!JaSper.funcs.canvasValid(canvas) || !props)
+			return false;
+		var context = canvas.getContext('2d');
+
+		var angle = props.rotation || 0; //angulo del giro
+		var fRadianes = angle * Math.PI / 180;
+
+		//context.setTransform(1,0,0,1,0,0); //identity matrix
+		context.rotate(fRadianes);
+
+		return true;
+	},
+
+	/**
 	 * Escala (cambia tamano) objetos
 	 * 
 	 * @since 2015-01-07
@@ -607,12 +773,9 @@ JaSper.funcs.extend(JaSper.funcs, {
 	 * @returns boolean
 	 */
 	canvasScale: function (canvas, props){
-		if(!JaSper.funcs.canvasValid(canvas))
+		if(!JaSper.funcs.canvasValid(canvas) || !props)
 			return false;
 		var context = canvas.getContext('2d');
-
-		if(!props)
-			var props = {};
 
 		/*if(!props.id || !context.canvas.JaSperItems[props.id])
 			return false;*/
@@ -653,25 +816,34 @@ JaSper.funcs.extend(JaSper.funcs, {
 
 		context.save();
 
-		//transforms
-		if(props.scaleX !== undefined || props.scaleY !== undefined){
-			context.translate(props.x, props.y);
-			x = props.r;
-			y = props.r;
-			JaSper.funcs.canvasScale(canvas, props);
-		}
-
 		context.fillStyle = props.fillStyle;
 		context.font = props.font;
+		var iTextWidth = context.measureText(props.fillText).width;
+		var iTextHeight = context.measureText('m').width; //FIXME solo funciona para una linea y no tiene en cuenta signos con mas altura
+
+		//transforms
+		if(props.scaleX !== undefined || props.scaleY !== undefined || props.rotation !== undefined){
+			context.translate(props.x + (iTextWidth / 2), props.y - (iTextHeight / 2));
+			x = -(iTextWidth / 2);
+			y = (iTextHeight / 2);
+
+			if(props.scaleX !== undefined || props.scaleY !== undefined)
+				JaSper.funcs.canvasScale(canvas, props);
+			if(props.rotation !== undefined)
+				JaSper.funcs.canvasRotate(canvas, props);
+		}
+
 		context.fillText(props.fillText, x, y);
 
 		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
-		var iTextWidth = context.measureText(props.fillText).width;
-		var iTextHeight = context.measureText('m').width; //FIXME solo funciona para una linea y no tiene en cuenta signos con mas altura
-		props.boundingBox = [props.x, props.y - iTextHeight, iTextWidth, iTextHeight]; //[x, y, width, height]
+		//props.boundingBox = [x, y - iTextHeight, iTextWidth, iTextHeight]; //[x, y, width, height]
+		props.boundingBox = [x, y - iTextHeight, iTextWidth, iTextHeight, x + iTextWidth, y]; //[left, top, width, height, right, bottom]
 		if(props.selected != undefined && props.selected) JaSper.funcs.canvasBoundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
 
 		context.restore();
+
+		props.boundingBox[0] = props.x;
+		props.boundingBox[1] = props.y - iTextHeight;
 		return true;
 	},
 

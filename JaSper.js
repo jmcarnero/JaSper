@@ -296,7 +296,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 */
 		genId: function (len){
 			var gid = 'JaSper_';
-			if(!len || (len.length < (gid.length + 3))) len = gid.length + 3;
+			if(!len || (len.length < (gid.length + 5))) len = gid.length + 5;
 
 			var chars = "0123456789abcdefghijklmnopqurstuvwxyzABCDEFGHIJKLMNOPQURSTUVWXYZ";
 			var rnum;
@@ -891,8 +891,8 @@ JaSper.funcs.extend(JaSper.funcs, {
 	eventSource: function (ev){
 		var ev = ev || window.event, targ = false;
 
-		if(ev.type == 'mouseover') targ = ev.relatedTarget || ev.fromElement; //origen para mouseover
-		else targ = ev.target || ev.srcElement; //w3c o ie
+		/*if(ev.type == 'mouseover') targ = ev.relatedTarget || ev.fromElement; //origen para mouseover
+		else*/ targ = ev.target || ev.srcElement; //w3c o ie
 
 		if(targ.nodeType == 3 || targ.nodeType == 4) targ = targ.parentNode; // defeat Safari bug
 
@@ -923,7 +923,8 @@ JaSper.funcs.extend(JaSper.funcs, {
 	*/
 	eventTarget: function (ev){
 		var ev = ev || window.event, dest = false;
-		if(ev.type == 'mouseover') dest = ev.relatedTarget || ev.toElement; //destino en mouseout
+
+		if(ev.type == 'mouseout') dest = ev.relatedTarget || ev.toElement; //destino en mouseout
 		else dest = ev.target || ev.srcElement; //w3c o ie
 
 		return(dest);
@@ -1068,7 +1069,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 		if(typeof funcion == 'string') funcion = window[funcion]; //TODO try para distinguir nombre_de_funcion de nombre_de_funcion(params) (evaluar esta ultima)
 		if(!capt) var capt = false;
 
-		if(document.addEventListener){  //w3c
+		if(document.addEventListener){ //w3c
 			this.each(
 				function (evt, func, ct){
 					//TODO problemas para quitar eventos con funciones anonimas (como el retorno de mouseEnter); asignarlo previamente a una variable cuando se pone el evento?
