@@ -33,9 +33,10 @@ http://www.gnu.org/copyleft/gpl.html*/
 	//window como parametro acelera las referencias a window
 	//undefined como parametro evita confilctos y se puede usar para probar contra otras indefinidas
 
-	//alias, como $ (para simplificar las llamadas al constructor)
-	window.JaSper = window._JaSper = window.$ = function (sel, context){
-		return new JaSper(sel, context);
+	//_JaSper es la llamada estatica: _JaSper.[funcion]
+	//JaSper y $ son alias, para simplificar las llamadas al constructor: $('selector').funcion()
+	window._JaSper = window.JaSper = window.$ = function (sel, context){
+		return new _JaSper(sel, context);
 	};
 
 	/**
@@ -48,20 +49,20 @@ http://www.gnu.org/copyleft/gpl.html*/
 	 * [div p span] selecciona todos los elementos que esten contenidos en un tag span que esten contenidos en un tag p que esten contenidos en div (descendientes de div que sean descendientes de p que sean span)
 	 * [<div><span>texto</span></div>] selecciona los elementos que contenga la cadena HTML especificada
 	 */
-	JaSper = function (sel, context){
+	_JaSper = function (sel, context){
 		//si no se pasa ningun selector se usa document
 		sel = sel || document;
 
-		this.version = JaSper.version = 'JaSper v3.0b',
+		this.version = _JaSper.version = 'JaSper v3.0b',
 		this.nodes = this.nodes || [],
 		this.funcs = {},
 		this.context = context || window.document; //contexto por defecto es document
 
-		this.debug = JaSper.debug = JaSper.debug || false; //TODO revisar si debe ser una variable global; al ser global el valor se conserva hasta que se cambia explicitamente
+		this.debug = _JaSper.debug = _JaSper.debug || false; //TODO revisar si debe ser una variable global; al ser global el valor se conserva hasta que se cambia explicitamente
 
 		//lenguaje para las traducciones, puede asignarse desde PHP para ser consistente con lo recibido desde el servidor
 		//si no se proporciona detecta el lenguaje del navegador (no los configurados por el usuario); si no se detecta fuerza castellano (es)
-		this.lang = JaSper.lang = JaSper.lang || (navigator.language ? navigator.language.substr(0,2) : (navigator.userLanguage ? navigator.userLanguage.substr(0,2) : 'es'));
+		this.lang = _JaSper.lang = _JaSper.lang || (navigator.language ? navigator.language.substr(0,2) : (navigator.userLanguage ? navigator.userLanguage.substr(0,2) : 'es'));
 
 		//si se ha pasado una cadena (sin distincion inicial), puede ser un ID, clase CSS, tag HTML o una cadena HTML
 		if(typeof sel === 'string'){
@@ -75,7 +76,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 					}
 				}
 				catch(ex){
-					JaSper.funcs.log('[JaSper::constructor] [XPath] Arbol del documento modificado durante la iteracion.', 1);
+					_JaSper.funcs.log('[JaSper::constructor] [XPath] Arbol del documento modificado durante la iteracion.', 1);
 				}
 			}
 			else{ //selector con reglas CSS
@@ -102,7 +103,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 							}
 						}
 						else{ //no se ha pasado un contexto valido
-							JaSper.funcs.log('[JaSper::constructor] "' + context.toString() + '" no es un contexto v\u00E1lido.', 1);
+							_JaSper.funcs.log('[JaSper::constructor] "' + context.toString() + '" no es un contexto v\u00E1lido.', 1);
 						}
 					}
 				}else{
@@ -116,7 +117,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 					if(match[3]){ //id, con o sin # ej. #myid o myid
 						this.nodes[0] = document.getElementById(match[3]);
 					}else if(match[4]){ //nombre de clase ej. .myClass
-						this.nodes = JaSper.funcs.getElementsByClassName(match[4], this.context);
+						this.nodes = _JaSper.funcs.getElementsByClassName(match[4], this.context);
 					}else if(match[5]){ //atributo name ej. @myName
 						this.nodes = document.getElementsByName(match[5]);
 					}else if(match[1]){ //cadena HTML valida, ej. <P><STRONG>hello</STRONG></P>
@@ -129,10 +130,10 @@ http://www.gnu.org/copyleft/gpl.html*/
 						// if querySelectorAll is available for modern browsers we can use that e.g
 						// FF 3.2+, Safari 3.2+, Opera 10, Chrome 3, IE 8 (standards mode)
 						if(!!document.querySelectorAll && this.context === document){
-							this.nodes = JaSper.funcs.selector(sel);
+							this.nodes = _JaSper.funcs.selector(sel);
 						}else{
 							//pasarselo a Sizzle (mas eficiente con navegadores antiguos)
-							try{this.nodes = JaSper.find(sel,this.context);}
+							try{this.nodes = _JaSper.find(sel,this.context);}
 							catch(e){this.nodes = [];} //ninguna forma de localizar los nodos pedidos
 						}
 					}
@@ -142,10 +143,10 @@ http://www.gnu.org/copyleft/gpl.html*/
 		}else if(sel.nodeType){
 			// already got a node add
 			this.context = this.nodes[0] = sel;
-		}else if(JaSper.funcs.isArray(sel)){
+		}else if(_JaSper.funcs.isArray(sel)){
 			this.nodes = sel;
 		}else{
-			this.nodes = JaSper.funcs.makeArray(sel);
+			this.nodes = _JaSper.funcs.makeArray(sel);
 		}
 
 		this.length = this.nodes.length;
@@ -153,7 +154,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 	};
 
 	//con esto JaSper puede ser usado como constructor y como parte del prototype
-	JaSper.prototype = {
+	_JaSper.prototype = {
 		//que navegador se esta usando
 		navigator: (navigator.userAgent.toLowerCase().match( /.+(?:rv|it|ra|ie)[\/: ]([\d.]+)/ ) || [0,'0'])[1], //version
 		msie: /msie/.test(navigator.userAgent.toLowerCase()) && !/opera/.test(navigator.userAgent.toLowerCase()),
@@ -169,8 +170,8 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 */
 		each: function (callback, args){
 			if(!!this.nodes && this.nodes.length){ //no se hace nada si no hay nodos
-				if(!args) JaSper.funcs.foreach(this.nodes, callback);
-				else JaSper.funcs.foreach(this.nodes, callback, args);
+				if(!args) _JaSper.funcs.foreach(this.nodes, callback);
+				else _JaSper.funcs.foreach(this.nodes, callback, args);
 			}
 
 			return this;
@@ -185,16 +186,17 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 */
 		ready: function (f){
 			if(!this.msie && !this.webkit && document.addEventListener) return document.addEventListener('DOMContentLoaded', f, false);
-			if(JaSper.funcs.readyFuncs.push(f) > 1) return;
+			if(_JaSper.funcs.readyFuncs.push(f) > 1) return;
 			if(this.msie){
 				(function (){
-					try {document.documentElement.doScroll('left'); JaSper.funcs.runReady();}
-					catch (err){setTimeout(arguments.callee, 0);}
+					try {document.documentElement.doScroll('left'); _JaSper.funcs.runReady();}
+					catch (err){setTimeout(f, 0);}
+					//catch (err){setTimeout(arguments.callee, 0);}
 				})();
 			}
 			else if(this.webkit){
 				var t = setInterval(function (){
-					if (/^(loaded|complete)$/.test(document.readyState)) clearInterval(t), JaSper.funcs.runReady();
+					if (/^(loaded|complete)$/.test(document.readyState)) clearInterval(t), _JaSper.funcs.runReady();
 				}, 0);
 			}
 		},
@@ -210,17 +212,17 @@ http://www.gnu.org/copyleft/gpl.html*/
 			if(!debug) this.debug = false;
 			else this.debug = debug || true;
 
-			JaSper.debug = this.debug;
+			_JaSper.debug = this.debug;
 
 			return this;
 		}
 
 	};
 
-	JaSper.langs = {'en':{}, 'es':{}}; //traducciones en todos los lenguajes que sean necesarios, definidos por codigo iso 639
+	_JaSper.langs = {'en':{}, 'es':{}}; //traducciones en todos los lenguajes que sean necesarios, definidos por codigo iso 639
 
-	//funciones estaticas referenciables por si mismas,  ej. var winPos = JaSper.funcs.windowPosition()
-	JaSper.funcs = {
+	//funciones estaticas referenciables por si mismas,  ej. var winPos = _JaSper.funcs.windowPosition()
+	_JaSper.funcs = {
 
 		/**
 		 * Extiende un objeto con otro
@@ -229,11 +231,12 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 * @param object addObj Objeto con metodos que se agregaran a extendObj
 		 */
 		extend: function (extendObj, addObj){
-			if(extendObj === JaSper.langs){ //extiende traducciones
-				JaSper.funcs.extendTrads(addObj);
+			if(extendObj === _JaSper.langs){ //extiende traducciones
+				_JaSper.funcs.extendTrads(addObj);
 				return;
 			}
 
+			if(!extendObj) extendObj = {}; //crea el objeto si no existe
 			for(var a in addObj){
 				extendObj[a] = addObj[a];
 			}
@@ -248,10 +251,10 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 */
 		extendTrads: function (obj){
 			for(var lang in obj){
-				if(!JaSper.langs[lang]) JaSper.langs[lang] = {};
+				if(!_JaSper.langs[lang]) _JaSper.langs[lang] = {};
 
 				for(var key in obj[lang]){
-					JaSper.langs[lang][key] = obj[lang][key];
+					_JaSper.langs[lang][key] = obj[lang][key];
 				}
 			}
 			return;
@@ -302,7 +305,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 			var rnum;
 
 			while(gid.length < len || document.getElementById(gid)){
-				/*rnum = Math.abs(Math.sin(JaSper.funcs.getTimer())) * (chars.length - 1); //sin es ciclica, no garantiza unicos
+				/*rnum = Math.abs(Math.sin(_JaSper.funcs.getTimer())) * (chars.length - 1); //sin es ciclica, no garantiza unicos
 				gid += chars.substr(rnum, 1 );*/
 				rnum = Math.floor(Math.random() * (chars.length - 1));
 				gid += chars.substr(rnum, 1 );
@@ -408,7 +411,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 		loadScript: function (scrPath){
 			var scrId = 'JaSper_script_' + scrPath.replace(/[^a-zA-Z\d_]+/, '');
 			if(document.getElementById(scrId)){
-				JaSper.funcs.log('-JaSper::loadScript- Script (id->' + scrId + ') ya cargado.');
+				_JaSper.funcs.log('-JaSper::loadScript- Script (id->' + scrId + ') ya cargado.');
 				return(false); //ya cargado
 			}
 
@@ -430,7 +433,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 			/*try{ //insertar via DOM en Safari 2.0 falla, asi que aproximacion por fuerza bruta
 				document.write('<script type="text/javascript" src="' + scrPath + '"><\/script>');
-				JaSper.funcs.log('-JaSper::loadScript- Script (id->' + scrId + ') leido con "document.write".');
+				_JaSper.funcs.log('-JaSper::loadScript- Script (id->' + scrId + ') leido con "document.write".');
 			}
 			catch(e){*/ //for xhtml+xml served content, fall back to DOM methods
 				var script = document.createElement('script');
@@ -443,9 +446,9 @@ http://www.gnu.org/copyleft/gpl.html*/
 					script.onreadystatechange = function (){
 						if(script.readyState == "loaded" || script.readyState == "complete"){
 							script.onreadystatechange = null;
-							var scriptQueue = JaSper.funcs.loadScriptQueue;
-							JaSper.funcs.loadScriptQueue = [];
-							JaSper.funcs.log('-JaSper::loadScript- Script [' + script.src + '] listo! ... en IE');
+							var scriptQueue = _JaSper.funcs.loadScriptQueue;
+							_JaSper.funcs.loadScriptQueue = [];
+							_JaSper.funcs.log('-JaSper::loadScript- Script [' + script.src + '] listo! ... en IE');
 							for(var mt in scriptQueue){
 								try{
 									(function (cb, ctx){
@@ -453,19 +456,19 @@ http://www.gnu.org/copyleft/gpl.html*/
 									})(scriptQueue[mt]['fn'], scriptQueue[mt]['ctx']);
 								}
 								catch(ex){
-									JaSper.funcs.log('-JaSper::loadScript- No se ha podido ejecutar un método. ' + ex, 1);
+									_JaSper.funcs.log('-JaSper::loadScript- No se ha podido ejecutar un método. ' + ex, 1);
 									return;
 								}
 							}
-							JaSper.funcs.loadScriptQueue = [];
+							_JaSper.funcs.loadScriptQueue = [];
 						}
 					};
 				}
 				else{
 					script.onload = function (){
-						var scriptQueue = JaSper.funcs.loadScriptQueue;
-						JaSper.funcs.loadScriptQueue = [];
-						JaSper.funcs.log('-JaSper::loadScript- Script [' + script.src + '] cargado!');
+						var scriptQueue = _JaSper.funcs.loadScriptQueue;
+						_JaSper.funcs.loadScriptQueue = [];
+						_JaSper.funcs.log('-JaSper::loadScript- Script [' + script.src + '] cargado!');
 						for(var mt in scriptQueue){
 							try{
 								(function (cb, ctx){
@@ -473,7 +476,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 								})(scriptQueue[mt]['fn'], scriptQueue[mt]['ctx']);
 							}
 							catch(ex){
-								JaSper.funcs.log('-JaSper::loadScript- No se ha podido ejecutar un método. ' + ex, 1);
+								_JaSper.funcs.log('-JaSper::loadScript- No se ha podido ejecutar un método. ' + ex, 1);
 								return;
 							}
 						}
@@ -505,7 +508,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @returns boolean
 		 */
 		log: function (mens, lev){
-			if(!JaSper.debug) return false;
+			if(!_JaSper.debug) return false;
 
 			//intenta recuperar donde se origino el mensaje de aviso, basta con buscar desde donde se llama a este metodo
 			var sStack = '', aStack = [];
@@ -544,14 +547,14 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 					e = document.createElement('ul');
 					e.className = 'JaSperDebug ';
 					e.id = 'JaSperDebug'; //TODO diferenciar id's, por si se crea mas de uno
-					_JaSper('<body>').insertAfter(e);
+					JaSper('<body>').insertAfter(e);
 				}
 
 				//cada uno de los mensajes de debug
 				var m = document.createElement('li');
 				m.className = 'JaSperDebug' + (lev == 2?'error':(lev == 1?'warn':'info'));
 				m.appendChild(document.createTextNode(mens));
-				_JaSper('<body>').append(m, e);
+				JaSper('<body>').append(m, e);
 			}else{
 				if(typeof mens != 'string') console.dir(mens); //show objects
 
@@ -597,10 +600,10 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * en el final del fichero de sizzle reemplazar los metodos con lo siguiente:
 window.Sizzle = Sizzle;
 
-JaSper.find = Sizzle;
-JaSper.filter = Sizzle.filter;
-JaSper.expr = Sizzle.selectors;
-JaSper.expr[":"] = JaSper.expr.filters;
+_JaSper.find = Sizzle;
+_JaSper.filter = Sizzle.filter;
+_JaSper.expr = Sizzle.selectors;
+_JaSper.expr[":"] = _JaSper.expr.filters;
 		 *
 		 * @param string query Cadena con selector o selectores a buscar
 		 * @returns array Nodos
@@ -666,7 +669,7 @@ JaSper.expr[":"] = JaSper.expr.filters;
 
 		/**
 		 * Traduccion de los textos de funciones.
-		 * Con la variable "JaSper.lang" (generada por PHP por ejemplo: $_SESSION['l10n']) 
+		 * Con la variable "_JaSper.lang" (generada por PHP por ejemplo: $_SESSION['l10n']) 
 		 * que contenga el codigo de lenguaje que actualmente solicita el navegador; 
 		 * ya que javascript no puede leer directamente las cabeceras que envia el navegador;
 		 * 
@@ -675,17 +678,17 @@ JaSper.expr[":"] = JaSper.expr.filters;
 		 * 
 		 * @todo optimizar codigo
 		 * @param array trad Clave de la traduccion a devolver y parametros que requiera, ej. 'clave a traducir'; otro ej. ['%s a %s', 'clave', 'traducir'], la clave que se busca para la traduccion es el parametro unico o el primer indice y el resto del array parametros para sprintf
-		 * @param string lang Lenguaje al que traducir, si no se pasa ninguno se toma el de JaSper.lang
+		 * @param string lang Lenguaje al que traducir, si no se pasa ninguno se toma el de _JaSper.lang
 		 * @returns string/boolean
 		 */
 		_t: function (trad, lang){
 			if(!trad) return '';
-			if(!lang) var lang = JaSper.lang;
+			if(!lang) var lang = _JaSper.lang;
 
-			if(!JaSper.funcs.isArray(trad)) trad = [trad];
-			if(JaSper.langs[lang] && JaSper.langs[lang][trad[0]]) trad[0] = JaSper.langs[lang][trad[0]];
+			if(!_JaSper.funcs.isArray(trad)) trad = [trad];
+			if(_JaSper.langs[lang] && _JaSper.langs[lang][trad[0]]) trad[0] = _JaSper.langs[lang][trad[0]];
 
-			return(JaSper.funcs.sprintf.apply(this, trad));
+			return(_JaSper.funcs.sprintf.apply(this, trad));
 		},
 
 		/**
@@ -694,7 +697,7 @@ JaSper.expr[":"] = JaSper.expr.filters;
 		 * ej. para comprobar si se ha llegado al final de la pagina y se esta intentando intentando bajar mas:
 		 * <code>
 $('<body>').addEvent('mousewheel', function (ev){
-	if(JaSper.funcs.pagePosition().indexOf('bottom') > -1 && ev.wheelDelta == -3) alert('fin de pagina');
+	if(_JaSper.funcs.pagePosition().indexOf('bottom') > -1 && ev.wheelDelta == -3) alert('fin de pagina');
 });
 
 //probar con (window.scrollY >= window.scrollMaxY) || (window.scrollY >= window.pageYOffset)
@@ -746,22 +749,62 @@ $('<body>').addEvent('mousewheel', function (ev){
 
 	};
 
-	//puede extenderse el prototipo con los metodos encontrados en JaSper.funcs con:
-	//JaSper.funcs.extend(JaSper.prototype, JaSper.funcs);
+	//puede extenderse el prototipo con los metodos encontrados en _JaSper.funcs con:
+	//_JaSper.funcs.extend(_JaSper.prototype, _JaSper.funcs);
 
 })(window);
 
 /****************
 ** Metodos css **
 *****************/
-JaSper.funcs.extend(JaSper.prototype, {
+_JaSper.funcs.extend(_JaSper.prototype, {
+
+	/**
+	 * Añade una clase CSS
+	 *
+	 * @since 2011-09-07
+	 * @param string cName Nombre de la clase
+	 * @return object
+	 */
+	addClass: function (cName){
+		if(typeof cName === "string"){
+			this.each(
+				function (){
+					if(this.className.indexOf(cName) == -1)
+						this.className += ' ' + cName; 
+				}
+			);
+		}
+
+		return this;
+	},
 
 	/**
 	 * recupera una regla css de document o del elemento pasado
 	 */
 	getStyle: function (cssRule){
 		var elem = this.nodes[0];
-		return JaSper.funcs.getStyle(elem, cssRule);
+		return _JaSper.funcs.getStyle(elem, cssRule);
+	},
+
+	/**
+	 * Elimina una clase CSS
+	 *
+	 * @since 2011-09-07
+	 * @param string cName Nombre de la clase
+	 * @return object
+	 */
+	removeClass: function(cName){
+		if(typeof cName === "string"){
+			this.each(
+				function (){
+					if(this.className.indexOf(cName) > -1)
+						this.className = this.className.substr(0, this.className.indexOf(cName) - 1) + this.className.substr(this.className.indexOf(cName) + cName.length);
+				}
+			);
+		}
+
+		return this;
 	},
 
 	/**
@@ -770,7 +813,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	setStyle: function (cssRule, value){
 		this.each(function (rul, val){
 			var elem = this;
-			return JaSper.funcs.setStyle(elem, rul, val);
+			return _JaSper.funcs.setStyle(elem, rul, val);
 		}, [cssRule, value]);
 
 		return this;
@@ -787,13 +830,13 @@ JaSper.funcs.extend(JaSper.prototype, {
 				//TODO deberia aceptar otros tipos de nodo?
 				if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
 
-				var sActDisplay = JaSper.funcs.getStyle(this, 'display');
+				var sActDisplay = _JaSper.funcs.getStyle(this, 'display');
 				if(this.style.display == 'none' || !this.style.display){
 
 					var elem = document.createElement(this.nodeName);
 					_JaSper(document.body).append(elem);
 
-					this.originalDisplay = JaSper.funcs.getStyle(elem, 'display');
+					this.originalDisplay = _JaSper.funcs.getStyle(elem, 'display');
 
 					_JaSper(document.body).remove(elem);
 				}
@@ -802,7 +845,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 				if(sActDisplay != 'none' ) sActDisplay = 'none';
 				else sActDisplay = this.originalDisplay;
 
-				JaSper.funcs.setStyle(this, 'display', sActDisplay);
+				_JaSper.funcs.setStyle(this, 'display', sActDisplay);
 			}
 		);
 
@@ -841,7 +884,7 @@ $('<p>').addEvent('mousewheel', function (ev){
 });
  * </code>
  */
-JaSper.funcs.extend(JaSper.funcs, {
+_JaSper.funcs.extend(_JaSper.funcs, {
 
 	/**
 	 * guarda el ultimo evento que se ha disparado, sirve como controlador para que otros eventos puedan lanzarse (o no) en funcion del previo
@@ -960,7 +1003,7 @@ JaSper.funcs.extend(JaSper.funcs, {
 /***********************
 ** Gestion de eventos **
 ***********************/
-JaSper.funcs.extend(JaSper.prototype, {
+_JaSper.funcs.extend(_JaSper.prototype, {
 
 	/**
 	 * Manejador de eventos.
@@ -983,16 +1026,16 @@ JaSper.funcs.extend(JaSper.prototype, {
 					//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
 					switch(evt){
 						case 'mouseenter':
-							this.addEventListener('mouseover', JaSper.funcs.mouseEnter(func), ct);
+							this.addEventListener('mouseover', _JaSper.funcs.mouseEnter(func), ct);
 							break;
 						case 'mouseleave':
-							this.addEventListener('mouseout', JaSper.funcs.mouseEnter(func), ct);
+							this.addEventListener('mouseout', _JaSper.funcs.mouseEnter(func), ct);
 							break;
 						case 'mousewheel':
 							//recoger el movimiento de la rueda con "ev.wheelDelta = ev.wheelDelta || -(ev.detail);" (3 rueda arriba, -3 rueda abajo)
-							if(_JaSper().gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
+							if(JaSper().gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
 								evt = 'DOMMouseScroll';
-								func = JaSper.funcs.mouseWheel(func);
+								func = _JaSper.funcs.mouseWheel(func);
 							}
 						default: //resto de eventos
 							this.addEventListener(evt, func, ct);
@@ -1076,15 +1119,15 @@ JaSper.funcs.extend(JaSper.prototype, {
 					//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
 					switch(evt){
 						case 'mouseenter':
-							this.removeEventListener('mouseover', JaSper.funcs.mouseEnter(func), ct);
+							this.removeEventListener('mouseover', _JaSper.funcs.mouseEnter(func), ct);
 							break;
 						case 'mouseleave':
-							this.removeEventListener('mouseout', JaSper.funcs.mouseEnter(func), ct);
+							this.removeEventListener('mouseout', _JaSper.funcs.mouseEnter(func), ct);
 							break;
 						case 'mousewheel':
-							if(_JaSper().gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
+							if(JaSper().gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
 								evt = 'DOMMouseScroll';
-								func = JaSper.funcs.mouseWheel(func);
+								func = _JaSper.funcs.mouseWheel(func);
 							}
 						default: //resto de eventos
 							this.removeEventListener(evt, func, ct);
@@ -1126,7 +1169,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 /*********************
 ** Gestion de nodos **
 *********************/
-JaSper.funcs.extend(JaSper.prototype, {
+_JaSper.funcs.extend(_JaSper.prototype, {
 
 	/**
 	 * Añade un nodo hijo al seleccionado, despues de los existentes
@@ -1142,7 +1185,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 		nodo = nodo || this; //se usa el objeto JaSper actual si no se pasa ninguno (o si se pasa null); util para clonar, por ej.
 
 		var elem = null;
-		if(JaSper.funcs.isArray(nodo)){
+		if(_JaSper.funcs.isArray(nodo)){
 			elem = document.createElement(nodo[0]);
 			elem.innerHTML = nodo[1];
 			elem.className = nodo[1];
@@ -1201,7 +1244,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @returns object JaSper
 	 */
 	insertAfter: function (nodo){
-		if(JaSper.funcs.isArray(nodo)){
+		if(_JaSper.funcs.isArray(nodo)){
 			elem = document.createElement(nodo[0]);
 			elem.innerHTML = nodo[1];
 			elem.className = nodo[1];
@@ -1227,7 +1270,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @returns object JaSper
 	 */
 	insertBefore: function (nodo){
-		if(JaSper.funcs.isArray(nodo)){
+		if(_JaSper.funcs.isArray(nodo)){
 			elem = document.createElement(nodo[0]);
 			elem.innerHTML = nodo[1];
 			elem.className = nodo[2];
@@ -1255,7 +1298,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	prepend: function (nodo, ancla){
 		nodo = nodo || this; //se usa el objeto JaSper actual si no se pasa ninguno; util para clonar, por ej.
 
-		if(JaSper.funcs.isArray(nodo)){
+		if(_JaSper.funcs.isArray(nodo)){
 			elem = document.createElement(nodo[0]);
 			elem.innerHTML = nodo[1];
 			elem.className = nodo[1];
@@ -1297,7 +1340,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 /**************************************************
 ** Metodos para ejecucion periodica de funciones **
 **************************************************/
-JaSper.funcs.extend(JaSper.prototype, {
+_JaSper.funcs.extend(_JaSper.prototype, {
 
 	/**
 	 * Ejecuta la funcion pasada de forma periodica, indefinidamente o no
@@ -1330,7 +1373,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 /******************************
 ** Carga dinamica de metodos **
 ******************************/
-JaSper.funcs.extend(JaSper.prototype, {
+_JaSper.funcs.extend(_JaSper.prototype, {
 	/*
 	 * Se cargan bajo demanda si estan aqui incluidos.
 	 * todos los .js deben estar en el mismo directorio que este o subdirectorios de este
@@ -1368,7 +1411,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 				break;
 			default:
 				library = false;
-				JaSper.funcs.log('-JaSper::loadMethod- Intenta cargar dinamicamente una librería desconocida para el metodo: ' + method, 1);
+				_JaSper.funcs.log('-JaSper::loadMethod- Intenta cargar dinamicamente una librería desconocida para el metodo: ' + method, 1);
 		}
 
 		var tempCall = (function (obj, as){
@@ -1377,9 +1420,9 @@ JaSper.funcs.extend(JaSper.prototype, {
 		//tempId = method + args.toString() + library;
 
 		if(library){
-			JaSper.funcs.loadScriptQueue.push({'fn':tempCall,'ctx':this});
-			//JaSper.funcs.loadScript('packer.php?scriptJs=' + library); //version con empaquetador/minificador "class.JavaScriptPacker.php"
-			JaSper.funcs.loadScript(library); //version sin empaquetador
+			_JaSper.funcs.loadScriptQueue.push({'fn':tempCall,'ctx':this});
+			//_JaSper.funcs.loadScript('packer.php?scriptJs=' + library); //version con empaquetador/minificador "class.JavaScriptPacker.php"
+			_JaSper.funcs.loadScript(library); //version sin empaquetador
 		};
 
 		return this;

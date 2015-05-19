@@ -18,7 +18,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 'use strict';
 
 /*traducciones*/
-JaSper.funcs.extend(JaSper.langs, {
+_JaSper.funcs.extend(_JaSper.langs, {
 "en":{
 	'ajax/ajax_1':'This browser can\'t create AJAX objects.',
 	'ajax/ajax_2':'Loading',
@@ -40,7 +40,7 @@ JaSper.funcs.extend(JaSper.langs, {
 /*******************************
 ** Funciones AJAX para JaSper **
 *******************************/
-JaSper.funcs.extend(JaSper.funcs, { //IE cachea las respuestas con la misma url; se puede solucionar añadiendo algo aleatorio a la url de peticion
+_JaSper.funcs.extend(_JaSper.funcs, { //IE cachea las respuestas con la misma url; se puede solucionar añadiendo algo aleatorio a la url de peticion
 
 	/**
 	 * Crear nuevo elemento AJAX y lo devuelve para su uso
@@ -66,19 +66,19 @@ JaSper.funcs.extend(JaSper.funcs, { //IE cachea las respuestas con la misma url;
 						xmlhttp = new ActiveXObject('Msxml2.XMLHTTP.4.0');
 					}
 					catch(e3){
-						JaSper.funcs.log('-JaSper::ajax- ' + JaSper.funcs._t('ajax/ajax_1'), 2);
+						_JaSper.funcs.log('-JaSper::ajax- ' + _JaSper.funcs._t('ajax/ajax_1'), 2);
 					}
 				}
 			}
 		}
 
-		if(!xmlhttp) JaSper.funcs.log('-JaSper::nuevoAjax- No se pudo crear el objeto AJAX.', 2);
+		if(!xmlhttp) _JaSper.funcs.log('-JaSper::nuevoAjax- No se pudo crear el objeto AJAX.', 2);
 
 		return xmlhttp;
 	}
 });
 
-JaSper.funcs.extend(JaSper.prototype, {
+_JaSper.funcs.extend(_JaSper.prototype, {
 	/**
 	 * AJAX
 	 * 
@@ -97,7 +97,7 @@ valores: 'param1=val1&param2=val2', //string Valores que se enviaran, si la peti
 metodo: 'post', //string Metodo de comunicacion con url (GET o POST)
 asincrono: true, //boolean Si true -> asincrono (continua ejecucion sin esperar), false -> isocrono
 cbEnd: function (jsf, xhr){if(jsf.tagName == 'INPUT'){jsf.value = xhr.responseText;}else{jsf.innerHTML = xhr.responseText;}return;}, //function Callback a ejecutar cuando se ha recibido la respuesta AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
-cbStart: function (jsf, xhr){jsf.innerHTML = JaSper.funcs._t('ajax/ajax_2') + '...';return;}, //function Callback a ejecutar cuando se inicia la peticion AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
+cbStart: function (jsf, xhr){jsf.innerHTML = _JaSper.funcs._t('ajax/ajax_2') + '...';return;}, //function Callback a ejecutar cuando se inicia la peticion AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
 cbFail: function (jsf, xhr){return;}, //function Callback a ejecutar cuando falla la peticion AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
 }
 	 * </code>
@@ -132,29 +132,29 @@ cbFail: function (jsf, xhr){return;}, //function Callback a ejecutar cuando fall
 		//callback de fin de peticion (con exito), carga el texto devuelto en el objeto
 		if(!cbEnd) var cbEnd = function (jsf, xhr){if(jsf.tagName == 'INPUT'){jsf.value = xhr.responseText;}else{jsf.innerHTML = xhr.responseText;}return;};
 		//callback de inicio de peticion, por defecto pone en el objeto el mensaje "Cargando..." al inicio de la petición AJAX
-		if(!cbStart) var cbStart = function (jsf, xhr){jsf.innerHTML = JaSper.funcs._t('ajax/ajax_2') + '...';return;};
+		if(!cbStart) var cbStart = function (jsf, xhr){jsf.innerHTML = _JaSper.funcs._t('ajax/ajax_2') + '...';return;};
 		//callback de fin de peticion (con error), muestra un mensaje en el objeto para error 404 y otro para el resto
 		if(!cbFail) var cbFail = function (jsf, xhr){
 			switch(xhr.status){
 				case 0: //0 Respuesta vacia, puede ser peticion a otro dominio
-					JaSper.funcs.log('-JaSper::ajax- ' + JaSper.funcs._t('ajax/ajax_3'), 1);
-					jsf.innerHTML = JaSper.funcs._t('ajax/ajax_3');
+					_JaSper.funcs.log('-JaSper::ajax- ' + _JaSper.funcs._t('ajax/ajax_3'), 1);
+					jsf.innerHTML = _JaSper.funcs._t('ajax/ajax_3');
 					break;
 				case 401: //401: Unauthorized
-					JaSper.funcs.log('-JaSper::ajax- ' + JaSper.funcs._t('ajax/ajax_4'), 1);
-					jsf.innerHTML = JaSper.funcs._t('ajax/ajax_4');
+					_JaSper.funcs.log('-JaSper::ajax- ' + _JaSper.funcs._t('ajax/ajax_4'), 1);
+					jsf.innerHTML = _JaSper.funcs._t('ajax/ajax_4');
 					break;
 				case 403: //403: Forbidden
-					JaSper.funcs.log('-JaSper::ajax- ' + JaSper.funcs._t('ajax/ajax_5'), 1);
-					jsf.innerHTML = JaSper.funcs._t('ajax/ajax_5');
+					_JaSper.funcs.log('-JaSper::ajax- ' + _JaSper.funcs._t('ajax/ajax_5'), 1);
+					jsf.innerHTML = _JaSper.funcs._t('ajax/ajax_5');
 					break;
 				case 404: //404: Not Found
-					JaSper.funcs.log('-JaSper::ajax- ' + JaSper.funcs._t('ajax/ajax_6'), 1);
-					jsf.innerHTML = JaSper.funcs._t('ajax/ajax_6');
+					_JaSper.funcs.log('-JaSper::ajax- ' + _JaSper.funcs._t('ajax/ajax_6'), 1);
+					jsf.innerHTML = _JaSper.funcs._t('ajax/ajax_6');
 					break;
 				default: //algun otro error
-					JaSper.funcs.log('-JaSper::ajax- ' + JaSper.funcs._t('ajax/ajax_7') + ': ' + xhr.status + ', ' + xhr.statusText + ' (' + xhr.responseText + ')', 2);
-					jsf.innerHTML = JaSper.funcs._t('ajax/ajax_7') + ': ' + xhr.status;
+					_JaSper.funcs.log('-JaSper::ajax- ' + _JaSper.funcs._t('ajax/ajax_7') + ': ' + xhr.status + ', ' + xhr.statusText + ' (' + xhr.responseText + ')', 2);
+					jsf.innerHTML = _JaSper.funcs._t('ajax/ajax_7') + ': ' + xhr.status;
 			}
 			return;
 		};
@@ -164,11 +164,11 @@ cbFail: function (jsf, xhr){return;}, //function Callback a ejecutar cuando fall
 		metodo = metodo.toUpperCase();
 
 		this.each(function (url, valores, metodo, asincrono){
-			var ajax = JaSper.funcs.nuevoAjax();
+			var ajax = _JaSper.funcs.nuevoAjax();
 
 			if(!ajax){
-				JaSper.funcs.log('-JaSper::ajax- ' + JaSper.funcs._t('ajax/ajax_1'));
-				this.innerHTML = JaSper.funcs._t('ajax/ajax_1');
+				_JaSper.funcs.log('-JaSper::ajax- ' + _JaSper.funcs._t('ajax/ajax_1'));
+				this.innerHTML = _JaSper.funcs._t('ajax/ajax_1');
 				return(false);
 			}
 
@@ -213,12 +213,12 @@ if ( s.username ) xhr.open( s.type, s.url, s.async, s.username, s.password );*/
 				4: (Completado) - El objeto está listo para otra petición // The response is complete; you can get the server's response and use it.*/
 
 				if(ajax.readyState < 4){
-					JaSper.funcs.log('-JaSper::ajax- Peticion recibida, ajax.readyState = ' + ajax.readyState + '; ajax.responseText = ' + (!ajax.responseText?'':ajax.responseText));
+					_JaSper.funcs.log('-JaSper::ajax- Peticion recibida, ajax.readyState = ' + ajax.readyState + '; ajax.responseText = ' + (!ajax.responseText?'':ajax.responseText));
 					return cbStart(obj, ajax); //callback de inicio de peticion y espera
 				}
 				else if(ajax.readyState == 4){
 					if(ajax.status == 200){ //respuesta correcta recibida
-						JaSper.funcs.log('-JaSper::ajax- Respuesta recibida, proceso completado');
+						_JaSper.funcs.log('-JaSper::ajax- Respuesta recibida, proceso completado');
 						return cbEnd(obj, ajax); //callback de fin de peticion (CON exito)
 					}
 					else return cbFail(obj, ajax); //callback de fin de peticion (SIN exito)
