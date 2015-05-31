@@ -34,7 +34,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 	//undefined como parametro evita confilctos y se puede usar para probar contra otras indefinidas
 
 	//_JaSper es la llamada estatica: _JaSper.[funcion]
-	//JaSper y $ son alias, para simplificar las llamadas al constructor: $('selector').funcion()
+	//JaSper y $ son alias, para simplificar las llamadas al selector: $('selector').funcion()
 	window._JaSper = window.JaSper = window.$ = function (sel, context){
 		return new _JaSper(sel, context);
 	};
@@ -55,10 +55,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 		this.version = _JaSper.version = 'JaSper v3.0b',
 		this.nodes = this.nodes || [],
-		this.funcs = {},
+		//this.funcs = {}, //funciones estaticas generales
+		//this.event = {}, //funciones estaticas de eventos
 		this.context = context || window.document; //contexto por defecto es document
 
-		this.debug = _JaSper.debug = _JaSper.debug || false; //TODO revisar si debe ser una variable global; al ser global el valor se conserva hasta que se cambia explicitamente
+		_JaSper.debug = _JaSper.debug || false; //TODO revisar si debe ser una variable global; al ser global el valor se conserva hasta que se cambia explicitamente
 
 		//lenguaje para las traducciones, puede asignarse desde PHP para ser consistente con lo recibido desde el servidor
 		//si no se proporciona detecta el lenguaje del navegador (no los configurados por el usuario); si no se detecta fuerza castellano (es)
@@ -164,6 +165,20 @@ http://www.gnu.org/copyleft/gpl.html*/
 		gecko: /gecko/.test(navigator.userAgent.toLowerCase()) && !/khtml/.test(navigator.userAgent.toLowerCase()),
 
 		/**
+		 * Debug
+		 *
+		 * @since 2011-03-24
+		 * @param debug Se muestran mensajes de debug (true) o no (false)
+		 * @returns object JaSper
+		 */
+		debug: function (debug){
+			debug = debug || true;
+			_JaSper.debug = debug;
+
+			return this;
+		},
+
+		/**
 		 * Referencia automatica a la funcion foreach pasandole la lista de nodos, ej. $('<SPAN>').each(function (){});
 		 * 
 		 * @returns object JaSper
@@ -199,22 +214,6 @@ http://www.gnu.org/copyleft/gpl.html*/
 					if (/^(loaded|complete)$/.test(document.readyState)) clearInterval(t), _JaSper.funcs.runReady();
 				}, 0);
 			}
-		},
-
-		/**
-		 * Debug
-		 *
-		 * @since 2011-03-24
-		 * @param debug Se muestran mensajes de debug (true) o no (false)
-		 * @returns object JaSper
-		 */
-		setDebug: function (debug){
-			if(!debug) this.debug = false;
-			else this.debug = debug || true;
-
-			_JaSper.debug = this.debug;
-
-			return this;
 		}
 
 	};
@@ -236,7 +235,8 @@ http://www.gnu.org/copyleft/gpl.html*/
 				return;
 			}
 
-			if(!extendObj) extendObj = {}; //crea el objeto si no existe
+			//if(!extendObj) extendObj = {}; //crea el objeto si no existe
+
 			for(var a in addObj){
 				extendObj[a] = addObj[a];
 			}
@@ -494,7 +494,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 		loadScriptQueue: [],
 
 		/**
-		 * Muestra mensajes de debug, si "this.debug" es true
+		 * Muestra mensajes de debug, si "_JaSper.debug" es true
 		 * Muestra los mensajes en el elemento con id "JaSperDebug" o lo crea bajo el primer nodo de this
 		 * Ej. de uso:
 		 * <code>
@@ -536,9 +536,9 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 				}
 			}
 
-			if(!mens) var mens = 'JaSper debug';
+			var mens = mens || 'JaSper debug';
 			mens += '\n[' + aStack[1] + ']'; //hacer esta informacion opcional o solo mostrar fichero y linea de la llamada?
-			if(!lev) var lev = 0;
+			var lev = lev || 0;
 
 			if(typeof console != 'object'){
 				//contenedor de los mensajes de debug
@@ -552,7 +552,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 
 				//cada uno de los mensajes de debug
 				var m = document.createElement('li');
-				m.className = 'JaSperDebug' + (lev == 2?'error':(lev == 1?'warn':'info'));
+				m.className = 'JaSperDebug' + (lev == 2 ? 'error' : (lev == 1 ? 'warn' : 'info'));
 				m.appendChild(document.createTextNode(mens));
 				JaSper('<body>').append(m, e);
 			}else{
@@ -612,7 +612,7 @@ _JaSper.expr[":"] = _JaSper.expr.filters;
 			try{
 				// Always ensure results are array like - not had a problem so far but...
 				return this.makeArray(document.querySelectorAll(query));
-			}catch(e){
+			}catch(ex){
 				return [];
 			}
 		},
@@ -748,6 +748,8 @@ $('<body>').addEvent('mousewheel', function (ev){
 		}
 
 	};
+	
+	_JaSper.event = {};
 
 	//puede extenderse el prototipo con los metodos encontrados en _JaSper.funcs con:
 	//_JaSper.funcs.extend(_JaSper.prototype, _JaSper.funcs);
@@ -884,7 +886,7 @@ $('<p>').addEvent('mousewheel', function (ev){
 });
  * </code>
  */
-_JaSper.funcs.extend(_JaSper.funcs, {
+_JaSper.funcs.extend(_JaSper.event, {
 
 	/**
 	 * guarda el ultimo evento que se ha disparado, sirve como controlador para que otros eventos puedan lanzarse (o no) en funcion del previo
@@ -894,7 +896,7 @@ _JaSper.funcs.extend(_JaSper.funcs, {
 	 * @param ev Evento
 	 * @returns string
 	 */
-	eventName: function (ev){
+	name: function (ev){
 		/*this.nombreEvento = window.nombreEvento = evento.toLowerCase(); //se guarda el nombre del ultimo evento disparado para cada objeto jsframe; y el ultimo de todos en window.nombreEvento
 		evento = this.nombreEvento;*/
 
@@ -908,7 +910,7 @@ _JaSper.funcs.extend(_JaSper.funcs, {
 	 * @param ev Objeto evento
 	 * @returns boolean
 	 */
-	eventPreventDefault: function (ev){
+	preventDefault: function (ev){
 		var ev = ev || window.event;
 
 		if(ev.preventDefault){ //modelo DOM
@@ -931,7 +933,7 @@ _JaSper.funcs.extend(_JaSper.funcs, {
 	 * @param ev Evento
 	 * @returns object
 	 */
-	eventSource: function (ev){
+	source: function (ev){
 		var ev = ev || window.event, targ = false;
 
 		/*if(ev.type == 'mouseover') targ = ev.relatedTarget || ev.fromElement; //origen para mouseover
@@ -949,7 +951,7 @@ _JaSper.funcs.extend(_JaSper.funcs, {
 	 * @param ev Objeto evento
 	 * @returns boolean
 	 */
-	eventStop: function (ev){
+	stop: function (ev){
 		var ev = ev || window.event;
 
 		if(ev.stopPropagation) ev.stopPropagation(); //modelo DOM
@@ -964,13 +966,154 @@ _JaSper.funcs.extend(_JaSper.funcs, {
 	* @param ev Evento
 	* @returns object
 	*/
-	eventTarget: function (ev){
+	target: function (ev){
 		var ev = ev || window.event, dest = false;
 
 		if(ev.type == 'mouseout') dest = ev.relatedTarget || ev.toElement; //destino en mouseout
 		else dest = ev.target || ev.srcElement; //w3c o ie
 
 		return(dest);
+	},
+
+	/**
+	 * Correccion de codigo de tecla pulsada.
+	 * Para keypress corresponde con codigos ascii,
+	 * para keyup o keydown no necesariamente (ej: "." devuelve 190 y no 46 -ascii-); este metodo corrige la correspondencia devolviendo el ascii correcto
+	 * Devuelve -1 si se llama con un evento que no sea keyXXX
+	 *
+	 * @todo completar mapa de correspondencia de teclas
+	 * @since 2011-09-08
+	 * @access public
+	 * @return integer
+	 */
+	keyCode: function (e){
+		e = e || window.event;
+		var code = e.keyCode || e.which, etype = e.type.toLowerCase().replace('on', ''); //, char = String.fromCharCode(code);
+
+		if(etype == 'keypress') return(code);
+		else if(etype == 'keydown' || etype == 'keyup'){
+			var keycodes = { //keycode:[ascii_normal, ascii_shiftKey, ascii_controlkey, ascii_altKey]
+				8:[8], //Backspace
+				9:[9], //Tab
+				13:[13], //Enter
+				/*16:[], //Shift
+				17:[], //Ctrl
+				18:[], //Alt
+				19:[], //Pause
+				20:[], //Caps Lock
+				27:[], //Escape
+				33:[], //Page Up
+				34:[], //Page Down
+				35:[], //End
+				36:[], //Home
+				37:[], //Arrow Left
+				38:[], //Arrow Up
+				39:[], //Arrow Right
+				40:[], //Arrow Down
+				45:[], //Insert*/
+				46:[127], //Delete
+				48:[48], //0
+				49:[49], //1
+				50:[50], //2
+				51:[51], //3
+				52:[52], //4
+				53:[53], //5
+				54:[54], //6
+				55:[55], //7
+				56:[56], //8
+				57:[57], //9
+				65:[97, 65], //A
+				66:[98, 66], //B
+				67:[99, 67], //C
+				68:[100, 68], //D
+				69:[101, 69], //E
+				70:[102, 70], //F
+				71:[103, 71], //G
+				72:[104, 72], //H
+				73:[105, 73], //I
+				74:[106, 74], //J
+				75:[107, 75], //K
+				76:[108, 76], //L
+				77:[109, 77], //M
+				78:[110, 78], //N
+				79:[111, 79], //O
+				80:[112, 80], //P
+				81:[113, 81], //Q
+				82:[114, 82], //R
+				83:[115, 83], //S
+				84:[116, 84], //T
+				85:[117, 85], //U
+				86:[118, 86], //V
+				87:[119, 87], //W
+				88:[120, 88], //X
+				89:[121, 89], //Y
+				90:[122, 90], //Z
+				/*91:[], //Left Windows
+				92:[], //Right Windows
+				93:[], //Context Menu*/
+				96:[48], //NumPad 0
+				97:[49], //NumPad 1
+				98:[50], //NumPad 2
+				99:[51], //NumPad 3
+				100:[52], //NumPad 4
+				101:[53], //NumPad 5
+				102:[54], //NumPad 6
+				103:[55], //NumPad 7
+				104:[56], //NumPad 8
+				105:[57], //NumPad 9
+				106:[42], //NumPad *
+				107:[43], //NumPad +
+				109:[45], //NumPad -
+				110:[46], //NumPad .
+				111:[47], //NumPad /
+				/*112:[], //F1
+				113:[], //F2
+				114:[], //F3
+				115:[], //F4
+				116:[], //F5
+				117:[], //F6
+				118:[], //F7
+				119:[], //F8
+				120:[], //F9
+				121:[], //F10
+				122:[], //F11
+				123:[], //F12
+				144:[], //Num Lock
+				145:[], //Scroll Lock*/
+				186:[59], //;
+				187:[61], //=
+				188:[44], //,
+				189:[45], //-
+				190:[46], //.
+				191:[47], ///
+				192:[96], //`
+				219:[91], //[
+				220:[92], //\
+				221:[93], //]
+				222:[39] //'
+			};
+
+			var shiftControlAlt = 0;
+			if(navigator.appName=="Netscape" && parseInt(navigator.appVersion)==4){ //netscape 4
+				var mString =(e.modifiers+32).toString(2).substring(3,6);
+				shiftControlAlt += (mString.charAt(0)=="1")?1:0;
+				shiftControlAlt += (mString.charAt(1)=="1")?1:0;
+				shiftControlAlt += (mString.charAt(2)=="1")?1:0;
+			}
+			else{ //resto
+				shiftControlAlt += e.shiftKey?1:0;
+				shiftControlAlt += e.altKey?1:0;
+				shiftControlAlt += e.ctrlKey?1:0;
+			}
+
+			if(typeof keycodes[code] != 'undefined'){
+				if(typeof keycodes[code][shiftControlAlt] != 'undefined') return(keycodes[code][shiftControlAlt]); //devuelve exacto
+				else if(typeof keycodes[code][0] != 'undefined') return(keycodes[code][0]); //devuelve correspondencia sin modificadores
+			}
+			return(code); //no hay correspondencia, devuelve keycode
+		}
+
+		return(-1); //evento incoherente
 	},
 
 	mouseEnter: function (func){
@@ -1026,16 +1169,16 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 					//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
 					switch(evt){
 						case 'mouseenter':
-							this.addEventListener('mouseover', _JaSper.funcs.mouseEnter(func), ct);
+							this.addEventListener('mouseover', _JaSper.event.mouseEnter(func), ct);
 							break;
 						case 'mouseleave':
-							this.addEventListener('mouseout', _JaSper.funcs.mouseEnter(func), ct);
+							this.addEventListener('mouseout', _JaSper.event.mouseEnter(func), ct);
 							break;
 						case 'mousewheel':
 							//recoger el movimiento de la rueda con "ev.wheelDelta = ev.wheelDelta || -(ev.detail);" (3 rueda arriba, -3 rueda abajo)
 							if(JaSper().gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
 								evt = 'DOMMouseScroll';
-								func = _JaSper.funcs.mouseWheel(func);
+								func = _JaSper.event.mouseWheel(func);
 							}
 						default: //resto de eventos
 							this.addEventListener(evt, func, ct);
@@ -1119,15 +1262,15 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 					//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
 					switch(evt){
 						case 'mouseenter':
-							this.removeEventListener('mouseover', _JaSper.funcs.mouseEnter(func), ct);
+							this.removeEventListener('mouseover', _JaSper.event.mouseEnter(func), ct);
 							break;
 						case 'mouseleave':
-							this.removeEventListener('mouseout', _JaSper.funcs.mouseEnter(func), ct);
+							this.removeEventListener('mouseout', _JaSper.event.mouseEnter(func), ct);
 							break;
 						case 'mousewheel':
 							if(JaSper().gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
 								evt = 'DOMMouseScroll';
-								func = _JaSper.funcs.mouseWheel(func);
+								func = _JaSper.event.mouseWheel(func);
 							}
 						default: //resto de eventos
 							this.removeEventListener(evt, func, ct);
@@ -1209,14 +1352,14 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 	/**
 	 * Devuelve el HTML de los nodos si no se le pasa nada
 	 * Sustituye el HTML de los nodos con el que se pase por parametro devolviendo el HTML que hubiese previamente
-	 * 
+	 *
 	 * NO permite encadenado de metodos
-	 * 
+	 *
 	 * @todo solo funciona para nodos que tengan la propiedad innerHTML, extender para todos los nodos construyendo los objetos que se pasen por parametro y luego append al nodo?
 	 * @param string html HTML que sustituira el de los nodos
 	 * @returns string HTML encontrado
 	 */
-	html: function (html, separador) {
+	html: function (html, separador){
 		var ret = [];
 		if(!html) var html = false;
 		if(!separador) var separador = '';
@@ -1333,6 +1476,36 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 		}, [elem]);
 
 		return this;
+	},
+
+	/**
+	 * Devuelve el texto de los nodos si no se le pasa nada
+	 * Sustituye el texto de los nodos con el que se pase por parametro devolviendo el texto que hubiese previamente
+	 *
+	 * NO permite encadenado de metodos
+	 *
+	 * @param string text Texto que sustituira el de los nodos
+	 * @returns string Texto encontrado
+	 */
+	text: function (html, separador){
+		var ret = [];
+		var text = text || false;
+		if(!separador) var separador = '';
+
+		//TODO comprobar cross browser
+		//TODO devolver value para elementos de formulario?
+		this.each(function (t){
+			if(!!this.textContent){ //si el nodo no tiene la propiedad text no se hace nada
+				//TODO separar las cadenas encontradas para un posterior split?
+				ret[ret.length] = this.textContent; //guarda el texto actual del nodo
+
+				if(!!t){ //sustituye con el texto pasado por parametro
+					this.textContent = t;
+				}
+			}
+		}, [text]);
+
+		return ret.join(separador);
 	}
 
 });
@@ -1409,6 +1582,9 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 			case 'rtb':
 				library = 'JaSper_rtb.js';
 				break;
+			case 'validar':
+				library = 'JaSper_formazo.js';
+				break;
 			default:
 				library = false;
 				_JaSper.funcs.log('-JaSper::loadMethod- Intenta cargar dinamicamente una librería desconocida para el metodo: ' + method, 1);
@@ -1441,12 +1617,15 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 	canvas: function (){return(this.loadMethod('canvas', arguments));},
 
 	/* Rich Text Box */
-	rtb: function (){return(this.loadMethod('rtb', arguments));}
+	rtb: function (){return(this.loadMethod('rtb', arguments));},
+
+	/* Validacion de formularios */
+	validar: function (){return(this.loadMethod('validar', arguments));}
 });
 
-/**************************
-** EXtensiones prototype **
-**************************/
+/**************
+** polyfills **
+**************/
 
 /**
  * Array.indexOf(obj)
@@ -1466,6 +1645,15 @@ if(typeof this.indexOf != "function"){
 		}
 		return -1;
 	};
+}
+
+if(!String.prototype.trim){
+	(function (){ // Make sure we trim BOM and NBSP
+		var rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
+		String.prototype.trim = function (){
+			return this.replace(rtrim, '');
+		};
+	})();
 }
 
 //From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys

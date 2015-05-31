@@ -445,7 +445,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	mouseDown: function (ev){
-		var canvas = _JaSper.funcs.eventSource(ev);
+		var canvas = _JaSper.event.source(ev);
 		if(!_JaSper.canvas.valid(canvas))
 			return false;
 

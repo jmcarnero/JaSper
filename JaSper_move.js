@@ -67,8 +67,8 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 		/* finaliza movimiento */
 		var moveEnd = function (event, obj, funcs){
-			_JaSper.funcs.eventPreventDefault(event);
-			_JaSper.funcs.eventStop(event);
+			_JaSper.event.preventDefault(event);
+			_JaSper.event.stop(event);
 
 			if(props.reset){
 				obj.style.left = obj.posMoveStart['x'] + 'px';
@@ -96,8 +96,8 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 		/* mover */
 		var moveObject = function (event, obj){
-			_JaSper.funcs.eventPreventDefault(event);
-			_JaSper.funcs.eventStop(event);
+			_JaSper.event.preventDefault(event);
+			_JaSper.event.stop(event);
 
 			if(typeof props.onMove === 'function') props.onMove.call(obj);
 
@@ -119,9 +119,9 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 			obj.style.top = top + 'px';
 			obj.style.left = left + 'px';
 
-			$('origen').html = _JaSper.funcs.eventSource(event);//obj;
+			$('origen').html = _JaSper.event.source(event);//obj;
 			//document.getElementById('destino').innerHTML = JaSper.funcs.eventTarget(event);
-			$('evento').html = _JaSper.funcs.eventName(event);
+			$('evento').html = _JaSper.event.name(event);
 		};
 
 		/*var mueveObj = function (e){
@@ -148,8 +148,8 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 		/* inicia movimiento */
 		var moveStart = function (event, obj){
-			_JaSper.funcs.eventPreventDefault(event);
-			_JaSper.funcs.eventStop(event);
+			_JaSper.event.preventDefault(event);
+			_JaSper.event.stop(event);
 
 			var normalclick;
 			if(event.which) normalclick = event.which;
