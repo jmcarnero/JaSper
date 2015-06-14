@@ -507,7 +507,10 @@ _JaSper.funcs.extend(_JaSper.valida, {
 	obligatorio: function (oCampo){
 		var bRet = true, text = '';
 
-		oCampo.value = oCampo.value.toString().trim() || '';
+		//evita problemas con elementos tipo file (por ejemplo), no se puede cambiar su valor
+		try{oCampo.value = oCampo.value.toString().trim() || '';}
+		catch(ex){_JaSper.funcs.log('No se puede alterar el valor de <' + oCampo.tagName + ' id="' + oCampo.id + '" type="' + oCampo.type + '" />', 1);}
+
 		if(oCampo.value != '') bRet = true;
 		else{
 			text = JaSper('<label>', oCampo.parentNode).text(); //title for error container

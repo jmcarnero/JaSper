@@ -189,7 +189,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 * @return {Object} JaSper
 		 */
 		each: function (callback, args){
-			if(!!this.nodes && this.nodes.length){ //no se hace nada si no hay nodos
+			if(this.nodes && this.nodes.length){ //no se hace nada si no hay nodos
 				if(!args) _JaSper.funcs.foreach(this.nodes, callback, undefined);
 				else _JaSper.funcs.foreach(this.nodes, callback, args);
 			}
@@ -609,7 +609,11 @@ _JaSper.expr[":"] = _JaSper.expr.filters;
 			context = context || document;
 
 			try{
-				return this.makeArray(context.querySelectorAll(query));
+				var aSel = context.querySelectorAll(query);
+				if(aSel.length) //evita que makeArray devuelva una lista de nodos vacia pero longitud 1
+					return this.makeArray(context.querySelectorAll(query));
+				else
+					return [];
 			}catch(ex){ //fuerza devolucion de array...
 				return [];
 			}
