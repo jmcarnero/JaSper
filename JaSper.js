@@ -30,7 +30,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  */
 (function (window, undefined){
 
-	if(window.JaSper !== undefined) //evita problemas si se carga la libreria varias veces
+	if(window.JaSper) //evita problemas si se carga la libreria varias veces
 		return;
 
 	//window como parametro acelera las referencias a window
@@ -329,9 +329,10 @@ http://www.gnu.org/copyleft/gpl.html*/
 					var els = node.getElementsByClassName(clsName);
 					return els;
 				}else{
-					var cls = node.getElementsByClassName(clsName),
-					els = [],
 					tag = tag.toUpperCase();
+					var cls = node.getElementsByClassName(clsName),
+					els = [];
+
 					for(var x=0,l = cls.length;x < l;x++){
 						if(cls[x].nodeName == tag) els.push(cls[x]);
 					}
@@ -879,7 +880,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	toggle: function (fade){
-		fade = parseInt(fade || 0);
+		fade = parseInt(fade) || 200;
 
 		var oJaSper = this;
 
@@ -1135,7 +1136,7 @@ _JaSper.funcs.extend(_JaSper.event, {
 		/*this.nombreEvento = window.nombreEvento = evento.toLowerCase(); //se guarda el nombre del ultimo evento disparado para cada objeto jsframe; y el ultimo de todos en window.nombreEvento
 		evento = this.nombreEvento;*/
 
-		var ev = ev || window.event;
+		ev = ev || window.event;
 		return ev;
 	},
 
@@ -1146,7 +1147,7 @@ _JaSper.funcs.extend(_JaSper.event, {
 	 * @return {boolean}
 	 */
 	preventDefault: function (ev){
-		var ev = ev || window.event;
+		ev = ev || window.event;
 
 		if(ev.preventDefault){ //modelo DOM
 			//ev.stopPropagation();
@@ -1169,7 +1170,7 @@ _JaSper.funcs.extend(_JaSper.event, {
 	 * @return {Object} Objeto target del evento
 	 */
 	source: function (ev){
-		var ev = ev || window.event, targ = false;
+		ev = ev || window.event, targ = false;
 
 		/*if(ev.type == 'mouseover') targ = ev.relatedTarget || ev.fromElement; //origen para mouseover
 		else*/ targ = ev.target || ev.srcElement; //w3c o ie
@@ -1187,7 +1188,7 @@ _JaSper.funcs.extend(_JaSper.event, {
 	 * @return {boolean}
 	 */
 	stop: function (ev){
-		var ev = ev || window.event;
+		ev = ev || window.event;
 
 		if(ev.stopPropagation) ev.stopPropagation(); //modelo DOM
 		else ev.cancelBubble = true; //modelo MSIE
@@ -1202,7 +1203,7 @@ _JaSper.funcs.extend(_JaSper.event, {
 	* @return {Object} Objeto destino del evento
 	*/
 	target: function (ev){
-		var ev = ev || window.event, dest = false;
+		ev = ev || window.event, dest = false;
 
 		if(ev.type == 'mouseout') dest = ev.relatedTarget || ev.toElement; //destino en mouseout
 		else dest = ev.target || ev.srcElement; //w3c o ie
