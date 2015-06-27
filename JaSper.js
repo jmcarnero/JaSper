@@ -225,6 +225,19 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 	_JaSper.langs = {'en':{}, 'es':{}}; //traducciones en todos los lenguajes que sean necesarios, definidos por codigo iso 639
 
+	//guarda si es la version minificada (true) o normal (false)
+	_JaSper.minificado = (function verMinified(){ //comprueba si estamos con la version minificada o la normal
+		var scripts = document.getElementsByTagName('script'); //document.scripts?
+
+		for(var i = 0;i < scripts.length; i++){
+			if(scripts[i].src.indexOf('JaSper_min.js') > 0){
+				return true; //'_min'; //version minificada
+			}
+		}
+
+		return false;
+	})();
+
 	//funciones estaticas referenciables por si mismas,  ej. var winPos = _JaSper.funcs.windowPosition()
 	_JaSper.funcs = {
 
@@ -365,6 +378,34 @@ http://www.gnu.org/copyleft/gpl.html*/
 			return sRet;
 		},
 
+		/**
+		 * Devuelve si la propiedad CSS sProp esta disponible en el navegador
+		 * ej.: isCSSProperty('transition')
+		 *
+		 * De una idea original de https://gist.github.com/jackfuchs/556448
+		 * 
+		 * @param {string} sProp Nombre de la propiedad a comprobar
+		 * @return {bool}
+		 */
+		/*isCSSProperty: function (sProp){
+			var oStyle = (document.body || document.documentElement).style;
+
+			if(typeof oStyle[sProp] == 'string'){
+				return true;
+			}
+
+			var aVars = ['Moz', 'webkit', 'Webkit', 'Khtml', 'O', 'ms'];
+			sProp = sProp.charAt(0).toUpperCase() + sProp.substr(1);
+
+			for(var i=0; i < aVars.length; i++){
+				if(typeof oStyle[aVars[i] + sProp] == 'string')
+					return true;
+			}
+
+			return false;
+		},*/
+
+
 		//devuelve si es un nodo o elemento DOM
 		//TODO cambiar el retorno para distinguir nodo de elemento
 		isDOMObject: function (o){
@@ -413,9 +454,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 				return(false); //ya cargado
 			}
 
+			var sMinified = _JaSper.minificado ? '_min' : ''; //sufijo cuando se trabaja con la version minificada
+
 			//si se ha pasado una ruta no absoluta se le suma la misma ruta en que se encuentre "JaSper.js"
 			if(scrPath.indexOf('http://') === -1){
-				var temp_js = new RegExp("(^|(.*?\\/))(JaSper\.js)(\\?|$)");
+				var temp_js = new RegExp("(^|(.*?\\/))(JaSper" + sMinified + "\.js)(\\?|$)");
 				var scripts = document.getElementsByTagName('script');
 				for(var i = 0, lon = scripts.length; i < lon ; i++){
 					var src = scripts[i].getAttribute('src');
@@ -429,9 +472,34 @@ http://www.gnu.org/copyleft/gpl.html*/
 				}
 			}
 
+			//ejecuta las funciones que esten en cola
+			function loadQueue(scriptSrc, tipo){
+				tipo = tipo || false;
+
+				var scriptQueue = _JaSper.funcs.loadScriptQueue;
+				_JaSper.funcs.loadScriptQueue = [];
+
+				if(tipo == 'ie') _JaSper.funcs.log('-JaSper::loadScript- Script [' + scriptSrc + '] listo! ... en IE', 0);
+				else if(tipo == 'st') _JaSper.funcs.log('-JaSper::loadScript- Script [' + scriptSrc + '] cargado!', 0);
+				else _JaSper.funcs.log('-JaSper::loadScript- Script (id->' + scrId + ') leido con "document.write".');
+
+				for(var mt in scriptQueue){
+					try{
+						(function (cb, ctx){
+							return(cb.call(ctx));
+						})(scriptQueue[mt]['fn'], scriptQueue[mt]['ctx']);
+					}
+					catch(ex){
+						_JaSper.funcs.log('-JaSper::loadScript- No se ha podido ejecutar un método. ' + ex, 1);
+						return;
+					}
+				}
+				_JaSper.funcs.loadScriptQueue = [];
+			}
+
 			/*try{ //insertar via DOM en Safari 2.0 falla, asi que aproximacion por fuerza bruta
 				document.write('<script type="text/javascript" src="' + scrPath + '"><\/script>');
-				_JaSper.funcs.log('-JaSper::loadScript- Script (id->' + scrId + ') leido con "document.write".');
+				loadQueue(scrPath, 'sf');
 			}
 			catch(e){*/ //for xhtml+xml served content, fall back to DOM methods
 				var script = document.createElement('script');
@@ -444,40 +512,13 @@ http://www.gnu.org/copyleft/gpl.html*/
 					script.onreadystatechange = function (){
 						if(script.readyState == "loaded" || script.readyState == "complete"){
 							script.onreadystatechange = null;
-							var scriptQueue = _JaSper.funcs.loadScriptQueue;
-							_JaSper.funcs.loadScriptQueue = [];
-							_JaSper.funcs.log('-JaSper::loadScript- Script [' + script.src + '] listo! ... en IE', 0);
-							for(var mt in scriptQueue){
-								try{
-									(function (cb, ctx){
-										return(cb.call(ctx));
-									})(scriptQueue[mt]['fn'], scriptQueue[mt]['ctx']);
-								}
-								catch(ex){
-									_JaSper.funcs.log('-JaSper::loadScript- No se ha podido ejecutar un método. ' + ex, 1);
-									return;
-								}
-							}
-							_JaSper.funcs.loadScriptQueue = [];
+							loadQueue(script.src, 'ie');
 						}
 					};
 				}
 				else{
 					script.onload = function (){
-						var scriptQueue = _JaSper.funcs.loadScriptQueue;
-						_JaSper.funcs.loadScriptQueue = [];
-						_JaSper.funcs.log('-JaSper::loadScript- Script [' + script.src + '] cargado!', 0);
-						for(var mt in scriptQueue){
-							try{
-								(function (cb, ctx){
-									return(cb.call(ctx));
-								})(scriptQueue[mt]['fn'], scriptQueue[mt]['ctx']);
-							}
-							catch(ex){
-								_JaSper.funcs.log('-JaSper::loadScript- No se ha podido ejecutar un método. ' + ex, 1);
-								return;
-							}
-						}
+						loadQueue(script.src, 'st');
 					};
 				}
 
@@ -785,55 +826,6 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 	},
 
 	/**
-	 * Alterna la propiedad display entre 'none' y visible
-	 * 
-	 * @param {string} Type Tipo de desvanecimiento: in (de invisible a visible), out (de visible a invisible)
-	 * @param {number} ms Duracion del efecto en milisegundos
-	 * @return {Object} JaSper
-	 */
-	fade: function (type, ms){
-		ms = ms || 300;
-
-		var isIn = (type || 'in') === 'in', opacity = isIn ? 0 : 1, interval = 50, gap = interval / ms;
-
-		this.each(function (){
-			if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
-
-			var sActDisplay = _JaSper.funcs.getStyle(this, 'display');
-			if(this.style.display == 'none' || !this.style.display){
-
-				var elem = document.createElement(this.nodeName);
-				JaSper(document.body).append(elem);
-
-				this.originalDisplay = _JaSper.funcs.getStyle(elem, 'display');
-
-				JaSper(document.body).remove(elem);
-			}
-			this.originalDisplay = (this.originalDisplay || (sActDisplay != 'none' ? sActDisplay : ''));
-
-			if(isIn){
-				this.style.display = this.originalDisplay;
-				this.style.opacity = opacity;
-			}
-
-			var oObjOpac = this;
-			function func() {
-				opacity = isIn ? opacity + gap : opacity - gap;
-				oObjOpac.style.opacity = opacity;
-
-				if(opacity <= 0)
-					oObjOpac.style.display = 'none'
-				if(opacity <= 0 || opacity >= 1)
-					window.clearInterval(fading);
-			}
-
-			var fading = window.setInterval(func, interval);
-		});
-
-		return this;
-	},
-
-	/**
 	 * recupera una regla css de document o del elemento pasado
 	 */
 	getStyle: function (cssRule){
@@ -869,52 +861,6 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 			var elem = this;
 			return _JaSper.funcs.setStyle(elem, rul, val);
 		}, [cssRule, value]);
-
-		return this;
-	},
-
-	/**
-	 * Alterna la propiedad display entre 'none' y visible
-	 * 
-	 * @param {number} fade Tiempo en milisegundos del fade, si se pasa 0 no hace este efecto
-	 * @return {Object} JaSper
-	 */
-	toggle: function (fade){
-		fade = parseInt(fade) || 200;
-
-		var oJaSper = this;
-
-		this.each(function (){
-			//TODO deberia aceptar otros tipos de nodo?
-			if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
-
-			var sActDisplay = _JaSper.funcs.getStyle(this, 'display');
-
-			if(fade){
-				if(sActDisplay == 'none'){
-					oJaSper.fade('in', fade);
-				}
-				else{
-					oJaSper.fade('out', fade);
-				}
-			}
-			else{
-				if(this.style.display == 'none' || !this.style.display){
-					var elem = document.createElement(this.nodeName);
-					_JaSper(document.body).append(elem);
-
-					this.originalDisplay = _JaSper.funcs.getStyle(elem, 'display');
-
-					_JaSper(document.body).remove(elem);
-				}
-				this.originalDisplay = (this.originalDisplay || (sActDisplay != 'none' ? sActDisplay : ''));
-
-				if(sActDisplay != 'none' ) sActDisplay = 'none';
-				else sActDisplay = this.originalDisplay;
-
-				_JaSper.funcs.setStyle(this, 'display', sActDisplay);
-			}
-		});
 
 		return this;
 	}
@@ -1674,25 +1620,29 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 	loadMethod: function (method, args, library){
 		library = library || method;
 
+		var sMinified = _JaSper.minificado ? '_min' : ''; //sufijo cuando se trabaja con la version minificada
+
 		switch(library){
 			case 'ajax':
-				library = 'JaSper_ajax.js';
+				library = 'JaSper_ajax' + sMinified + '.js';
+				break;
+			case 'anim':
+				library = 'JaSper_anim' + sMinified + '.js';
+				break;
+			case 'canvas':
+				library = 'JaSper_canvas' + sMinified + '.js';
 				break;
 			case 'move':
-				library = 'JaSper_move.js';
+				library = 'JaSper_move' + sMinified + '.js';
 				break;
 			case 'rating':
-				library = 'JaSper_rating.js';
-				break;
-			case 'animate':
-			case 'canvas':
-				library = 'JaSper_canvas.js';
+				library = 'JaSper_rating' + sMinified + '.js';
 				break;
 			case 'rtb':
-				library = 'JaSper_rtb.js';
+				library = 'JaSper_rtb' + sMinified + '.js';
 				break;
 			case 'validar':
-				library = 'JaSper_formazo.js';
+				library = 'JaSper_formazo' + sMinified + '.js';
 				break;
 			default:
 				library = false;
@@ -1722,14 +1672,20 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 	rating: function (){return(this.loadMethod('rating', arguments));},
 
 	/* Canvas */
-	animate: function (){return(this.loadMethod('animate', arguments));},
-	canvas: function (){return(this.loadMethod('canvas', arguments));},
+	animate: function (){return(this.loadMethod('animate', arguments, 'canvas'));},
+	canvas: function (){return(this.loadMethod('canvas', arguments, 'canvas'));},
 
 	/* Rich Text Box */
 	rtb: function (){return(this.loadMethod('rtb', arguments));},
 
 	/* Validacion de formularios */
-	validar: function (){return(this.loadMethod('validar', arguments));}
+	validar: function (){return(this.loadMethod('validar', arguments));},
+
+	/* Animaciones de elementos DOM mediante propiedades CSS */
+	fade: function (){return(this.loadMethod('fade', arguments, 'anim'));},
+	slide: function (){return(this.loadMethod('slide', arguments, 'anim'));},
+	slideToggle: function (){return(this.loadMethod('slideToggle', arguments, 'anim'));},
+	toggle: function (){return(this.loadMethod('toggle', arguments, 'anim'));}
 });
 
 /**************
