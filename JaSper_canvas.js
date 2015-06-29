@@ -20,7 +20,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  * 
  */
 
-_JaSper.funcs.extend(_JaSper.prototype, {
+JaSper.funcs.extend(JaSper.prototype, {
 	/**
 	 * HTML5 Canvas
 	 *
@@ -32,7 +32,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 		var callFuncs = function (jasperObj, props){
 			jasperObj.each(function (){
-				if(!_JaSper.canvas.valid(this))
+				if(!JaSper.canvas.valid(this))
 					return false;
 
 				this.JaSperItemSelected = undefined; //elemento actualmente seleccionado
@@ -47,7 +47,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 				//cada elemento de este array debe guardar todo lo necesario para volver a pintarlo si fuera necesario
 				//this.JaSperItems[props.id] = props; //cada elemento tiene como nombre su id, y sus propiedades como un objeto
-				if(!_JaSper.canvas.add(this, props)) return false;
+				if(!JaSper.canvas.add(this, props)) return false;
 
 				return false;
 			}, props);
@@ -64,7 +64,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 				callFuncs(this, arguments[arg][id]);
 			}
 			else{
-				_JaSper.funcs.log('-JaSper::canvas- id de objeto invalida', 2);
+				JaSper.funcs.log('-JaSper::canvas- id de objeto invalida', 2);
 				return false;
 			}
 		}
@@ -89,12 +89,12 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 		this.each(function (){
 			if(this.nodeName.toLowerCase() != 'canvas'){
-				_JaSper.funcs.log('-JaSper::animate- el objeto no es canvas', 1);
+				JaSper.funcs.log('-JaSper::animate- el objeto no es canvas', 1);
 				return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
 			}
 
 			this.JaSperItems.flags.animable = true; //bandera que indica que se esta animando este canvas
-			return _JaSper.canvas.animate(this, args);
+			return JaSper.canvas.animate(this, args);
 		}, args);
 
 		return this;
@@ -102,9 +102,9 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 });
 
-_JaSper.canvas = {};
+JaSper.canvas = {};
 
-_JaSper.funcs.extend(_JaSper.canvas, {
+JaSper.funcs.extend(JaSper.canvas, {
 
 	/**
 	 * Suma un objeto al array de objetos del canvas
@@ -115,16 +115,16 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	add: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 
-		props.id = props.id || _JaSper.funcs.genId();
+		props.id = props.id || JaSper.funcs.genId();
 
 		//metodos disponibles
 		var validFuncs = {'background': 'background', 'circle': 'circle', 'image': 'image', 'path': 'path', 'polygon': 'polygon', 'text': 'text'};
 
-		if(!props.func || (!_JaSper.canvas[props.func] && !validFuncs[props.func])){
-			_JaSper.funcs.log('-JaSper::canvas.add- metodo desconocido', 2);
+		if(!props.func || (!JaSper.canvas[props.func] && !validFuncs[props.func])){
+			JaSper.funcs.log('-JaSper::canvas.add- metodo desconocido', 2);
 			return false;
 		}
 		else{
@@ -133,11 +133,11 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 		}
 		canvas.JaSperItems[props.id] = props;
 
-		var JaSperFunc = _JaSper.canvas[props.func];
+		var JaSperFunc = JaSper.canvas[props.func];
 		if(typeof JaSperFunc === 'function'){
 			if(props.drag != undefined && props.drag && !canvas.JaSperItems.flags.draggable){ //este elemento es arrastrable con el raton
 				canvas.JaSperItems.flags.draggable = true;
-				JaSper(canvas).eventAdd('mousedown', _JaSper.canvas.mouseDown);
+				JaSper(canvas).eventAdd('mousedown', JaSper.canvas.mouseDown);
 			}
 			return JaSperFunc.call(null, canvas, props);
 		}
@@ -148,15 +148,15 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	//anima un canvas, llamando a esta misma funcion a intervalos regulares (cada frame se redibuja)
 	//TODO finalizar la animacion cuando no haya nada que animar (todos quietos o fuera y sin vuelta) //canvas.JaSperItems.flags.animable = false;
 	animate: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 
 		window.requestAnimationFrame(function(){
-			_JaSper.canvas.animate(canvas, props);
+			JaSper.canvas.animate(canvas, props);
 		});
 
 		var callFuncs = function (canvasObj, callProps){
-			var JaSperFunc = _JaSper.canvas[callProps.func];
+			var JaSperFunc = JaSper.canvas[callProps.func];
 			if(typeof JaSperFunc === 'function')
 				return JaSperFunc.call(null, canvasObj, callProps);
 
@@ -203,18 +203,18 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 
 							break;
 						default:
-							_JaSper.funcs.log('-JaSper::canvas.animate- submetodo desconocido: ' + func, 2);
+							JaSper.funcs.log('-JaSper::canvas.animate- submetodo desconocido: ' + func, 2);
 							return false;
 					}
 				}
 			}
 			else{
-				_JaSper.funcs.log('-JaSper::canvas.animate- submetodo desconocido: ' + props[pr], 2);
+				JaSper.funcs.log('-JaSper::canvas.animate- submetodo desconocido: ' + props[pr], 2);
 				return false;
 			}
 		}
 
-		_JaSper.canvas.redraw(canvas);
+		JaSper.canvas.redraw(canvas);
 	},
 
 	/**
@@ -226,7 +226,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	background: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
 
@@ -253,7 +253,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	boundingBox: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas) || !props.boundingBox)
+		if(!JaSper.canvas.valid(canvas) || !props.boundingBox)
 			return false;
 		var context = canvas.getContext('2d');
 
@@ -315,7 +315,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	circle: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
 
@@ -339,14 +339,14 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 			y = 0; //props.r;
 
 			if(props.scaleX !== undefined || props.scaleY !== undefined)
-				_JaSper.canvas.scale(canvas, props);
+				JaSper.canvas.scale(canvas, props);
 			if(props.rotation !== undefined)
-				_JaSper.canvas.rotate(canvas, props);
+				JaSper.canvas.rotate(canvas, props);
 		}
 
 		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
 		props.boundingBox = [x - props.r, y - props.r, props.r * 2, props.r * 2, x + props.r, y + props.r]; //[left, top, width, height, right, bottom]
-		if(props.selected != undefined && props.selected) _JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
+		if(props.selected != undefined && props.selected) JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
 
 		context.beginPath();
 		//context.arc(x, y, r, (Math.PI/180) * grados_inicio_de_arco, (Math.PI/180) * grados_fin_de_arco, counterclockwise);
@@ -376,7 +376,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	image: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
 
@@ -445,11 +445,11 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	mouseDown: function (ev){
-		var canvas = _JaSper.event.source(ev);
-		if(!_JaSper.canvas.valid(canvas))
+		var canvas = JaSper.event.source(ev);
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 
-		JaSper(canvas).eventRemove('mousedown', _JaSper.canvas.mouseDown);
+		JaSper(canvas).eventRemove('mousedown', JaSper.canvas.mouseDown);
 
 		var bRect = canvas.getBoundingClientRect();
 		var aItems = canvas.JaSperItems;
@@ -482,7 +482,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 					oItemSelected.y = iMouseY - iDyClick;
 				}
 
-				if(!canvas.JaSperItems.flags.animable) _JaSper.canvas.redraw(canvas); //TODO borrar bounding box cuando no hay fondo
+				if(!canvas.JaSperItems.flags.animable) JaSper.canvas.redraw(canvas); //TODO borrar bounding box cuando no hay fondo
 			}
 			else if(oItemSelected.selected !== undefined && oItemSelected.selected){ //TODO simplificar calculos de deteccion
 				if(oItemSelected.boundingBox){ //[x, y, width, height]
@@ -556,8 +556,8 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 				}
 			}
 
-			if(!canvas.JaSperItems.flags.animable) _JaSper.canvas.redraw(canvas);
-			JaSper(canvas).eventAdd('mousedown', _JaSper.canvas.mouseDown);
+			if(!canvas.JaSperItems.flags.animable) JaSper.canvas.redraw(canvas);
+			JaSper(canvas).eventAdd('mousedown', JaSper.canvas.mouseDown);
 			canvas.style.cursor = 'default';
 			return true;
 		};
@@ -570,7 +570,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 		hitTest: for(var cont = itemsKeys.length;cont >= 0;--cont){
 			if(!aItems[itemsKeys[cont]] || !aItems[itemsKeys[cont]].drag) continue hitTest; //solo para elementos draggables
 
-			var iHit = _JaSper.canvas.mouseHit(aItems[itemsKeys[cont]], mouseX, mouseY); //devuelve si se ha pulsado en un objeto, su caja de seleccion o en sus arrastradores
+			var iHit = JaSper.canvas.mouseHit(aItems[itemsKeys[cont]], mouseX, mouseY); //devuelve si se ha pulsado en un objeto, su caja de seleccion o en sus arrastradores
 			if(iHit){
 				canvas.style.cursor = 'pointer';
 				iDxClick = mouseX - aItems[itemsKeys[cont]].x;
@@ -598,7 +598,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 		canvas.JaSperItemSelected = oItemSelected;
 		JaSper(window).eventAdd('mouseup', mouseUp);
 
-		//_JaSper.funcs.eventPreventDefault(ev);
+		//JaSper.funcs.eventPreventDefault(ev);
 		return false;
 	},
 
@@ -611,7 +611,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	move: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 
 		if(!props.id || !canvas.JaSperItems[props.id])
@@ -642,7 +642,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	path: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
 
@@ -659,7 +659,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	polygon: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
 
@@ -684,14 +684,14 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 			y = 0;
 
 			if(props.scaleX !== undefined || props.scaleY !== undefined)
-				_JaSper.canvas.scale(canvas, props);
+				JaSper.canvas.scale(canvas, props);
 			if(props.rotation !== undefined)
-				_JaSper.canvas.rotate(canvas, props);
+				JaSper.canvas.rotate(canvas, props);
 		}
 
 		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
 		props.boundingBox = [x - props.r, y - props.r, props.r * 2, props.r * 2, x + props.r, y + props.r]; //[left, top, width, height, right, bottom]
-		if(props.selected != undefined && props.selected) _JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
+		if(props.selected != undefined && props.selected) JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
 
 		context.beginPath(); //inicia el poligono
 
@@ -731,12 +731,12 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	redraw: function (canvas){
-		if(!_JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 
 		var items = canvas.JaSperItems, item = false;
 		for(item in items){
-			var JaSperFunc = _JaSper.canvas[items[item].func];
+			var JaSperFunc = JaSper.canvas[items[item].func];
 			if(typeof JaSperFunc === 'function')
 				JaSperFunc.call(null, canvas, items[item]); //TODO decidir que hacer con el retorno de la funcion
 		}
@@ -753,7 +753,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	rotate: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas) || !props)
+		if(!JaSper.canvas.valid(canvas) || !props)
 			return false;
 		var context = canvas.getContext('2d');
 
@@ -775,7 +775,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	scale: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas) || !props)
+		if(!JaSper.canvas.valid(canvas) || !props)
 			return false;
 		var context = canvas.getContext('2d');
 
@@ -799,7 +799,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 * @returns boolean
 	 */
 	text: function (canvas, props){
-		if(!_JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
 
@@ -830,9 +830,9 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 			y = (iTextHeight / 2);
 
 			if(props.scaleX !== undefined || props.scaleY !== undefined)
-				_JaSper.canvas.scale(canvas, props);
+				JaSper.canvas.scale(canvas, props);
 			if(props.rotation !== undefined)
-				_JaSper.canvas.rotate(canvas, props);
+				JaSper.canvas.rotate(canvas, props);
 		}
 
 		context.fillText(props.fillText, x, y);
@@ -840,7 +840,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
 		//props.boundingBox = [x, y - iTextHeight, iTextWidth, iTextHeight]; //[x, y, width, height]
 		props.boundingBox = [x, y - iTextHeight, iTextWidth, iTextHeight, x + iTextWidth, y]; //[left, top, width, height, right, bottom]
-		if(props.selected != undefined && props.selected) _JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
+		if(props.selected != undefined && props.selected) JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
 
 		context.restore();
 
@@ -858,7 +858,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 	 */
 	valid: function (canvas){
 		if(typeof canvas !== 'object' || typeof canvas.getContext !== 'function'){
-			_JaSper.funcs.log('-JaSper::canvas.valid- el objeto no es canvas', 1);
+			JaSper.funcs.log('-JaSper::canvas.valid- el objeto no es canvas', 1);
 			return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
 		}
 
@@ -868,7 +868,7 @@ _JaSper.funcs.extend(_JaSper.canvas, {
 });
 
 //devuelve un "animation loop" nativo de canvas, si existe, o un timeout a 60 fps; ambos usables para dibujar frames en una animacion
-//ver _JaSper.canvas.animate()
+//ver JaSper.canvas.animate()
 //debe ser un objeto global? [TypeError: 'requestAnimationFrame' called on an object that does not implement interface Window.]
 /*window.JaSper_canvasRequestAnimationFrame = (function(){
 	return window.requestAnimationFrame

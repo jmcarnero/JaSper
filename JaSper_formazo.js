@@ -22,7 +22,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 *****************************************************/
 
 /*traducciones*/
-_JaSper.funcs.extendTrads({
+JaSper.funcs.extendTrads({
 "en":{
 	'valida/bic':'BIC/SWIFT bank number invalid',
 	'valida/clave':'Check that you entered the same password in both boxes',
@@ -53,7 +53,7 @@ _JaSper.funcs.extendTrads({
 	'valida/url':'URL no v\u00E1lida.\nFormato recomendado: "http://dominio.tld"'}
 });
 
-_JaSper.funcs.extend(_JaSper.prototype, {
+JaSper.funcs.extend(JaSper.prototype, {
 
 	/**
 	 * Valida formularios
@@ -85,21 +85,21 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 		};
 
 		var filters = {}; //validaciones
-		filters[props.clases.obligatorio] = function (el){return _JaSper.valida.obligatorio(el);};
-		filters[props.clases.clave] = function (el){return _JaSper.valida.clave(el, document.getElementById('objId2'));};
-		filters[props.clases.email] = function (el){return _JaSper.valida.email(el);};
-		filters[props.clases.entero] = function (el){return _JaSper.valida.numeros(el);}; //numerico de tipo entero, no permite decimales ni separadores de miles, solo numeros
-		filters[props.clases.fichero] = function (el){return _JaSper.valida.fichero(el);};
-		filters[props.clases.fecha] = function (el){return _JaSper.valida.fechas(el);};
-		filters[props.clases.nif] = function (el){return _JaSper.valida.nif(el);};
-		filters[props.clases.numerico] = function (el){return _JaSper.valida.numeros(el);}; //permite decimales, con "."
-		filters[props.clases.telefono] = function (el){return _JaSper.valida.numeros(el);};
-		filters[props.clases.url] = function (el){return _JaSper.valida.url(el);};
+		filters[props.clases.obligatorio] = function (el){return JaSper.valida.obligatorio(el);};
+		filters[props.clases.clave] = function (el){return JaSper.valida.clave(el, document.getElementById('objId2'));};
+		filters[props.clases.email] = function (el){return JaSper.valida.email(el);};
+		filters[props.clases.entero] = function (el){return JaSper.valida.numeros(el);}; //numerico de tipo entero, no permite decimales ni separadores de miles, solo numeros
+		filters[props.clases.fichero] = function (el){return JaSper.valida.fichero(el);};
+		filters[props.clases.fecha] = function (el){return JaSper.valida.fechas(el);};
+		filters[props.clases.nif] = function (el){return JaSper.valida.nif(el);};
+		filters[props.clases.numerico] = function (el){return JaSper.valida.numeros(el);}; //permite decimales, con "."
+		filters[props.clases.telefono] = function (el){return JaSper.valida.numeros(el);};
+		filters[props.clases.url] = function (el){return JaSper.valida.url(el);};
 
 		var filters_keys = {};
-		filters_keys[props.clases.entero] = function (ev, el){return _JaSper.valida.teclasNumeros(el, ev, false);}; //numerico de tipo entero, no permite decimales ni separadores de miles, solo numeros
-		filters_keys[props.clases.fecha] = function (ev, el){return _JaSper.valida.teclasFechas(el, ev);};
-		filters_keys[props.clases.numerico] = function(ev, el){return _JaSper.valida.teclasNumeros(el, ev, true);}; //permite decimales, con "."
+		filters_keys[props.clases.entero] = function (ev, el){return JaSper.valida.teclasNumeros(el, ev, false);}; //numerico de tipo entero, no permite decimales ni separadores de miles, solo numeros
+		filters_keys[props.clases.fecha] = function (ev, el){return JaSper.valida.teclasFechas(el, ev);};
+		filters_keys[props.clases.numerico] = function(ev, el){return JaSper.valida.teclasNumeros(el, ev, true);}; //permite decimales, con "."
 
 		this.each(function (){
 			//bloqueos de teclas, se busca en cada formulario los elementos bloqueables
@@ -108,12 +108,12 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 				if(el.className != 'undefined'){
 					var csplit = el.className.split(" ");
 					for(var i = 0; i < csplit.length; i++){
-						if(_JaSper.funcs.isFunction(filters_keys[csplit[i]])){
+						if(JaSper.funcs.isFunction(filters_keys[csplit[i]])){
 							var fun = csplit[i];
 							JaSper(el).eventAdd('keydown', function (ev){
 								if(filters_keys[fun](ev, el)){
-									_JaSper.event.preventDefault(ev);
-									_JaSper.event.stop(ev);
+									JaSper.event.preventDefault(ev);
+									JaSper.event.stop(ev);
 									return false;
 								}
 								//alert(filters_keys[fun](e, el) + ' - ' + e.keyCode + ' - ' + this.id);
@@ -134,7 +134,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 					$(this).eventAdd('change', function (){
 						if(typeof FileReader !== "function"){ //No para navegadores antiguos
-							_JaSper.funcs.log('Vista previa no disponible', 0);
+							JaSper.funcs.log('Vista previa no disponible', 0);
 							return false;
 						}
 
@@ -157,7 +157,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 								if(tipo !== 'image/jpeg' && tipo !== 'image/png' && tipo !== 'image/gif'){
 									JaSper(sPreviewId).attrib('src', '');
 									oElement.value = '';
-									_JaSper.funcs.log('No se puede mostrar preview del fichero seleccionado', 1);
+									JaSper.funcs.log('No se puede mostrar preview del fichero seleccionado', 1);
 								}
 								else{
 									JaSper(sPreviewId).attrib('src', origen.result);
@@ -165,7 +165,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 							};
 
 							oLector.onerror = function(ev){
-								_JaSper.funcs.log(ev, 2);
+								JaSper.funcs.log(ev, 2);
 							};
 
 							oLector.readAsDataURL(oArchivo[0]);
@@ -189,7 +189,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 					var csplit = el.className.split(" ");
 					var aErrTemp = [];
 					for(var i = 0; i < csplit.length; i++){
-						if(_JaSper.funcs.isFunction(filters[csplit[i]])){
+						if(JaSper.funcs.isFunction(filters[csplit[i]])){
 							var errTemp = filters[csplit[i]](el);
 							if(errTemp !== false)
 								aErrTemp[aErrTemp.length] = filters[csplit[i]](el);
@@ -206,8 +206,8 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 			});
 
 			if(JaSper('.' + props.clases.error, this).length > 0){
-				_JaSper.event.preventDefault(ev);
-				_JaSper.event.stop(ev);
+				JaSper.event.preventDefault(ev);
+				JaSper.event.stop(ev);
 
 				/*JaSper('.' + props.clases.error).each( //marcar los errores
 							function(){alert(this.name + ' error');}
@@ -225,10 +225,10 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 	}
 });
 
-_JaSper.valida = {};
+JaSper.valida = {};
 
 //validaciones
-_JaSper.funcs.extend(_JaSper.valida, {
+JaSper.funcs.extend(JaSper.valida, {
 
 	/**
 	 * validador BIC (Business Identifier Codes) o SWIFT
@@ -248,7 +248,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		}
 
 		if(bRet) return false; //pass valida
-		else return _JaSper.funcs._t('valida/bic'); //pass no valida
+		else return JaSper.funcs._t('valida/bic'); //pass no valida
 	},
 
 	/**
@@ -269,7 +269,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 			bRet = false;
 
 		if(bRet) return false; //pass valida
-		else return _JaSper.funcs._t('valida/clave'); //pass no valida
+		else return JaSper.funcs._t('valida/clave'); //pass no valida
 	},
 
 	/**
@@ -290,7 +290,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return _JaSper.funcs._t('valida/email'); //e-mail no valido
+		else return JaSper.funcs._t('valida/email'); //e-mail no valido
 	},
 
 	/**
@@ -320,7 +320,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return (_JaSper.funcs._t('valida/fechas') + formato); //fecha incorrecta
+		else return (JaSper.funcs._t('valida/fechas') + formato); //fecha incorrecta
 	},
 
 	/**
@@ -345,7 +345,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return _JaSper.funcs._t('valida/fichero'); //tipo de fichero no permitido
+		else return JaSper.funcs._t('valida/fichero'); //tipo de fichero no permitido
 	},
 
 	/**
@@ -424,7 +424,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return _JaSper.funcs._t('valida/iban');
+		else return JaSper.funcs._t('valida/iban');
 	},
 
 	/**
@@ -455,9 +455,9 @@ _JaSper.funcs.extend(_JaSper.valida, {
 			}
 			else{
 				if(oNif.value.charAt(0) == 'X')
-					mensaje += _JaSper.funcs._t('valida/nif1'); //NIE
+					mensaje += JaSper.funcs._t('valida/nif1'); //NIE
 				else
-					mensaje += _JaSper.funcs._t('valida/nif2'); //NIF
+					mensaje += JaSper.funcs._t('valida/nif2'); //NIF
 
 				bRet = false; //nif incorrecto
 			}
@@ -494,7 +494,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return (_JaSper.funcs._t('valida/numeros1') + menor + _JaSper.funcs._t('valida/numeros2') + mayor); //numero incorrecto
+		else return (JaSper.funcs._t('valida/numeros1') + menor + JaSper.funcs._t('valida/numeros2') + mayor); //numero incorrecto
 	},
 
 	/**
@@ -509,7 +509,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 
 		//evita problemas con elementos tipo file (por ejemplo), no se puede cambiar su valor
 		try{oCampo.value = oCampo.value.toString().trim() || '';}
-		catch(ex){_JaSper.funcs.log('No se puede alterar el valor de <' + oCampo.tagName + ' id="' + oCampo.id + '" type="' + oCampo.type + '" />', 1);}
+		catch(ex){JaSper.funcs.log('No se puede alterar el valor de <' + oCampo.tagName + ' id="' + oCampo.id + '" type="' + oCampo.type + '" />', 1);}
 
 		if(oCampo.value != '') bRet = true;
 		else{
@@ -518,7 +518,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return ('"' + text + '"' + _JaSper.funcs._t('valida/obligatorio'));
+		else return ('"' + text + '"' + JaSper.funcs._t('valida/obligatorio'));
 	},
 
 	/*version para radio buttons*/
@@ -539,7 +539,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return ('"' + text + '"' + _JaSper.funcs._t('valida/obligatorioRadio'));
+		else return ('"' + text + '"' + JaSper.funcs._t('valida/obligatorioRadio'));
 	},
 
 	/**
@@ -559,7 +559,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		//permite la entrada de numeros, espacio, dos puntos, barra y guion
 		if(charCode > 31 && (charCode < 48 || charCode > 58) && charCode != 32 && charCode != 47 && charCode != 45){
 			bRet = true; //alert("No son caracteres de fecha");
-			_JaSper.event.preventDefault(ev); //evita la pulsacion
+			JaSper.event.preventDefault(ev); //evita la pulsacion
 		}
 		else{
 			bRet = false;
@@ -585,11 +585,11 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		ev = ev || window.event;
 		decimal = typeof(decimal) != 'undefined' ? decimal : true;
 
-		var char_code = _JaSper.event.keyCode(ev);
+		var char_code = JaSper.event.keyCode(ev);
 		if(decimal){ //permite la entrada de numeros y punto decimal
 			if(char_code > 31 && (char_code < 48 || char_code > 57) && char_code != 46){
 				bRet = true; //alert("no es un numero")
-				_JaSper.event.preventDefault(ev); //evita la pulsacion
+				JaSper.event.preventDefault(ev); //evita la pulsacion
 			}
 			else{
 				bRet = false;
@@ -600,7 +600,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		else{ //permite la entrada de numeros sin punto decimal
 			if(char_code > 31 && (char_code < 48 || char_code > 57)){
 				bRet = false; //alert("no es un numero")
-				_JaSper.event.preventDefault(ev); //evita la pulsacion
+				JaSper.event.preventDefault(ev); //evita la pulsacion
 			}
 			else
 				bRet = false;
@@ -629,7 +629,7 @@ _JaSper.funcs.extend(_JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return _JaSper.funcs._t('valida/url');
+		else return JaSper.funcs._t('valida/url');
 	}
 
 });

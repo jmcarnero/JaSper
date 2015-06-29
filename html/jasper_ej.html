@@ -15,10 +15,10 @@
 				.eventAdd('click', function (){
 					alert(this.value?this.value:'valor desconocido');})
 				.eventAdd('mouseup', function (ev){
-					document.getElementById('destino').innerHTML = _JaSper.event.target(ev);});
+					document.getElementById('destino').innerHTML = JaSper.event.target(ev);});
 			$('<body>')
 				.eventAdd('mousemove', function (ev){
-					document.getElementById('destino').innerHTML = _JaSper.event.target(ev);});
+					document.getElementById('destino').innerHTML = JaSper.event.target(ev);});
 		});
 	-->
 	</script>

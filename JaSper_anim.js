@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  * @since 2015-05-15
  * @version 1b
  */
-_JaSper.funcs.extend(_JaSper.prototype, {
+JaSper.funcs.extend(JaSper.prototype, {
 
 	/**
 	 * Alterna la propiedad display entre 'none' y visible
@@ -35,7 +35,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 	 */
 	fade: function (oTipo, iMiliSec){
 		this.each(function (){
-			return _JaSper.anim.fade(this, oTipo, iMiliSec);
+			return JaSper.anim.fade(this, oTipo, iMiliSec);
 		});
 
 		return this;
@@ -47,14 +47,13 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 	 * 
 	 * @autor Alin Moraru
 	 * @since 2015-06-23
-	 * @todo resto de direcciones y punto de inicio
 	 * @param {string} sTipo Tipo de slide: down (de arriba hacia abajo), up (de abajo hacia arriba)
 	 * @param {number} iMiliSec velocidad animacion en milisegundos para transition
 	 * @return {Object} JaSper
 	 */
 	slide: function (sTipo, iMiliSec){
 		this.each(function (){
-			return _JaSper.anim.slide(this, sTipo, iMiliSec);
+			return JaSper.anim.slide(this, sTipo, iMiliSec);
 		});
 
 		return this;
@@ -74,14 +73,14 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 			//TODO deberia aceptar otros tipos de nodo?
 			if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
 
-			var sActHeight = _JaSper.funcs.getStyle(this, 'height');
+			var sActHeight = JaSper.funcs.getStyle(this, 'height');
 			sActHeight = sActHeight.replace('px', '');
 
 			if(sActHeight == '0'){
-				_JaSper.anim.slide(this, 'down', iMiliSec);
+				JaSper.anim.slide(this, 'down', iMiliSec);
 			}
 			else{
-				_JaSper.anim.slide(this, 'up', iMiliSec);
+				JaSper.anim.slide(this, 'up', iMiliSec);
 			}
 		});
 
@@ -102,19 +101,19 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 			//TODO deberia aceptar otros tipos de nodo?
 			if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
 
-			var sActDisplay = _JaSper.funcs.getStyle(this, 'display');
+			var sActDisplay = JaSper.funcs.getStyle(this, 'display');
 
 			if(fade){
 				var sTipoFade = sActDisplay == 'none' ? 'in' : 'out';
-				return _JaSper.anim.fade(this, sTipoFade, fade);
+				return JaSper.anim.fade(this, sTipoFade, fade);
 			}
 			else{
-				_JaSper.anim.originalDisplay(this);
+				JaSper.anim.originalDisplay(this);
 
 				if(sActDisplay != 'none' ) sActDisplay = 'none';
 				else sActDisplay = this.originalDisplay;
 
-				_JaSper.funcs.setStyle(this, 'display', sActDisplay);
+				JaSper.funcs.setStyle(this, 'display', sActDisplay);
 			}
 		});
 
@@ -123,9 +122,9 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 });
 
-_JaSper.anim = {};
+JaSper.anim = {};
 
-_JaSper.funcs.extend(_JaSper.anim, {
+JaSper.funcs.extend(JaSper.anim, {
 
 	fade: function (oDOMElem, sTipo, iMiliSec, iIntervalo){
 		if(oDOMElem.nodeType != 1) return false; //solo nodos tipo ELEMENT_NODE
@@ -134,7 +133,7 @@ _JaSper.funcs.extend(_JaSper.anim, {
 		iIntervalo = iIntervalo || 50;
 		var bIn = (sTipo || 'in') === 'in', iOpacidad = bIn ? 0 : 1, iSalto = iIntervalo / iMiliSec;
 
-		_JaSper.anim.originalDisplay(oDOMElem);
+		JaSper.anim.originalDisplay(oDOMElem);
 
 		if(bIn){
 			oDOMElem.style.display = oDOMElem.originalDisplay;
@@ -156,16 +155,43 @@ _JaSper.funcs.extend(_JaSper.anim, {
 		return true;
 	},
 
+	/**
+	 * Devuelve si la propiedad CSS sProp esta disponible en el navegador
+	 * ej.: isCSSProperty('transition')
+	 *
+	 * De una idea original de https://gist.github.com/jackfuchs/556448
+	 * 
+	 * @param {string} sProp Nombre de la propiedad a comprobar
+	 * @return {bool}
+	 */
+	isCSSProperty: function (sProp){
+		var oStyle = (document.body || document.documentElement).style;
+
+		if(typeof oStyle[sProp] == 'string'){
+			return true;
+		}
+
+		var aVars = ['Moz', 'webkit', 'Webkit', 'Khtml', 'O', 'ms'];
+		sProp = sProp.charAt(0).toUpperCase() + sProp.substr(1);
+
+		for(var i=0; i < aVars.length; i++){
+			if(typeof oStyle[aVars[i] + sProp] == 'string')
+				return true;
+		}
+
+		return false;
+	},
+
 	//busca y guarda el valor original de la propiedad display de un elemento, y lo guarda como propiedad del propio elemento
 	originalDisplay: function (oDOMElem){
 		if(!oDOMElem.originalDisplay){
-			var sActDisplay = _JaSper.funcs.getStyle(oDOMElem, 'display');
+			var sActDisplay = JaSper.funcs.getStyle(oDOMElem, 'display');
 
 			if(oDOMElem.style.display == 'none' || !oDOMElem.style.display){
 				var oElem = document.createElement(oDOMElem.nodeName);
 				JaSper(document.body).append(oElem);
 
-				oDOMElem.originalDisplay = _JaSper.funcs.getStyle(oElem, 'display');
+				oDOMElem.originalDisplay = JaSper.funcs.getStyle(oElem, 'display');
 
 				JaSper(document.body).remove(oElem);
 			}
@@ -175,6 +201,10 @@ _JaSper.funcs.extend(_JaSper.anim, {
 		return;
 	},
 
+	/**
+	 * @todo resto de direcciones y punto de inicio
+	 * @todo alternativa a transition (es CSS3)
+	 */
 	slide: function (oDOMElem, sTipo, iMiliSec){
 		if(oDOMElem.nodeType != 1) return false; //solo nodos tipo ELEMENT_NODE
 

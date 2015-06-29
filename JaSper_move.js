@@ -21,7 +21,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  * Funciones de movimiento de objetos *
  * (div, p, ...)                      *
  **************************************/
-_JaSper.funcs.extend(_JaSper.prototype, {
+JaSper.funcs.extend(JaSper.prototype, {
 
 	/**
 	 * Movimiento de objetos
@@ -67,8 +67,8 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 		/* finaliza movimiento */
 		var moveEnd = function (event, obj, funcs){
-			_JaSper.event.preventDefault(event);
-			_JaSper.event.stop(event);
+			JaSper.event.preventDefault(event);
+			JaSper.event.stop(event);
 
 			if(props.reset){
 				obj.style.left = obj.posMoveStart['x'] + 'px';
@@ -96,8 +96,8 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 		/* mover */
 		var moveObject = function (event, obj){
-			_JaSper.event.preventDefault(event);
-			_JaSper.event.stop(event);
+			JaSper.event.preventDefault(event);
+			JaSper.event.stop(event);
 
 			if(typeof props.onMove === 'function') props.onMove.call(obj);
 
@@ -119,15 +119,15 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 			obj.style.top = top + 'px';
 			obj.style.left = left + 'px';
 
-			$('origen').html = _JaSper.event.source(event);//obj;
+			$('origen').html = JaSper.event.source(event);//obj;
 			//document.getElementById('destino').innerHTML = JaSper.funcs.eventTarget(event);
-			$('evento').html = _JaSper.event.name(event);
+			$('evento').html = JaSper.event.name(event);
 		};
 
 		/*var mueveObj = function (e){
 			evt = e || window.event;
 			var moz = document.getElementById && !document.all;
-			var obj = _JaSper.funcs.eventSource(e);
+			var obj = JaSper.funcs.eventSource(e);
 
 			document.getElementById('origen').innerHTML = obj;
 			document.getElementById('destino').innerHTML = $(this).destinoEvento(e);
@@ -148,8 +148,8 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 
 		/* inicia movimiento */
 		var moveStart = function (event, obj){
-			_JaSper.event.preventDefault(event);
-			_JaSper.event.stop(event);
+			JaSper.event.preventDefault(event);
+			JaSper.event.stop(event);
 
 			var normalclick;
 			if(event.which) normalclick = event.which;
@@ -197,8 +197,8 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 		/* devuelve la posicion del elemento con respecto a su contenedor (left y top), (array=>['x'] - ['y']) */
 		var posObject = function (obj){
 			//TODO el tamaño de las cajas no se calcula igual en todos los navegadores
-			var boxLeft = parseInt(_JaSper.funcs.getStyle(obj, 'marginLeft'));
-			var boxTop = parseInt(_JaSper.funcs.getStyle(obj, 'marginTop'));
+			var boxLeft = parseInt(JaSper.funcs.getStyle(obj, 'marginLeft'));
+			var boxTop = parseInt(JaSper.funcs.getStyle(obj, 'marginTop'));
 
 			//http://www.quirksmode.org/js/findpos.html
 			var objLT = obj;
@@ -210,8 +210,8 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 			}
 
 			var pos = new Array();
-			pos['w'] = parseInt(_JaSper.funcs.getStyle(obj, 'width')); //pos['w'] = obj.offsetWidth; //ancho del elemento
-			pos['h'] = parseInt(_JaSper.funcs.getStyle(obj, 'height')); //pos['h'] = obj.offsetHeight; //alto del elemento
+			pos['w'] = parseInt(JaSper.funcs.getStyle(obj, 'width')); //pos['w'] = obj.offsetWidth; //ancho del elemento
+			pos['h'] = parseInt(JaSper.funcs.getStyle(obj, 'height')); //pos['h'] = obj.offsetHeight; //alto del elemento
 			pos['x'] = curleft;
 			pos['y'] = curtop;
 			pos['x2'] = pos['x'] + pos['w']; //esquina inferior derecha

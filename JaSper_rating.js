@@ -22,7 +22,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  *************************************/
 
 /*traducciones*/
-_JaSper.funcs.extend(_JaSper.langs, {
+JaSper.funcs.extend(JaSper.langs, {
 "en":{
 	'rating_1':'Without Javascript.',
 	'rating_2':'Id updated: %s, value: %s<br />Your vote: %s'},
@@ -39,7 +39,7 @@ _JaSper.funcs.extend(_JaSper.langs, {
  * si la página no tiene "DOCTYPE" dara error en IE al intentar "this.innerHTML = outHtml;"
  * usar (por ej.) <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
  */
-_JaSper.funcs.extend(_JaSper.prototype, {
+JaSper.funcs.extend(JaSper.prototype, {
 
 	/**
 	 * Crea estrellas en el elemento seleccionado y los eventos necesarios para su funcionamiento
@@ -62,7 +62,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 		properties.onClick = properties.onClick || false; //callback a ejecutar cuando se pulsa alguna estrella; dentro del callback this es el objeto pulsado, y tiene la propiedad "rating" con su valor
 
 		this.each(function (props){
-			if(!this.id) this.id = _JaSper.funcs.genId();
+			if(!this.id) this.id = JaSper.funcs.genId();
 			if(this.className.indexOf(props.classPrefix) == -1){
 				this.className += ' ' + properties.classPrefix;
 				this.style.width = props.total * props.size; //TODO deberia fijarse el ancho del fondo repetido, no el del contenedor
@@ -71,7 +71,7 @@ _JaSper.funcs.extend(_JaSper.prototype, {
 			var starIds = ''; //cadena con las id's de las estrellas generadas, se usa en los eventos //var starIds = '#' + this.id + '_rs_1,#' + this.id + '_rs_2,#' + this.id + '_rs_3,#' + this.id + '_rs_4,#' + this.id + '_rs_5';
 
 			
-			//alert(_JaSper.funcs.getCSSRule('.rating_star').style.backgroundImage);
+			//alert(JaSper.funcs.getCSSRule('.rating_star').style.backgroundImage);
 			//this.style.width = (props.total * 30) + 'px';
 
 			var outHtml = ''; //HTML con las estrellas
