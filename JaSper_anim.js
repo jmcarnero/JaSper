@@ -182,7 +182,12 @@ JaSper.extend(JaSper.anim, {
 		return false;
 	},
 
-	//busca y guarda el valor original de la propiedad display de un elemento, y lo guarda como propiedad del propio elemento
+	/**
+	 * Busca y guarda el valor original de la propiedad display de un elemento y lo guarda como propiedad del propio elemento
+	 *
+	 * @param {object} oDOMElem Objeto DOM
+	 * @return {string}
+	 */
 	originalDisplay: function (oDOMElem){
 		if(!oDOMElem.originalDisplay){
 			var sActDisplay = JaSper.css.getStyle(oDOMElem, 'display');
@@ -198,7 +203,7 @@ JaSper.extend(JaSper.anim, {
 			oDOMElem.originalDisplay = (oDOMElem.originalDisplay || (sActDisplay != 'none' ? sActDisplay : ''));
 		}
 
-		return;
+		return oDOMElem.originalDisplay;
 	},
 
 	/**

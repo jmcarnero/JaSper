@@ -82,7 +82,7 @@ JaSper.extend(JaSper.prototype, {
 			starIds = starIds.substr(0, starIds.length - 1); //sobra la ultima coma
 			this.innerHTML = outHtml;
 
-			var objCont = this; //no perder referencia al objeto contenedor en llamadas a eventos y demas
+			//var objCont = this; //no perder referencia al objeto contenedor en llamadas a eventos y demas
 			var objContId = this.id + '_' + props.classPrefix + '_'; //id sin numero; comun a todos las estrellas
 
 			//carga inicial de valores

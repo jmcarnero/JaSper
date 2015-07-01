@@ -124,6 +124,92 @@ http://www.gnu.org/copyleft/gpl.html*/
 	 */
 	JaSper.event = {
 
+			/**
+			 * Adjunta eventos
+			 *
+			 * @param {object} oElem Objeto al que poner el evento
+			 * @param {string} sEvento Nombre del evento, ej: "click" (como "onclick" sin "on")
+			 * @param {Function} oFuncion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
+			 * @param {boolean} bCapt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
+			 * @return {Object} JaSper
+			 */
+			add: function (oElem, sEvento, oFuncion, bCapt){
+				if(typeof oFuncion == 'string')
+					oFuncion = window[oFuncion];
+
+				bCapt = bCapt || false;
+
+				if(document.addEventListener){ //w3c
+					if(!oElem || oElem.nodeType == 3 || this.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
+
+					//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
+					switch(sEvento){
+						case 'mouseenter':
+							oElem.addEventListener('mouseover', JaSper.event.mouseEnter(oFuncion), bCapt);
+							break;
+						case 'mouseleave':
+							oElem.addEventListener('mouseout', JaSper.event.mouseEnter(oFuncion), bCapt);
+							break;
+						case 'mousewheel':
+							//recoger el movimiento de la rueda con "ev.wheelDelta = ev.wheelDelta || -(ev.detail);" (3 rueda arriba, -3 rueda abajo)
+							if(JaSper.funcs.gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
+								sEvento = 'DOMMouseScroll';
+								oFuncion = JaSper.event.mouseWheel(oFuncion);
+							}
+						default: //resto de eventos
+							oElem.addEventListener(sEvento, oFuncion, bCapt);
+					}
+
+					if(window.eventTrigger){
+						if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
+						oElem.addEventListener(sEvento, function (){window.eventTrigger.call(oElem, sEvento);}, bCapt);
+					}
+				}
+				else if(document.attachEvent){ //ie
+					var clave = oElem + sEvento + oFuncion;
+
+					if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
+
+					oElem['e' + clave] = oFuncion;
+					oElem[clave] = function (){oElem['e' + clave](window.event);};
+					oElem.attachEvent('on' + sEvento, oElem[clave]);
+
+					if(window.eventTrigger){
+						var clave = oElem + sEvento + window.eventTrigger;
+
+						if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
+
+						oElem['e' + clave] = function (){window.eventTrigger.call(oElem, sEvento);};
+						oElem[clave] = function (){oElem['e' + clave](window.event);};
+						oElem.attachEvent('on' + sEvento, oElem[clave]);
+					}
+				}
+				else{ //DOM level 0
+					if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
+
+					//idea original de Simon Willison
+					var old_evt = oElem['on' + sEvento];
+					if(typeof oElem['on' + sEvento] != 'function') oElem['on' + sEvento] = oFuncion;
+					else{
+						oElem['on' + sEvento] = function (){
+							if(old_evt) old_evt();
+							oFuncion();
+						};
+					}
+
+					if(window.eventTrigger){
+						if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
+						var old_evt = oElem['on' + sEvento];
+						this['on' + sEvento] = function (){
+							if(old_evt) old_evt();
+							window.eventTrigger.call(oElem, sEvento);
+						};
+					}
+				}
+
+				return;
+			},
+
 		/**
 		 * Correccion de codigo de tecla pulsada.
 		 * Para keypress corresponde con codigos ascii,
@@ -332,6 +418,64 @@ http://www.gnu.org/copyleft/gpl.html*/
 			}
 
 			return false;
+		},
+
+		/**
+		 * Elimina eventos
+		 *
+		 * @todo eliminar todos los eventos del elemento si no se pasan parametros
+		 * @param {object} oElem Objeto al que poner el evento
+		 * @param {string} sEvento Nombre del evento, ej: "click" (como "onclick" sin "on")
+		 * @param {Function} oFuncion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
+		 * @param {boolean} bCapt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
+		 * @return {Object} JaSper
+		 */
+		remove: function (oElem, sEvento, oFuncion, bCapt){
+			if(typeof oFuncion == 'string')
+				oFuncion = window[oFuncion]; //TODO try para distinguir nombre_de_funcion de nombre_de_funcion(params) (evaluar esta ultima)
+
+			bCapt = bCapt || false;
+
+			if(document.addEventListener){ //w3c
+				//TODO problemas para quitar eventos con funciones anonimas (como el retorno de mouseEnter); asignarlo previamente a una variable cuando se pone el evento?
+				//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
+				switch(sEvento){
+					case 'mouseenter':
+						oElem.removeEventListener('mouseover', JaSper.event.mouseEnter(oFuncion), bCapt);
+						break;
+					case 'mouseleave':
+						oElem.removeEventListener('mouseout', JaSper.event.mouseEnter(oFuncion), bCapt);
+						break;
+					case 'mousewheel':
+						if(JaSper.funcs.gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
+							sEvento = 'DOMMouseScroll';
+							oFuncion = JaSper.event.mouseWheel(oFuncion);
+						}
+					default: //resto de eventos
+						oElem.removeEventListener(sEvento, oFuncion, bCapt);
+				}
+
+				if(window.eventTrigger){
+					oElem.removeEventListener(sEvento, function (){window.eventTrigger.call(oElem, sEvento);}, bCapt);
+				}
+			}
+			else if(document.attachEvent){ //ie
+				oElem.detachEvent('on' + sEvento, oElem[sEvento + oFuncion]);
+				oElem[sEvento + oFuncion] = null;
+				oElem["e" + sEvento + oFuncion] = null;
+
+				if(window.eventTrigger){
+					var oFuncion = function (){window.eventTrigger.call(oElem, sEvento);};
+					oElem.detachEvent('on' + sEvento, oElem[sEvento + oFuncion]);
+					oElem[sEvento + oFuncion] = null;
+					oElem["e" + sEvento + oFuncion] = null;
+				}
+			}
+			else{ //DOM level 0
+				eval('oElem.on' + sEvento + ' = null;');
+			}
+
+			return;
 		},
 
 		/**
@@ -1072,16 +1216,16 @@ JaSper.extend(JaSper.prototype, {
 	 * http://snipplr.com/view.php?codeview&id=6156
 	 */
 	ready: function (f){
-		if(!this.msie && !this.webkit && document.addEventListener) return document.addEventListener('DOMContentLoaded', f, false);
+		if(!JaSper.funcs.msie && !JaSper.funcs.webkit && document.addEventListener) return document.addEventListener('DOMContentLoaded', f, false);
 		if(JaSper.funcs.readyFuncs.push(f) > 1) return;
-		if(this.msie){
+		if(JaSper.funcs.msie){
 			(function (){
 				try{document.documentElement.doScroll('left'); JaSper.funcs.runReady();}
 				catch(err){setTimeout(f, 0);}
 				//catch (err){setTimeout(arguments.callee, 0);}
 			})();
 		}
-		else if(this.webkit){
+		else if(JaSper.funcs.webkit){
 			var t = setInterval(function (){
 				if(/^(loaded|complete)$/.test(document.readyState)) clearInterval(t), JaSper.funcs.runReady();
 			}, 0);
@@ -1173,89 +1317,9 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	eventAdd: function (evento, funcion, capt){
-
-		if(typeof funcion == 'string')
-			funcion = window[funcion];
-
-		capt = capt || false;
-
-		if(document.addEventListener){ //w3c
-			this.each(
-				function (evt, func, ct){
-					if(!this || this.nodeType == 3 || this.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
-
-					//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
-					switch(evt){
-						case 'mouseenter':
-							this.addEventListener('mouseover', JaSper.event.mouseEnter(func), ct);
-							break;
-						case 'mouseleave':
-							this.addEventListener('mouseout', JaSper.event.mouseEnter(func), ct);
-							break;
-						case 'mousewheel':
-							//recoger el movimiento de la rueda con "ev.wheelDelta = ev.wheelDelta || -(ev.detail);" (3 rueda arriba, -3 rueda abajo)
-							if(JaSper().gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
-								evt = 'DOMMouseScroll';
-								func = JaSper.event.mouseWheel(func);
-							}
-						default: //resto de eventos
-							this.addEventListener(evt, func, ct);
-					}
-				}, [evento, funcion, capt]);
-			if(window.eventTrigger){
-				this.each(function (evt, ct){
-					if(!this || this.nodeType == 3 || this.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
-					this.addEventListener(evt, function (){window.eventTrigger.call(this, evt);}, ct);
-				}, [evento, capt]);
-			}
-		}
-		else if(document.attachEvent){ //ie
-			this.each(
-				function (evt, func){
-					var elemento = this, clave = elemento + evt + func;
-
-					if(!elemento || elemento.nodeType == 3 || elemento.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
-
-					elemento['e' + clave] = func;
-					elemento[clave] = function (){elemento['e' + clave](window.event);};
-					elemento.attachEvent('on' + evt, elemento[clave]);
-				}, [evento, funcion]);
-			if(window.eventTrigger) this.each(
-				function (evt){
-					var elemento = this, clave = elemento + evt + window.eventTrigger;
-
-					if(!elemento || elemento.nodeType == 3 || elemento.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
-
-					elemento['e' + clave] = function (){window.eventTrigger.call(elemento, evt);};
-					elemento[clave] = function (){elemento['e' + clave](window.event);};
-					elemento.attachEvent('on' + evt, elemento[clave]);
-				}, [evento]);
-		}
-		else{ //DOM level 0
-			this.each(
-				function (evt, func){
-					if(!this || this.nodeType == 3 || this.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
-
-					//idea original de Simon Willison
-					var old_evt = this['on' + evt];
-					if(typeof this['on' + evt] != 'function') this['on' + evt] = func;
-					else{
-						this['on' + evt] = function (){
-							if(old_evt) old_evt();
-							func();
-						}
-					}
-				}, [evento, funcion]);
-			if(window.eventTrigger) this.each(
-				function (evt){
-					if(!this || this.nodeType == 3 || this.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
-					var old_evt = this['on' + evt];
-					this['on' + evt] = function (){
-						if(old_evt) old_evt();
-						window.eventTrigger.call(this, evt);
-					};
-				}, [evento]);
-		}
+		this.each(function (evt, func, ct){
+			JaSper.event.add(this, evt, func, ct);
+		}, [evento, funcion]);
 
 		return this;
 	},
@@ -1275,54 +1339,9 @@ JaSper.extend(JaSper.prototype, {
 
 		capt = capt || false;
 
-		if(document.addEventListener){ //w3c
-			this.each(
-				function (evt, func, ct){
-					//TODO problemas para quitar eventos con funciones anonimas (como el retorno de mouseEnter); asignarlo previamente a una variable cuando se pone el evento?
-					//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
-					switch(evt){
-						case 'mouseenter':
-							this.removeEventListener('mouseover', JaSper.event.mouseEnter(func), ct);
-							break;
-						case 'mouseleave':
-							this.removeEventListener('mouseout', JaSper.event.mouseEnter(func), ct);
-							break;
-						case 'mousewheel':
-							if(JaSper().gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
-								evt = 'DOMMouseScroll';
-								func = JaSper.event.mouseWheel(func);
-							}
-						default: //resto de eventos
-							this.removeEventListener(evt, func, ct);
-					}
-				}, [evento, funcion, capt]);
-			if(window.eventTrigger){
-				this.each(function (evt, ct){
-					this.removeEventListener(evt, function (){window.eventTrigger.call(this, evt);}, ct);
-				}, [evento, capt]);
-			}
-		}
-		else if(document.attachEvent){ //ie
-			this.each(
-				function (evt, func){
-					this.detachEvent('on' + evt, this[evt + func]);
-					this[evt + func] = null;
-					this["e" + evt + func] = null;
-				}, [evento, funcion]);
-			if(window.eventTrigger) this.each(
-				function (evt){
-					var func = function (){window.eventTrigger.call(this, evt);};
-					this.detachEvent('on' + evt, this[evt + func]);
-					this[evt + func] = null;
-					this["e" + evt + func] = null;
-				}, [evento]);
-		}
-		else{ //DOM level 0
-			this.each(
-				function (evt){
-					eval('this.on' + evt + ' = null;');
-				}, [evento]);
-		}
+		this.each(function (evt, func, ct){
+			JaSper.event.remove(this, evt, func, ct);
+		}, [evento, funcion, capt]);
 
 		return this;
 	}

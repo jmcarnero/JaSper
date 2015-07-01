@@ -21,15 +21,14 @@ http://www.gnu.org/copyleft/gpl.html*/
  */
 
 JaSper.extend(JaSper.prototype, {
+
 	/**
 	 * HTML5 Canvas
 	 *
 	 * @since 2014-12-28
-	 * @param object
-	 * @returns object
+	 * @returns {object}
 	 */
 	canvas: function (){
-
 		var callFuncs = function (jasperObj, props){
 			jasperObj.each(function (){
 				if(!JaSper.canvas.valid(this))
@@ -137,7 +136,7 @@ JaSper.extend(JaSper.canvas, {
 		if(typeof JaSperFunc === 'function'){
 			if(props.drag != undefined && props.drag && !canvas.JaSperItems.flags.draggable){ //este elemento es arrastrable con el raton
 				canvas.JaSperItems.flags.draggable = true;
-				JaSper(canvas).eventAdd('mousedown', JaSper.canvas.mouseDown);
+				JaSper.event.add(canvas, 'mousedown', JaSper.canvas.mouseDown);
 			}
 			return JaSperFunc.call(null, canvas, props);
 		}
@@ -449,7 +448,7 @@ JaSper.extend(JaSper.canvas, {
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 
-		JaSper(canvas).eventRemove('mousedown', JaSper.canvas.mouseDown);
+		JaSper.event.remove(canvas, 'mousedown', JaSper.canvas.mouseDown);
 
 		var bRect = canvas.getBoundingClientRect();
 		var aItems = canvas.JaSperItems;
@@ -547,7 +546,7 @@ JaSper.extend(JaSper.canvas, {
 		 * @return boolean
 		 */
 		var mouseUp = function (ev){
-			JaSper(window).eventRemove('mouseup', mouseUp);
+			JaSper.event.remove(window, 'mouseup', mouseUp);
 
 			for(var item in aItems){
 				if(aItems[item].dragging !== undefined && aItems[item].dragging){
@@ -557,7 +556,7 @@ JaSper.extend(JaSper.canvas, {
 			}
 
 			if(!canvas.JaSperItems.flags.animable) JaSper.canvas.redraw(canvas);
-			JaSper(canvas).eventAdd('mousedown', JaSper.canvas.mouseDown);
+			JaSper.event.add(canvas, 'mousedown', JaSper.canvas.mouseDown);
 			canvas.style.cursor = 'default';
 			return true;
 		};
@@ -577,18 +576,18 @@ JaSper.extend(JaSper.canvas, {
 				iDyClick = mouseY - aItems[itemsKeys[cont]].y;
 				oItemSelected = aItems[itemsKeys[cont]];
 				if(aItems[itemsKeys[cont]].selected){
-					JaSper(window).eventRemove('mousemove', aItems[itemsKeys[cont]].mouseMove);
+					JaSper.event.remove(window, 'mousemove', aItems[itemsKeys[cont]].mouseMove);
 					delete(aItems[itemsKeys[cont]].mouseMove);
 				}
 				oItemSelected.mouseMove = mouseMove;
-				JaSper(window).eventAdd('mousemove', oItemSelected.mouseMove); //conserva la llamada a la funcion como propiedad para poder eliminar posteriormente el evento; si la firma cambia no se puede eliminar el evento
+				JaSper.event.add(window, 'mousemove', oItemSelected.mouseMove); //conserva la llamada a la funcion como propiedad para poder eliminar posteriormente el evento; si la firma cambia no se puede eliminar el evento
 				oItemSelected.selected = true;
 				oItemSelected.dragging = iHit;
 				//break;
 			}
 			else{ //deselecciona todos los elementos cuando se pulsa el raton; luego selecciona el correcto si corresponde
 				if(aItems[itemsKeys[cont]].selected){
-					JaSper(window).eventRemove('mousemove', aItems[itemsKeys[cont]].mouseMove);
+					JaSper.event.remove(window, 'mousemove', aItems[itemsKeys[cont]].mouseMove);
 					delete(aItems[itemsKeys[cont]].mouseMove);
 				}
 				aItems[itemsKeys[cont]].selected = false;
@@ -596,9 +595,9 @@ JaSper.extend(JaSper.canvas, {
 		}
 
 		canvas.JaSperItemSelected = oItemSelected;
-		JaSper(window).eventAdd('mouseup', mouseUp);
+		JaSper.event.add(window, 'mouseup', mouseUp);
 
-		//JaSper.funcs.eventPreventDefault(ev);
+		//JaSper.event.preventDefault(ev);
 		return false;
 	},
 

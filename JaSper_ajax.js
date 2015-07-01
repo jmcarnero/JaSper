@@ -64,14 +64,12 @@ cbStart: function (jsf, xhr){jsf.innerHTML = JaSper._t('ajax/ajax_2') + '...';re
 cbFail: function (jsf, xhr){return;}, //function Callback a ejecutar cuando falla la peticion AJAX, recibe automaticamente el objeto en curso (primer parametro) y el objeto AJAX (segundo parametro)
 }
 	 * </code>
-	 * 
-	 * No permite encadenado de metodos
 	 *
 	 * @since 2010-12-14
-	 * @param string url Direccion que devolvera los datos por ajax (obligatorio)
-	 * @param string valores Valores que se enviaran, si la peticion es POST
-	 * @param string metodo Metodo de comunicacion con url (GET o POST)
-	 * @return object
+	 * @param {string} url Direccion que devolvera los datos por ajax (obligatorio)
+	 * @param {string} valores Valores que se enviaran, si la peticion es POST
+	 * @param {string} metodo Metodo de comunicacion con url (GET o POST)
+	 * @return {object}
 	 */
 	ajax: function (url, valores, metodo){
 
@@ -127,9 +125,9 @@ cbFail: function (jsf, xhr){return;}, //function Callback a ejecutar cuando fall
 		metodo = metodo.toUpperCase();
 
 		this.each(function (url, valores, metodo, asincrono){
-			var ajax = JaSper.ajax.nuevo();
+			var oAjax = JaSper.ajax.nuevo();
 
-			if(!ajax){
+			if(!oAjax){
 				JaSper.log('-JaSper::ajax- ' + JaSper._t('ajax/ajax_1'));
 				this.innerHTML = JaSper._t('ajax/ajax_1');
 				return(false);
@@ -149,25 +147,25 @@ xmlhttp.onreadystatechange = function (){
 xmlhttp.send(null);*/
 /*FIXME Passing null username, generates a login popup on Opera (#2865)
 if ( s.username ) xhr.open( s.type, s.url, s.async, s.username, s.password );*/
-			ajax.open(metodo, url, asincrono);
+			oAjax.open(metodo, url, asincrono);
 
 			if(metodo == 'POST'){
-				ajax.setRequestHeader('Method', 'POST ' + url + ' HTTP/1.1');
-				ajax.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-				//ajax.setRequestHeader("Content-length", valores.length); //esta y la siguiente las pone el navegador automaticamente, no se deben asignar a mano (problemas de seguridad)
-				//ajax.setRequestHeader("Connection", "close");
+				oAjax.setRequestHeader('Method', 'POST ' + url + ' HTTP/1.1');
+				oAjax.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+				//oAjax.setRequestHeader("Content-length", valores.length); //esta y la siguiente las pone el navegador automaticamente, no se deben asignar a mano (problemas de seguridad)
+				//oAjax.setRequestHeader("Connection", "close");
 			}
-			ajax.setRequestHeader('Pragma', 'cache=no');
-			ajax.setRequestHeader('Cache-Control', 'no-transform');
-			ajax.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-			if(ajax.overrideMimeType){ajax.overrideMimeType('text/xml; charset=utf-8'); /*Firefox & Safari*/}
+			oAjax.setRequestHeader('Pragma', 'cache=no');
+			oAjax.setRequestHeader('Cache-Control', 'no-transform');
+			oAjax.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+			if(oAjax.overrideMimeType){oAjax.overrideMimeType('text/xml; charset=utf-8'); /*Firefox & Safari*/}
 
 			//FIXME si metodo == 'GET', valores debe ser nulo concatenando previamente lo que tuviese a url
-			ajax.send(valores);
+			oAjax.send(valores);
 
 			var obj = this;
 
-			var _callback = function (){
+			var oCallback = function (){
 			//ajax.onreadystatechange = function (){ //debe ir despues de "ajax.send()" o no funciona en firefox (4 o superior), no esta claro en que orden deben ir send y onreadystatechange (revisar)
 				/*0: (No inicializado) - Los datos de la petición no se han definido // The request is uninitialized (before you've called open()).
 				1: (Abierto) - La recepción de datos está en curso // The request is set up, but not sent (before you've called send()).
@@ -175,27 +173,27 @@ if ( s.username ) xhr.open( s.type, s.url, s.async, s.username, s.password );*/
 				3: (Interactive) - El objeto aún no está listo para otra petición pero ha recibido ya los datos. // The request is in process; often some partial data is available from the response, but the server isn't finished with its response.
 				4: (Completado) - El objeto está listo para otra petición // The response is complete; you can get the server's response and use it.*/
 
-				if(ajax.readyState < 4){
-					JaSper.log('-JaSper::ajax- Peticion recibida, ajax.readyState = ' + ajax.readyState + '; ajax.responseText = ' + (!ajax.responseText?'':ajax.responseText));
-					return cbStart(obj, ajax); //callback de inicio de peticion y espera
+				if(oAjax.readyState < 4){
+					JaSper.log('-JaSper::ajax- Peticion recibida, ajax.readyState = ' + oAjax.readyState + '; ajax.responseText = ' + (!oAjax.responseText?'':oAjax.responseText));
+					return cbStart(obj, oAjax); //callback de inicio de peticion y espera
 				}
-				else if(ajax.readyState == 4){
-					if(ajax.status == 200){ //respuesta correcta recibida
+				else if(oAjax.readyState == 4){
+					if(oAjax.status == 200){ //respuesta correcta recibida
 						JaSper.log('-JaSper::ajax- Respuesta recibida, proceso completado');
-						return cbEnd(obj, ajax); //callback de fin de peticion (CON exito)
+						return cbEnd(obj, oAjax); //callback de fin de peticion (CON exito)
 					}
-					else return cbFail(obj, ajax); //callback de fin de peticion (SIN exito)
+					else return cbFail(obj, oAjax); //callback de fin de peticion (SIN exito)
 				}
 			};
 
-			if(!asincrono) _callback();
-			else if(ajax.readyState === 4) setTimeout(_callback, 0); //(IE6 & IE7) necesario si esta en cache y ha sido recuperado directamente
-			else ajax.onreadystatechange = _callback;
+			if(!asincrono) oCallback();
+			else if(oAjax.readyState === 4) setTimeout(oCallback, 0); //(IE6 & IE7) necesario si esta en cache y ha sido recuperado directamente
+			else oAjax.onreadystatechange = oCallback;
 
 			//delete ajax; //limpia de memoria el objeto
 		}, [url, valores, metodo, asincrono]);
 
-		return;
+		return this;
 	}
 
 });

@@ -84,7 +84,8 @@ JaSper.extend(JaSper.prototype, {
 			//devolver el elemento a su nivel
 			obj.style.zIndex -= 10;
 
-			JaSper(document).eventRemove('mousemove', funcs[0]).eventRemove('mouseup', funcs[1]);
+			JaSper.event.remove(document, 'mousemove', funcs[0]);
+			JaSper.event.remove(document, 'mouseup', funcs[1]);
 
 			if(typeof props.onMoveEnd === 'function') props.onMoveEnd.call(obj);
 
@@ -120,14 +121,14 @@ JaSper.extend(JaSper.prototype, {
 			obj.style.left = left + 'px';
 
 			$('origen').html = JaSper.event.source(event);//obj;
-			//document.getElementById('destino').innerHTML = JaSper.funcs.eventTarget(event);
+			//document.getElementById('destino').innerHTML = JaSper.event.target(event);
 			$('evento').html = JaSper.event.name(event);
 		};
 
 		/*var mueveObj = function (e){
 			evt = e || window.event;
 			var moz = document.getElementById && !document.all;
-			var obj = JaSper.funcs.eventSource(e);
+			var obj = JaSper.event.source(e);
 
 			document.getElementById('origen').innerHTML = obj;
 			document.getElementById('destino').innerHTML = $(this).destinoEvento(e);
@@ -189,8 +190,8 @@ JaSper.extend(JaSper.prototype, {
 			//var funMov = function (e){moveObject(e, obj);}, funFin = function (e){moveEnd(e, obj, [funMov, arguments.callee]);}; //"arguments.calle es imprescindible para poder desregistrar el evento, problemas pasando la definicion de la funcion...
 			var funMov = function (e){moveObject(e, obj);}, funFin = function funFinCalle(e){moveEnd(e, obj, [funMov, funFinCalle]);};
 
-			JaSper(document).eventAdd('mousemove', funMov);
-			JaSper(document).eventAdd('mouseup', funFin);
+			JaSper.event.add(document, 'mousemove', funMov);
+			JaSper.event.add(document, 'mouseup', funFin);
 
 		};
 

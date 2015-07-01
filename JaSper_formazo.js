@@ -110,7 +110,7 @@ JaSper.extend(JaSper.prototype, {
 					for(var i = 0; i < csplit.length; i++){
 						if(JaSper.funcs.isFunction(filters_keys[csplit[i]])){
 							var fun = csplit[i];
-							JaSper(el).eventAdd('keydown', function (ev){
+							JaSper.event.add(el, 'keydown', function (ev){
 								if(filters_keys[fun](ev, el)){
 									JaSper.event.preventDefault(ev);
 									JaSper.event.stop(ev);
@@ -197,11 +197,11 @@ JaSper.extend(JaSper.prototype, {
 					}
 
 					if(aErrTemp.length){
-						JaSper(el).addClass(props.clases.error);
+						JaSper.css.addClass(el, props.clases.error);
 						window.errMens[window.errMens.length] = aErrTemp.join("\n");
 					}
 					else
-						JaSper(el).removeClass(props.clases.error);
+						JaSper.css.removeClass(el, props.clases.error);
 				}
 			});
 
