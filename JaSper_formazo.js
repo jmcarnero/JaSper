@@ -22,7 +22,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 *****************************************************/
 
 /*traducciones*/
-JaSper.funcs.extendTrads({
+JaSper.extend(JaSper.langs, {
 "en":{
 	'valida/bic':'BIC/SWIFT bank number invalid',
 	'valida/clave':'Check that you entered the same password in both boxes',
@@ -53,7 +53,7 @@ JaSper.funcs.extendTrads({
 	'valida/url':'URL no v\u00E1lida.\nFormato recomendado: "http://dominio.tld"'}
 });
 
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Valida formularios
@@ -134,7 +134,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 					$(this).eventAdd('change', function (){
 						if(typeof FileReader !== "function"){ //No para navegadores antiguos
-							JaSper.funcs.log('Vista previa no disponible', 0);
+							JaSper.log('Vista previa no disponible', 0);
 							return false;
 						}
 
@@ -157,7 +157,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 								if(tipo !== 'image/jpeg' && tipo !== 'image/png' && tipo !== 'image/gif'){
 									JaSper(sPreviewId).attrib('src', '');
 									oElement.value = '';
-									JaSper.funcs.log('No se puede mostrar preview del fichero seleccionado', 1);
+									JaSper.log('No se puede mostrar preview del fichero seleccionado', 1);
 								}
 								else{
 									JaSper(sPreviewId).attrib('src', origen.result);
@@ -165,7 +165,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 							};
 
 							oLector.onerror = function(ev){
-								JaSper.funcs.log(ev, 2);
+								JaSper.log(ev, 2);
 							};
 
 							oLector.readAsDataURL(oArchivo[0]);
@@ -228,7 +228,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 JaSper.valida = {};
 
 //validaciones
-JaSper.funcs.extend(JaSper.valida, {
+JaSper.extend(JaSper.valida, {
 
 	/**
 	 * validador BIC (Business Identifier Codes) o SWIFT
@@ -248,7 +248,7 @@ JaSper.funcs.extend(JaSper.valida, {
 		}
 
 		if(bRet) return false; //pass valida
-		else return JaSper.funcs._t('valida/bic'); //pass no valida
+		else return JaSper._t('valida/bic'); //pass no valida
 	},
 
 	/**
@@ -269,7 +269,7 @@ JaSper.funcs.extend(JaSper.valida, {
 			bRet = false;
 
 		if(bRet) return false; //pass valida
-		else return JaSper.funcs._t('valida/clave'); //pass no valida
+		else return JaSper._t('valida/clave'); //pass no valida
 	},
 
 	/**
@@ -290,7 +290,7 @@ JaSper.funcs.extend(JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return JaSper.funcs._t('valida/email'); //e-mail no valido
+		else return JaSper._t('valida/email'); //e-mail no valido
 	},
 
 	/**
@@ -320,7 +320,7 @@ JaSper.funcs.extend(JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return (JaSper.funcs._t('valida/fechas') + formato); //fecha incorrecta
+		else return (JaSper._t('valida/fechas') + formato); //fecha incorrecta
 	},
 
 	/**
@@ -345,7 +345,7 @@ JaSper.funcs.extend(JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return JaSper.funcs._t('valida/fichero'); //tipo de fichero no permitido
+		else return JaSper._t('valida/fichero'); //tipo de fichero no permitido
 	},
 
 	/**
@@ -424,7 +424,7 @@ JaSper.funcs.extend(JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return JaSper.funcs._t('valida/iban');
+		else return JaSper._t('valida/iban');
 	},
 
 	/**
@@ -455,9 +455,9 @@ JaSper.funcs.extend(JaSper.valida, {
 			}
 			else{
 				if(oNif.value.charAt(0) == 'X')
-					mensaje += JaSper.funcs._t('valida/nif1'); //NIE
+					mensaje += JaSper._t('valida/nif1'); //NIE
 				else
-					mensaje += JaSper.funcs._t('valida/nif2'); //NIF
+					mensaje += JaSper._t('valida/nif2'); //NIF
 
 				bRet = false; //nif incorrecto
 			}
@@ -494,7 +494,7 @@ JaSper.funcs.extend(JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return (JaSper.funcs._t('valida/numeros1') + menor + JaSper.funcs._t('valida/numeros2') + mayor); //numero incorrecto
+		else return (JaSper._t('valida/numeros1') + menor + JaSper._t('valida/numeros2') + mayor); //numero incorrecto
 	},
 
 	/**
@@ -509,7 +509,7 @@ JaSper.funcs.extend(JaSper.valida, {
 
 		//evita problemas con elementos tipo file (por ejemplo), no se puede cambiar su valor
 		try{oCampo.value = oCampo.value.toString().trim() || '';}
-		catch(ex){JaSper.funcs.log('No se puede alterar el valor de <' + oCampo.tagName + ' id="' + oCampo.id + '" type="' + oCampo.type + '" />', 1);}
+		catch(ex){JaSper.log('No se puede alterar el valor de <' + oCampo.tagName + ' id="' + oCampo.id + '" type="' + oCampo.type + '" />', 1);}
 
 		if(oCampo.value != '') bRet = true;
 		else{
@@ -518,7 +518,7 @@ JaSper.funcs.extend(JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return ('"' + text + '"' + JaSper.funcs._t('valida/obligatorio'));
+		else return ('"' + text + '"' + JaSper._t('valida/obligatorio'));
 	},
 
 	/*version para radio buttons*/
@@ -539,7 +539,7 @@ JaSper.funcs.extend(JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return ('"' + text + '"' + JaSper.funcs._t('valida/obligatorioRadio'));
+		else return ('"' + text + '"' + JaSper._t('valida/obligatorioRadio'));
 	},
 
 	/**
@@ -629,7 +629,7 @@ JaSper.funcs.extend(JaSper.valida, {
 		}
 
 		if(bRet) return false;
-		else return JaSper.funcs._t('valida/url');
+		else return JaSper._t('valida/url');
 	}
 
 });

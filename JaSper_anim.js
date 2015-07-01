@@ -22,9 +22,9 @@ http://www.gnu.org/copyleft/gpl.html*/
  *
  * @author José M. Carnero
  * @since 2015-05-15
- * @version 1b
+ * @version 1.0
  */
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Alterna la propiedad display entre 'none' y visible
@@ -73,7 +73,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			//TODO deberia aceptar otros tipos de nodo?
 			if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
 
-			var sActHeight = JaSper.funcs.getStyle(this, 'height');
+			var sActHeight = JaSper.css.getStyle(this, 'height');
 			sActHeight = sActHeight.replace('px', '');
 
 			if(sActHeight == '0'){
@@ -101,7 +101,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 			//TODO deberia aceptar otros tipos de nodo?
 			if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
 
-			var sActDisplay = JaSper.funcs.getStyle(this, 'display');
+			var sActDisplay = JaSper.css.getStyle(this, 'display');
 
 			if(fade){
 				var sTipoFade = sActDisplay == 'none' ? 'in' : 'out';
@@ -113,7 +113,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 				if(sActDisplay != 'none' ) sActDisplay = 'none';
 				else sActDisplay = this.originalDisplay;
 
-				JaSper.funcs.setStyle(this, 'display', sActDisplay);
+				JaSper.css.setStyle(this, 'display', sActDisplay);
 			}
 		});
 
@@ -124,7 +124,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 JaSper.anim = {};
 
-JaSper.funcs.extend(JaSper.anim, {
+JaSper.extend(JaSper.anim, {
 
 	fade: function (oDOMElem, sTipo, iMiliSec, iIntervalo){
 		if(oDOMElem.nodeType != 1) return false; //solo nodos tipo ELEMENT_NODE
@@ -185,13 +185,13 @@ JaSper.funcs.extend(JaSper.anim, {
 	//busca y guarda el valor original de la propiedad display de un elemento, y lo guarda como propiedad del propio elemento
 	originalDisplay: function (oDOMElem){
 		if(!oDOMElem.originalDisplay){
-			var sActDisplay = JaSper.funcs.getStyle(oDOMElem, 'display');
+			var sActDisplay = JaSper.css.getStyle(oDOMElem, 'display');
 
 			if(oDOMElem.style.display == 'none' || !oDOMElem.style.display){
 				var oElem = document.createElement(oDOMElem.nodeName);
 				JaSper(document.body).append(oElem);
 
-				oDOMElem.originalDisplay = JaSper.funcs.getStyle(oElem, 'display');
+				oDOMElem.originalDisplay = JaSper.css.getStyle(oElem, 'display');
 
 				JaSper(document.body).remove(oElem);
 			}

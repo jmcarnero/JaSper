@@ -21,7 +21,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  * Funciones de movimiento de objetos *
  * (div, p, ...)                      *
  **************************************/
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Movimiento de objetos
@@ -197,8 +197,8 @@ JaSper.funcs.extend(JaSper.prototype, {
 		/* devuelve la posicion del elemento con respecto a su contenedor (left y top), (array=>['x'] - ['y']) */
 		var posObject = function (obj){
 			//TODO el tamaño de las cajas no se calcula igual en todos los navegadores
-			var boxLeft = parseInt(JaSper.funcs.getStyle(obj, 'marginLeft'));
-			var boxTop = parseInt(JaSper.funcs.getStyle(obj, 'marginTop'));
+			var boxLeft = parseInt(JaSper.css.getStyle(obj, 'marginLeft'));
+			var boxTop = parseInt(JaSper.css.getStyle(obj, 'marginTop'));
 
 			//http://www.quirksmode.org/js/findpos.html
 			var objLT = obj;
@@ -210,8 +210,8 @@ JaSper.funcs.extend(JaSper.prototype, {
 			}
 
 			var pos = new Array();
-			pos['w'] = parseInt(JaSper.funcs.getStyle(obj, 'width')); //pos['w'] = obj.offsetWidth; //ancho del elemento
-			pos['h'] = parseInt(JaSper.funcs.getStyle(obj, 'height')); //pos['h'] = obj.offsetHeight; //alto del elemento
+			pos['w'] = parseInt(JaSper.css.getStyle(obj, 'width')); //pos['w'] = obj.offsetWidth; //ancho del elemento
+			pos['h'] = parseInt(JaSper.css.getStyle(obj, 'height')); //pos['h'] = obj.offsetHeight; //alto del elemento
 			pos['x'] = curleft;
 			pos['y'] = curtop;
 			pos['x2'] = pos['x'] + pos['w']; //esquina inferior derecha

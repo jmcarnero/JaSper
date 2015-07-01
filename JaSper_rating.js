@@ -22,7 +22,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  *************************************/
 
 /*traducciones*/
-JaSper.funcs.extend(JaSper.langs, {
+JaSper.extend(JaSper.langs, {
 "en":{
 	'rating_1':'Without Javascript.',
 	'rating_2':'Id updated: %s, value: %s<br />Your vote: %s'},
@@ -39,7 +39,7 @@ JaSper.funcs.extend(JaSper.langs, {
  * si la página no tiene "DOCTYPE" dara error en IE al intentar "this.innerHTML = outHtml;"
  * usar (por ej.) <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
  */
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Crea estrellas en el elemento seleccionado y los eventos necesarios para su funcionamiento

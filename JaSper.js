@@ -25,7 +25,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  *
  * @author José M. Carnero
  * @since 2010-06-21
- * @version 3.1b
+ * @version 3.2b
  * @see Al final del archivo estan las extensiones necesarias de prototipos de objetos del sistema (polyfills)
  */
 (function (window, undefined){
@@ -42,9 +42,370 @@ http://www.gnu.org/copyleft/gpl.html*/
 		return new JaSper.funcs.init(sel, context);
 	};
 
-	JaSper.event = {}; //funciones estaticas de eventos (espacio de nombres)
+	//funciones estaticas de estilos/CSS (espacio de nombres)
+	JaSper.css = {
 
-	//funciones estaticas referenciables por si mismas,  ej. var winPos = JaSper.funcs.windowPosition()
+			/**
+			 * Añade una clase CSS
+			 *
+			 * @since 2011-09-07
+			 * @param {object} oElem Objeto al que añadir la clase
+			 * @param {string} cName Nombre de la clase
+			 */
+			addClass: function (oElem, cName){
+				if(typeof cName === "string"){
+					if(oElem.className.indexOf(cName) == -1)
+						oElem.className += ' ' + cName; 
+				}
+			},
+
+			/**
+			 * recupera una regla css de document o del elemento pasado
+			 */
+			getStyle: function (elem, cssRule){
+				elem = (!elem)?document.defaultView:elem; 
+				var sRet = '';
+				if(elem.nodeType == 1){
+					if(document.defaultView && document.defaultView.getComputedStyle) sRet = document.defaultView.getComputedStyle(elem, "")[cssRule]; //Firefox
+					else if(elem.currentStyle) sRet = elem.currentStyle[cssRule]; //IE
+					else sRet = elem.style[cssRule]; //try and get inline style
+				}
+				return sRet;
+			},
+
+			/**
+			 * Elimina una clase CSS
+			 *
+			 * @since 2011-09-07
+			 * @param {object} oElem Objeto al que añadir la clase
+			 * @param {string} cName Nombre de la clase
+			 */
+			removeClass: function(oElem, cName){
+				if(typeof cName === "string"){
+					if(oElem.className.indexOf(cName) > -1)
+						oElem.className = oElem.className.substr(0, oElem.className.indexOf(cName) - 1) + oElem.className.substr(oElem.className.indexOf(cName) + cName.length);
+				}
+			},
+
+			/**
+			 * pone una regla css de document o del elemento pasado al valor pasado
+			 */
+			setStyle: function (elem, cssRule, value){
+				elem = (!elem)?document.defaultView:elem; 
+
+				if(elem.nodeType == 1){
+					//elem.style.cssText = value;
+					elem.style[cssRule] = value;
+					return true;
+				}
+				return false;
+			}
+
+	}; 
+
+	/**
+	 * funciones estaticas de eventos (espacio de nombres)
+	 * emulacion de eventos mouseenter y mouseleave en los navegadores que no lo soportan (todos menos ie)
+	 * mousewheel para navegadores gecko
+	 * 
+	 * para controlar el movimiento de la rueda:
+	 * <code>
+	$('<p>').addEvent('mousewheel', function (ev){
+		var rolled = 0;
+		if('wheelDelta' in ev) {
+			rolled = ev.wheelDelta; //devuelve 3 (se ha movido la rueda hacia arriba) o -3 (rueda hacia abajo)
+		}
+		else{
+			rolled = -40 * ev.detail; //iguala los valores de esta propiedad con los que devuelve ev.wheelDelta
+		}
+		alert(rolled);
+	});
+	 * </code>
+	 */
+	JaSper.event = {
+
+		/**
+		 * Correccion de codigo de tecla pulsada.
+		 * Para keypress corresponde con codigos ascii,
+		 * para keyup o keydown no necesariamente (ej: "." devuelve 190 y no 46 -ASCII-); este metodo corrige la correspondencia devolviendo el ascii correcto
+		 * Devuelve -1 si se llama con un evento que no sea keyXXX
+		 *
+		 * @todo completar mapa de correspondencia de teclas
+		 * @since 2011-09-08
+		 * @return {number} Codigo de la tecla (o combinacion) pulsada
+		 */
+		keyCode: function (ev){
+			ev = ev || window.event;
+			var code = ev.keyCode || ev.which, etype = ev.type.toLowerCase().replace('on', ''); //, char = String.fromCharCode(code);
+
+			if(etype == 'keypress') return(code);
+			else if(etype == 'keydown' || etype == 'keyup'){
+				var keycodes = { //keycode:[ascii_normal, ascii_shiftKey, ascii_controlkey, ascii_altKey]
+					8:[8], //Backspace
+					9:[9], //Tab
+					13:[13], //Enter
+					/*16:[], //Shift
+					17:[], //Ctrl
+					18:[], //Alt
+					19:[], //Pause
+					20:[], //Caps Lock
+					27:[], //Escape
+					33:[], //Page Up
+					34:[], //Page Down
+					35:[], //End
+					36:[], //Home
+					37:[], //Arrow Left
+					38:[], //Arrow Up
+					39:[], //Arrow Right
+					40:[], //Arrow Down
+					45:[], //Insert*/
+					46:[127], //Delete
+					48:[48], //0
+					49:[49], //1
+					50:[50], //2
+					51:[51], //3
+					52:[52], //4
+					53:[53], //5
+					54:[54], //6
+					55:[55], //7
+					56:[56], //8
+					57:[57], //9
+					65:[97, 65], //A
+					66:[98, 66], //B
+					67:[99, 67], //C
+					68:[100, 68], //D
+					69:[101, 69], //E
+					70:[102, 70], //F
+					71:[103, 71], //G
+					72:[104, 72], //H
+					73:[105, 73], //I
+					74:[106, 74], //J
+					75:[107, 75], //K
+					76:[108, 76], //L
+					77:[109, 77], //M
+					78:[110, 78], //N
+					79:[111, 79], //O
+					80:[112, 80], //P
+					81:[113, 81], //Q
+					82:[114, 82], //R
+					83:[115, 83], //S
+					84:[116, 84], //T
+					85:[117, 85], //U
+					86:[118, 86], //V
+					87:[119, 87], //W
+					88:[120, 88], //X
+					89:[121, 89], //Y
+					90:[122, 90], //Z
+					/*91:[], //Left Windows
+					92:[], //Right Windows
+					93:[], //Context Menu*/
+					96:[48], //NumPad 0
+					97:[49], //NumPad 1
+					98:[50], //NumPad 2
+					99:[51], //NumPad 3
+					100:[52], //NumPad 4
+					101:[53], //NumPad 5
+					102:[54], //NumPad 6
+					103:[55], //NumPad 7
+					104:[56], //NumPad 8
+					105:[57], //NumPad 9
+					106:[42], //NumPad *
+					107:[43], //NumPad +
+					109:[45], //NumPad -
+					110:[46], //NumPad .
+					111:[47], //NumPad /
+					/*112:[], //F1
+					113:[], //F2
+					114:[], //F3
+					115:[], //F4
+					116:[], //F5
+					117:[], //F6
+					118:[], //F7
+					119:[], //F8
+					120:[], //F9
+					121:[], //F10
+					122:[], //F11
+					123:[], //F12
+					144:[], //Num Lock
+					145:[], //Scroll Lock*/
+					186:[59], //;
+					187:[61], //=
+					188:[44], //,
+					189:[45], //-
+					190:[46], //.
+					191:[47], ///
+					192:[96], //`
+					219:[91], //[
+					220:[92], //\
+					221:[93], //]
+					222:[39] //'
+				};
+
+				var shiftControlAlt = 0;
+				if(navigator.appName == "Netscape" && parseInt(navigator.appVersion, 10) == 4){ //netscape 4
+					var mString = (ev.modifiers + 32).toString(2).substring(3, 6);
+					shiftControlAlt += (mString.charAt(0) == '1') ? 1 : 0;
+					shiftControlAlt += (mString.charAt(1) == '1') ? 1 : 0;
+					shiftControlAlt += (mString.charAt(2) == '1') ? 1 : 0;
+				}
+				else{ //resto
+					shiftControlAlt += ev.shiftKey ? 1 : 0;
+					shiftControlAlt += ev.altKey ? 1 : 0;
+					shiftControlAlt += ev.ctrlKey ? 1 : 0;
+				}
+
+				if(typeof keycodes[code] != 'undefined'){
+					if(typeof keycodes[code][shiftControlAlt] != 'undefined')
+						return(keycodes[code][shiftControlAlt]); //devuelve exacto
+					else if(typeof keycodes[code][0] != 'undefined')
+						return(keycodes[code][0]); //devuelve correspondencia sin modificadores
+				}
+				return code; //no hay correspondencia, devuelve keycode
+			}
+
+			return -1; //evento incoherente
+		},
+
+		mouseEnter: function (func){
+			var isAChildOf = function (_parent, _child){
+				if(_parent === _child){
+					return false;
+				}
+				while(_child && _child !== _parent){
+					_child = _child.parentNode;
+				}
+				return _child === _parent;
+			};
+
+			return function (ev){
+				var rel = ev.relatedTarget;
+				if(this === rel || isAChildOf(this, rel)) return;
+				func.call(this, ev);
+			};
+		},
+
+		mouseWheel: function (func){
+			if(typeof func === 'undefined'){
+				func = function (e){
+					e.wheelDelta = -(e.detail);
+					func.call(this, e);
+					e.wheelDelta = null;
+				};
+			}
+			return func;
+		},
+
+		/**
+		 * guarda el ultimo evento que se ha disparado, sirve como controlador para que otros eventos puedan lanzarse (o no) en funcion del previo
+		 * asignar en cada funcion afectada (las que se lancen en los eventos), donde interese
+		 * 
+		 * @todo revisar
+		 * @param {event} ev Evento
+		 * @return {event} Evento
+		 */
+		name: function (ev){
+			/*this.nombreEvento = window.nombreEvento = evento.toLowerCase(); //se guarda el nombre del ultimo evento disparado para cada objeto jsframe; y el ultimo de todos en window.nombreEvento
+			evento = this.nombreEvento;*/
+
+			ev = ev || window.event;
+			return ev;
+		},
+
+		/**
+		 * Anula la accion por defecto de un elemento, como click en <a>
+		 * 
+		 * @param {event} ev Objeto evento
+		 * @return {boolean}
+		 */
+		preventDefault: function (ev){
+			ev = ev || window.event;
+
+			if(ev.preventDefault){ //modelo DOM
+				//ev.stopPropagation();
+				ev.preventDefault();
+			}
+			else if(window.event){ //modelo MSIE
+				//ev.keyCode = 0;  //<<< esto ayuda a que funcione bien en iExplorer
+				//ev.cancelBubble = true;
+				ev.returnValue = false;
+				ev.retainFocus = true;
+			}
+
+			return false;
+		},
+
+		/**
+		 * Devuelve el objeto que ha disparado un evento.
+		 * 
+		 * @param {event} ev Evento
+		 * @return {Object} Objeto target del evento
+		 */
+		source: function (ev){
+			ev = ev || window.event;
+			var targ = false;
+
+			/*if(ev.type == 'mouseover') targ = ev.relatedTarget || ev.fromElement; //origen para mouseover
+			else*/ targ = ev.target || ev.srcElement; //w3c o ie
+
+			if(targ.nodeType == 3 || targ.nodeType == 4) targ = targ.parentNode; // defeat Safari bug
+
+			return targ;
+		},
+
+		/**
+		 * Evita la propagacion de eventos, como que se disparen el del contenedor de un elemento y el del elemento
+		 * poniendo esto en uno de ellos evita los demas
+		 * 
+		 * @param {event} ev Objeto evento
+		 * @return {boolean}
+		 */
+		stop: function (ev){
+			ev = ev || window.event;
+
+			if(ev.stopPropagation) ev.stopPropagation(); //modelo DOM
+			else ev.cancelBubble = true; //modelo MSIE
+
+			return false;
+		},
+
+		/**
+		* Devuelve el objeto destino de un evento (como a donde va el raton en mouseout).
+		* 
+		* @param {event} ev Evento
+		* @return {Object} Objeto destino del evento
+		*/
+		target: function (ev){
+			ev = ev || window.event;
+			var dest = false;
+
+			if(ev.type == 'mouseout') dest = ev.relatedTarget || ev.toElement; //destino en mouseout
+			else dest = ev.target || ev.srcElement; //w3c o ie
+
+			return dest;
+		}
+
+	};
+
+	/**
+	 * Extiende un objeto con otro
+	 * 
+	 * @param {Object} extendObj Objeto original a extender
+	 * @param {Object} addObj Objeto con metodos que se agregaran a extendObj
+	 */
+	JaSper.extend = function (extendObj, addObj){
+		if(extendObj === JaSper.langs){ //extiende traducciones
+			JaSper.funcs.extendTrads(addObj);
+			return;
+		}
+
+		//if(!extendObj) extendObj = {}; //crea el objeto si no existe
+
+		for(var a in addObj){
+			extendObj[a] = addObj[a];
+		}
+	};
+
+	//funciones estaticas genericas, referenciables por si mismas,  ej. JaSper.funcs.foreach()
 	JaSper.funcs = {
 
 		//que navegador se esta usando
@@ -54,25 +415,6 @@ http://www.gnu.org/copyleft/gpl.html*/
 		opera: /opera/.test(navigator.userAgent.toLowerCase()),
 		webkit: /webkit/.test(navigator.userAgent.toLowerCase()),
 		gecko: /gecko/.test(navigator.userAgent.toLowerCase()) && !/khtml/.test(navigator.userAgent.toLowerCase()),
-
-		/**
-		 * Extiende un objeto con otro
-		 * 
-		 * @param {Object} extendObj Objeto original a extender
-		 * @param {Object} addObj Objeto con metodos que se agregaran a extendObj
-		 */
-		extend: function (extendObj, addObj){
-			if(extendObj === JaSper.langs){ //extiende traducciones
-				JaSper.funcs.extendTrads(addObj);
-				return;
-			}
-
-			//if(!extendObj) extendObj = {}; //crea el objeto si no existe
-
-			for(var a in addObj){
-				extendObj[a] = addObj[a];
-			}
-		},
 
 		/**
 		 * Amplia las traducciones
@@ -179,20 +521,6 @@ http://www.gnu.org/copyleft/gpl.html*/
 		},
 
 		/**
-		 * recupera una regla css de document o del elemento pasado
-		 */
-		getStyle: function (elem, cssRule){
-			elem = (!elem)?document.defaultView:elem; 
-			var sRet = '';
-			if(elem.nodeType == 1){
-				if(document.defaultView && document.defaultView.getComputedStyle) sRet = document.defaultView.getComputedStyle(elem, "")[cssRule]; //Firefox
-				else if(elem.currentStyle) sRet = elem.currentStyle[cssRule]; //IE
-				else sRet = elem.style[cssRule]; //try and get inline style
-			}
-			return sRet;
-		},
-
-		/**
 		 * Constructor JaSper; permite varios tipos de selector
 		 *
 		 * [ID|#ID] selecciona el elemento con la id ID; sin # puede confundirse e intentar seleccionar todo aquello que coincida (clase = ID, tag = ID, etc)
@@ -208,7 +536,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 			//si no se pasa ningun selector se usa document
 			sel = sel || document;
 
-			this.version = JaSper.version = 'JaSper v3.1b',
+			this.version = JaSper.version = 'JaSper v3.2b',
 			this.nodes = this.nodes || [],
 			//this.funcs = {}, //funciones estaticas generales
 			//this.event = {}, //funciones estaticas de eventos
@@ -232,7 +560,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 						}
 					}
 					catch(ex){
-						JaSper.funcs.log('[JaSper::constructor] [XPath] Arbol del documento modificado durante la iteracion.', 1);
+						JaSper.log('[JaSper::constructor] [XPath] Arbol del documento modificado durante la iteracion.', 1);
 					}
 				}
 				else{ //selector con reglas CSS
@@ -259,7 +587,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 								}
 							}
 							else{ //no se ha pasado un contexto valido
-								JaSper.funcs.log('[JaSper::constructor] "' + context.toString() + '" no es un contexto v\u00E1lido.', 1);
+								JaSper.log('[JaSper::constructor] "' + context.toString() + '" no es un contexto v\u00E1lido.', 1);
 							}
 						}
 					}else{
@@ -353,7 +681,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 		loadScript: function (scrPath){
 			var scrId = 'JaSper_script_' + scrPath.replace(/[^a-zA-Z\d_]+/, '');
 			if(document.getElementById(scrId)){
-				JaSper.funcs.log('-JaSper::loadScript- Script (id->' + scrId + ') ya cargado.', 0);
+				JaSper.log('-JaSper::loadScript- Script (id->' + scrId + ') ya cargado.', 0);
 				return(false); //ya cargado
 			}
 
@@ -382,9 +710,9 @@ http://www.gnu.org/copyleft/gpl.html*/
 				var scriptQueue = JaSper.funcs.loadScriptQueue;
 				JaSper.funcs.loadScriptQueue = [];
 
-				if(tipo == 'ie') JaSper.funcs.log('-JaSper::loadScript- Script [' + scriptSrc + '] listo! ... en IE', 0);
-				else if(tipo == 'st') JaSper.funcs.log('-JaSper::loadScript- Script [' + scriptSrc + '] cargado!', 0);
-				else JaSper.funcs.log('-JaSper::loadScript- Script (id->' + scrId + ') leido con "document.write".');
+				if(tipo == 'ie') JaSper.log('-JaSper::loadScript- Script [' + scriptSrc + '] listo! ... en IE', 0);
+				else if(tipo == 'st') JaSper.log('-JaSper::loadScript- Script [' + scriptSrc + '] cargado!', 0);
+				else JaSper.log('-JaSper::loadScript- Script (id->' + scrId + ') leido con "document.write".');
 
 				for(var mt in scriptQueue){
 					try{
@@ -393,7 +721,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 						})(scriptQueue[mt]['fn'], scriptQueue[mt]['ctx']);
 					}
 					catch(ex){
-						JaSper.funcs.log('-JaSper::loadScript- No se ha podido ejecutar un método. ' + ex, 1);
+						JaSper.log('-JaSper::loadScript- No se ha podido ejecutar un método. ' + ex, 1);
 						return;
 					}
 				}
@@ -434,86 +762,6 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 		//cola de ejecucion de los metodos pedientes de la carga de algun script dinamico
 		loadScriptQueue: [],
-
-		/**
-		 * Muestra mensajes de debug, si "JaSper.debug" es true
-		 * Muestra los mensajes en el elemento con id "JaSperDebug" o lo crea bajo el primer nodo de this
-		 * Ej. de uso:
-		 * <code>
-$('#capa').setDebug(true).ajax('ej_respuesta.php');
-		 * </code>
-		 * 
-		 * @todo mostrar el mensaje con la linea correcta en que se ha producido (no la linea de este metodo)
-		 * @since 2011-03-24
-		 * @param {string} mens Mensaje de debug a mostrar
-		 * @param {number} lev Nivel de error a mostrar; 0 -> info (por defecto), 1 -> warn, 2 -> error
-		 * @return {void}
-		 */
-		log: function (mens, lev){
-			if(!JaSper.debug) return false;
-
-			//intenta recuperar donde se origino el mensaje de aviso, basta con buscar desde donde se llama a este metodo
-			var sStack = '', aStack = [];
-			try{
-				sStack = new Error().stack; //fuerza error para generar la traza
-			}catch(ex){
-				//alert("name:" + ex.name + "\nmessage:" + ex.message);
-				if (ex.stack) sStack = ex.stack;
-				else if(ex.stacktrace) sStack = ex.stacktrace; //TODO pendiente de verificacion
-				else sStack = ex.message; //opera
-			}finally{
-				if(sStack){
-					var lineas = sStack.split('\n');
-					for(var i = 0, len = lineas.length; i < len; i++){
-						if(lineas[i].match(/^\s*[A-Za-z0-9\-_$]+/)){
-							aStack.push(lineas[i]);
-
-							//en opera las lineas impares tienen el mensaje de error, las impares donde se ha producido
-							/*var entry = lineas[i];
-							if(lineas[i+1]) entry += ' at ' + lineas[++i];
-							aStack.push(entry);*/
-						}
-					}
-					//aStack.shift(); //elimina la llamada a este metodo
-				}
-			}
-
-			mens = mens || 'JaSper debug';
-			mens += '\n[' + aStack[1] + ']'; //hacer esta informacion opcional o solo mostrar fichero y linea de la llamada?
-			lev = lev || 0;
-
-			if(typeof console != 'object'){
-				//contenedor de los mensajes de debug
-				var e = document.getElementById('JaSperDebug'); //TODO en firefox adquiere los metodos de JaSper, en ie no
-				if(!e){
-					e = document.createElement('ul');
-					e.className = 'JaSperDebug ';
-					e.id = 'JaSperDebug'; //TODO diferenciar id's, por si se crea mas de uno
-					JaSper('<body>').insertAfter(e);
-				}
-
-				//cada uno de los mensajes de debug
-				var m = document.createElement('li');
-				m.className = 'JaSperDebug' + (lev == 2 ? 'error' : (lev == 1 ? 'warn' : 'info'));
-				m.appendChild(document.createTextNode(mens));
-				JaSper('<body>').append(m, e);
-			}else{
-				if(typeof mens != 'string') console.dir(mens); //show objects
-
-				switch(lev){
-				case 2: //error
-					console.error(mens);
-					break;
-				case 1: //warn
-					console.warn(mens);
-					break;
-				case 0: //info
-				default:
-					console.info(mens);
-				}
-			}
-			return;
-		},
 
 		makeArray: function (a){
 			var ret = [];
@@ -565,20 +813,6 @@ JaSper.expr[":"] = JaSper.expr.filters;
 		},
 
 		/**
-		 * pone una regla css de document o del elemento pasado al valor pasado
-		 */
-		setStyle: function (elem, cssRule, value){
-			elem = (!elem)?document.defaultView:elem; 
-
-			if(elem.nodeType == 1){
-				//elem.style.cssText = value;
-				elem.style[cssRule] = value;
-				return true;
-			}
-			return false;
-		},
-
-		/**
 		 * Emulacion de la funcion "sprintf".
 		 * El primer parametro debe ser una cadena, los siguientes los valores a sustituir (en el mismo orden que aparezcan en la cadena)
 		 *
@@ -612,30 +846,6 @@ JaSper.expr[":"] = JaSper.expr.filters;
 				}
 			}
 			return cadena;
-		},
-
-		/**
-		 * Traduccion de los textos de funciones.
-		 * Con la variable "JaSper.lang" (generada por PHP por ejemplo: $_SESSION['l10n']) 
-		 * que contenga el codigo de lenguaje que actualmente solicita el navegador; 
-		 * ya que javascript no puede leer directamente las cabeceras que envia el navegador;
-		 * 
-		 * Devuelve el mensaje traducido o falso
-		 * NO permite encadenado de metodos
-		 * 
-		 * @todo optimizar codigo
-		 * @param {array} trad Clave de la traduccion a devolver y parametros que requiera, ej. 'clave a traducir'; otro ej. ['%s a %s', 'clave', 'traducir'], la clave que se busca para la traduccion es el parametro unico o el primer indice y el resto del array parametros para sprintf
-		 * @param {string} lang Lenguaje al que traducir, si no se pasa ninguno se toma el de JaSper.lang
-		 * @returns {string} Cadena traducida, original si no se encuentra traduccion
-		 */
-		_t: function (trad, lang){
-			if(!trad) return '';
-			lang = lang || JaSper.lang;
-
-			if(!JaSper.funcs.isArray(trad)) trad = [trad];
-			if(JaSper.langs[lang] && JaSper.langs[lang][trad[0]]) trad[0] = JaSper.langs[lang][trad[0]];
-
-			return(JaSper.funcs.sprintf.apply(this, trad));
 		},
 
 		/**
@@ -698,6 +908,86 @@ $('<body>').addEvent('mousewheel', function (ev){
 
 	JaSper.langs = {'en':{}, 'es':{}}; //traducciones en todos los lenguajes que sean necesarios, definidos por codigo iso 639
 
+	/**
+	 * Muestra mensajes de debug, si "JaSper.debug" es true
+	 * Muestra los mensajes en el elemento con id "JaSperDebug" o lo crea bajo el primer nodo de this
+	 * Ej. de uso:
+	 * <code>
+$('#capa').setDebug(true).ajax('ej_respuesta.php');
+	 * </code>
+	 * 
+	 * @todo mostrar el mensaje con la linea correcta en que se ha producido (no la linea de este metodo)
+	 * @since 2011-03-24
+	 * @param {string} mens Mensaje de debug a mostrar
+	 * @param {number} lev Nivel de error a mostrar; 0 -> info (por defecto), 1 -> warn, 2 -> error
+	 * @return {void}
+	 */
+	JaSper.log = function (mens, lev){
+		if(!JaSper.debug) return false;
+
+		//intenta recuperar donde se origino el mensaje de aviso, basta con buscar desde donde se llama a este metodo
+		var sStack = '', aStack = [];
+		try{
+			sStack = new Error().stack; //fuerza error para generar la traza
+		}catch(ex){
+			//alert("name:" + ex.name + "\nmessage:" + ex.message);
+			if (ex.stack) sStack = ex.stack;
+			else if(ex.stacktrace) sStack = ex.stacktrace; //TODO pendiente de verificacion
+			else sStack = ex.message; //opera
+		}finally{
+			if(sStack){
+				var lineas = sStack.split('\n');
+				for(var i = 0, len = lineas.length; i < len; i++){
+					if(lineas[i].match(/^\s*[A-Za-z0-9\-_$]+/)){
+						aStack.push(lineas[i]);
+
+						//en opera las lineas impares tienen el mensaje de error, las impares donde se ha producido
+						/*var entry = lineas[i];
+						if(lineas[i+1]) entry += ' at ' + lineas[++i];
+						aStack.push(entry);*/
+					}
+				}
+				//aStack.shift(); //elimina la llamada a este metodo
+			}
+		}
+
+		mens = mens || 'JaSper debug';
+		mens += '\n[' + aStack[1] + ']'; //hacer esta informacion opcional o solo mostrar fichero y linea de la llamada?
+		lev = lev || 0;
+
+		if(typeof console != 'object'){
+			//contenedor de los mensajes de debug
+			var e = document.getElementById('JaSperDebug'); //TODO en firefox adquiere los metodos de JaSper, en ie no
+			if(!e){
+				e = document.createElement('ul');
+				e.className = 'JaSperDebug ';
+				e.id = 'JaSperDebug'; //TODO diferenciar id's, por si se crea mas de uno
+				JaSper('<body>').insertAfter(e);
+			}
+
+			//cada uno de los mensajes de debug
+			var m = document.createElement('li');
+			m.className = 'JaSperDebug' + (lev == 2 ? 'error' : (lev == 1 ? 'warn' : 'info'));
+			m.appendChild(document.createTextNode(mens));
+			JaSper('<body>').append(m, e);
+		}else{
+			if(typeof mens != 'string') console.dir(mens); //show objects
+
+			switch(lev){
+			case 2: //error
+				console.error(mens);
+				break;
+			case 1: //warn
+				console.warn(mens);
+				break;
+			case 0: //info
+			default:
+				console.info(mens);
+			}
+		}
+		return;
+	};
+
 	//guarda si es la version minificada (true) o normal (false)
 	JaSper.minificado = (function verMinified(){ //comprueba si estamos con la version minificada o la normal
 		var scripts = document.getElementsByTagName('script'); //document.scripts?
@@ -711,15 +1001,40 @@ $('<body>').addEvent('mousewheel', function (ev){
 		return false;
 	})();
 
+
+	/**
+	 * Traduccion de los textos de funciones.
+	 * Con la variable "JaSper.lang" (generada por PHP por ejemplo: $_SESSION['l10n']) 
+	 * que contenga el codigo de lenguaje que actualmente solicita el navegador; 
+	 * ya que javascript no puede leer directamente las cabeceras que envia el navegador;
+	 * 
+	 * Devuelve el mensaje traducido o falso
+	 * NO permite encadenado de metodos
+	 * 
+	 * @todo optimizar codigo
+	 * @param {array} trad Clave de la traduccion a devolver y parametros que requiera, ej. 'clave a traducir'; otro ej. ['%s a %s', 'clave', 'traducir'], la clave que se busca para la traduccion es el parametro unico o el primer indice y el resto del array parametros para sprintf
+	 * @param {string} lang Lenguaje al que traducir, si no se pasa ninguno se toma el de JaSper.lang
+	 * @returns {string} Cadena traducida, original si no se encuentra traduccion
+	 */
+	JaSper._t = function (trad, lang){
+		if(!trad) return '';
+		lang = lang || JaSper.lang;
+
+		if(!JaSper.funcs.isArray(trad)) trad = [trad];
+		if(JaSper.langs[lang] && JaSper.langs[lang][trad[0]]) trad[0] = JaSper.langs[lang][trad[0]];
+
+		return(JaSper.funcs.sprintf.apply(this, trad));
+	};
+
 	//esto convierte el constructor en prototipo, permitira extender JaSper() extendiendo JaSper.prototype
 	JaSper.funcs.init.prototype = JaSper.prototype;
 
 	//puede extenderse el prototipo con los metodos encontrados en JaSper.funcs con:
-	//JaSper.funcs.extend(JaSper.prototype, JaSper.funcs);
+	//JaSper.extend(JaSper.prototype, JaSper.funcs);
 
 })(window, undefined);
 
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Debug
@@ -761,14 +1076,14 @@ JaSper.funcs.extend(JaSper.prototype, {
 		if(JaSper.funcs.readyFuncs.push(f) > 1) return;
 		if(this.msie){
 			(function (){
-				try {document.documentElement.doScroll('left'); JaSper.funcs.runReady();}
-				catch (err){setTimeout(f, 0);}
+				try{document.documentElement.doScroll('left'); JaSper.funcs.runReady();}
+				catch(err){setTimeout(f, 0);}
 				//catch (err){setTimeout(arguments.callee, 0);}
 			})();
 		}
 		else if(this.webkit){
 			var t = setInterval(function (){
-				if (/^(loaded|complete)$/.test(document.readyState)) clearInterval(t), JaSper.funcs.runReady();
+				if(/^(loaded|complete)$/.test(document.readyState)) clearInterval(t), JaSper.funcs.runReady();
 			}, 0);
 		}
 	}
@@ -778,7 +1093,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 /****************
 ** Metodos css **
 *****************/
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Añade una clase CSS
@@ -788,14 +1103,9 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	addClass: function (cName){
-		if(typeof cName === "string"){
-			this.each(
-				function (){
-					if(this.className.indexOf(cName) == -1)
-						this.className += ' ' + cName; 
-				}
-			);
-		}
+		this.each(function (){
+			JaSper.css.addClass(this, cName);
+		});
 
 		return this;
 	},
@@ -805,7 +1115,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 */
 	getStyle: function (cssRule){
 		var elem = this.nodes[0];
-		return JaSper.funcs.getStyle(elem, cssRule);
+		return JaSper.css.getStyle(elem, cssRule);
 	},
 
 	/**
@@ -816,14 +1126,9 @@ JaSper.funcs.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	removeClass: function(cName){
-		if(typeof cName === "string"){
-			this.each(
-				function (){
-					if(this.className.indexOf(cName) > -1)
-						this.className = this.className.substr(0, this.className.indexOf(cName) - 1) + this.className.substr(this.className.indexOf(cName) + cName.length);
-				}
-			);
-		}
+		this.each(function (){
+			JaSper.css.removeClass(this, cName);
+		});
 
 		return this;
 	},
@@ -834,7 +1139,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 	setStyle: function (cssRule, value){
 		this.each(function (rul, val){
 			var elem = this;
-			return JaSper.funcs.setStyle(elem, rul, val);
+			return JaSper.css.setStyle(elem, rul, val);
 		}, [cssRule, value]);
 
 		return this;
@@ -854,292 +1159,10 @@ JaSper.funcs.extend(JaSper.prototype, {
 	};
 }*/
 
-/**
- * emulacion de eventos mouseenter y mouseleave en los navegadores que no lo soportan (todos menos ie)
- * mousewheel para navegadores gecko
- * 
- * para controlar el movimiento de la rueda:
- * <code>
-$('<p>').addEvent('mousewheel', function (ev){
-	var rolled = 0;
-	if('wheelDelta' in ev) {
-		rolled = ev.wheelDelta; //devuelve 3 (se ha movido la rueda hacia arriba) o -3 (rueda hacia abajo)
-	}
-	else{
-		rolled = -40 * ev.detail; //iguala los valores de esta propiedad con los que devuelve ev.wheelDelta
-	}
-	alert(rolled);
-});
- * </code>
- */
-JaSper.funcs.extend(JaSper.event, {
-
-	/**
-	 * Correccion de codigo de tecla pulsada.
-	 * Para keypress corresponde con codigos ascii,
-	 * para keyup o keydown no necesariamente (ej: "." devuelve 190 y no 46 -ASCII-); este metodo corrige la correspondencia devolviendo el ascii correcto
-	 * Devuelve -1 si se llama con un evento que no sea keyXXX
-	 *
-	 * @todo completar mapa de correspondencia de teclas
-	 * @since 2011-09-08
-	 * @return {number} Codigo de la tecla (o combinacion) pulsada
-	 */
-	keyCode: function (ev){
-		ev = ev || window.event;
-		var code = ev.keyCode || ev.which, etype = ev.type.toLowerCase().replace('on', ''); //, char = String.fromCharCode(code);
-
-		if(etype == 'keypress') return(code);
-		else if(etype == 'keydown' || etype == 'keyup'){
-			var keycodes = { //keycode:[ascii_normal, ascii_shiftKey, ascii_controlkey, ascii_altKey]
-				8:[8], //Backspace
-				9:[9], //Tab
-				13:[13], //Enter
-				/*16:[], //Shift
-				17:[], //Ctrl
-				18:[], //Alt
-				19:[], //Pause
-				20:[], //Caps Lock
-				27:[], //Escape
-				33:[], //Page Up
-				34:[], //Page Down
-				35:[], //End
-				36:[], //Home
-				37:[], //Arrow Left
-				38:[], //Arrow Up
-				39:[], //Arrow Right
-				40:[], //Arrow Down
-				45:[], //Insert*/
-				46:[127], //Delete
-				48:[48], //0
-				49:[49], //1
-				50:[50], //2
-				51:[51], //3
-				52:[52], //4
-				53:[53], //5
-				54:[54], //6
-				55:[55], //7
-				56:[56], //8
-				57:[57], //9
-				65:[97, 65], //A
-				66:[98, 66], //B
-				67:[99, 67], //C
-				68:[100, 68], //D
-				69:[101, 69], //E
-				70:[102, 70], //F
-				71:[103, 71], //G
-				72:[104, 72], //H
-				73:[105, 73], //I
-				74:[106, 74], //J
-				75:[107, 75], //K
-				76:[108, 76], //L
-				77:[109, 77], //M
-				78:[110, 78], //N
-				79:[111, 79], //O
-				80:[112, 80], //P
-				81:[113, 81], //Q
-				82:[114, 82], //R
-				83:[115, 83], //S
-				84:[116, 84], //T
-				85:[117, 85], //U
-				86:[118, 86], //V
-				87:[119, 87], //W
-				88:[120, 88], //X
-				89:[121, 89], //Y
-				90:[122, 90], //Z
-				/*91:[], //Left Windows
-				92:[], //Right Windows
-				93:[], //Context Menu*/
-				96:[48], //NumPad 0
-				97:[49], //NumPad 1
-				98:[50], //NumPad 2
-				99:[51], //NumPad 3
-				100:[52], //NumPad 4
-				101:[53], //NumPad 5
-				102:[54], //NumPad 6
-				103:[55], //NumPad 7
-				104:[56], //NumPad 8
-				105:[57], //NumPad 9
-				106:[42], //NumPad *
-				107:[43], //NumPad +
-				109:[45], //NumPad -
-				110:[46], //NumPad .
-				111:[47], //NumPad /
-				/*112:[], //F1
-				113:[], //F2
-				114:[], //F3
-				115:[], //F4
-				116:[], //F5
-				117:[], //F6
-				118:[], //F7
-				119:[], //F8
-				120:[], //F9
-				121:[], //F10
-				122:[], //F11
-				123:[], //F12
-				144:[], //Num Lock
-				145:[], //Scroll Lock*/
-				186:[59], //;
-				187:[61], //=
-				188:[44], //,
-				189:[45], //-
-				190:[46], //.
-				191:[47], ///
-				192:[96], //`
-				219:[91], //[
-				220:[92], //\
-				221:[93], //]
-				222:[39] //'
-			};
-
-			var shiftControlAlt = 0;
-			if(navigator.appName == "Netscape" && parseInt(navigator.appVersion, 10) == 4){ //netscape 4
-				var mString = (ev.modifiers + 32).toString(2).substring(3, 6);
-				shiftControlAlt += (mString.charAt(0) == '1') ? 1 : 0;
-				shiftControlAlt += (mString.charAt(1) == '1') ? 1 : 0;
-				shiftControlAlt += (mString.charAt(2) == '1') ? 1 : 0;
-			}
-			else{ //resto
-				shiftControlAlt += ev.shiftKey ? 1 : 0;
-				shiftControlAlt += ev.altKey ? 1 : 0;
-				shiftControlAlt += ev.ctrlKey ? 1 : 0;
-			}
-
-			if(typeof keycodes[code] != 'undefined'){
-				if(typeof keycodes[code][shiftControlAlt] != 'undefined')
-					return(keycodes[code][shiftControlAlt]); //devuelve exacto
-				else if(typeof keycodes[code][0] != 'undefined')
-					return(keycodes[code][0]); //devuelve correspondencia sin modificadores
-			}
-			return code; //no hay correspondencia, devuelve keycode
-		}
-
-		return -1; //evento incoherente
-	},
-
-	mouseEnter: function (func){
-		var isAChildOf = function (_parent, _child){
-			if(_parent === _child){
-				return false;
-			}
-			while(_child && _child !== _parent){
-				_child = _child.parentNode;
-			}
-			return _child === _parent;
-		};
-
-		return function (ev){
-			var rel = ev.relatedTarget;
-			if(this === rel || isAChildOf(this, rel)) return;
-			func.call(this, ev);
-		};
-	},
-
-	mouseWheel: function (func){
-		if(typeof func === 'undefined'){
-			func = function (e){
-				e.wheelDelta = -(e.detail);
-				func.call(this, e);
-				e.wheelDelta = null;
-			};
-		}
-		return func;
-	},
-
-	/**
-	 * guarda el ultimo evento que se ha disparado, sirve como controlador para que otros eventos puedan lanzarse (o no) en funcion del previo
-	 * asignar en cada funcion afectada (las que se lancen en los eventos), donde interese
-	 * 
-	 * @todo revisar
-	 * @param {event} ev Evento
-	 * @return {event} Evento
-	 */
-	name: function (ev){
-		/*this.nombreEvento = window.nombreEvento = evento.toLowerCase(); //se guarda el nombre del ultimo evento disparado para cada objeto jsframe; y el ultimo de todos en window.nombreEvento
-		evento = this.nombreEvento;*/
-
-		ev = ev || window.event;
-		return ev;
-	},
-
-	/**
-	 * Anula la accion por defecto de un elemento, como click en <a>
-	 * 
-	 * @param {event} ev Objeto evento
-	 * @return {boolean}
-	 */
-	preventDefault: function (ev){
-		ev = ev || window.event;
-
-		if(ev.preventDefault){ //modelo DOM
-			//ev.stopPropagation();
-			ev.preventDefault();
-		}
-		else if(window.event){ //modelo MSIE
-			//ev.keyCode = 0;  //<<< esto ayuda a que funcione bien en iExplorer
-			//ev.cancelBubble = true;
-			ev.returnValue = false;
-			ev.retainFocus = true;
-		}
-
-		return false;
-	},
-
-	/**
-	 * Devuelve el objeto que ha disparado un evento.
-	 * 
-	 * @param {event} ev Evento
-	 * @return {Object} Objeto target del evento
-	 */
-	source: function (ev){
-		ev = ev || window.event;
-		var targ = false;
-
-		/*if(ev.type == 'mouseover') targ = ev.relatedTarget || ev.fromElement; //origen para mouseover
-		else*/ targ = ev.target || ev.srcElement; //w3c o ie
-
-		if(targ.nodeType == 3 || targ.nodeType == 4) targ = targ.parentNode; // defeat Safari bug
-
-		return targ;
-	},
-
-	/**
-	 * Evita la propagacion de eventos, como que se disparen el del contenedor de un elemento y el del elemento
-	 * poniendo esto en uno de ellos evita los demas
-	 * 
-	 * @param {event} ev Objeto evento
-	 * @return {boolean}
-	 */
-	stop: function (ev){
-		ev = ev || window.event;
-
-		if(ev.stopPropagation) ev.stopPropagation(); //modelo DOM
-		else ev.cancelBubble = true; //modelo MSIE
-
-		return false;
-	},
-
-	/**
-	* Devuelve el objeto destino de un evento (como a donde va el raton en mouseout).
-	* 
-	* @param {event} ev Evento
-	* @return {Object} Objeto destino del evento
-	*/
-	target: function (ev){
-		ev = ev || window.event;
-		var dest = false;
-
-		if(ev.type == 'mouseout') dest = ev.relatedTarget || ev.toElement; //destino en mouseout
-		else dest = ev.target || ev.srcElement; //w3c o ie
-
-		return dest;
-	}
-
-});
-
 /***********************
 ** Gestion de eventos **
 ***********************/
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Manejador de eventos.
@@ -1309,7 +1332,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 /*********************
 ** Gestion de nodos **
 *********************/
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Añade un nodo hijo al seleccionado, despues de los existentes
@@ -1544,7 +1567,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 /**************************************************
 ** Metodos para ejecucion periodica de funciones **
 **************************************************/
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Ejecuta la funcion pasada de forma periodica, indefinidamente o no
@@ -1577,7 +1600,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 /******************************
 ** Carga dinamica de metodos **
 ******************************/
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 	/*
 	 * Se cargan bajo demanda si estan aqui incluidos.
 	 * todos los .js deben estar en el mismo directorio que este o subdirectorios de este
@@ -1623,7 +1646,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 				break;
 			default:
 				library = false;
-				JaSper.funcs.log('-JaSper::loadMethod- Intenta cargar dinamicamente una librería desconocida para el metodo: ' + method, 1);
+				JaSper.log('-JaSper::loadMethod- Intenta cargar dinamicamente una librería desconocida para el metodo: ' + method, 1);
 		}
 
 		var tempCall = (function (obj, as){

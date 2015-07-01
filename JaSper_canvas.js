@@ -20,7 +20,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  * 
  */
 
-JaSper.funcs.extend(JaSper.prototype, {
+JaSper.extend(JaSper.prototype, {
 	/**
 	 * HTML5 Canvas
 	 *
@@ -64,7 +64,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 				callFuncs(this, arguments[arg][id]);
 			}
 			else{
-				JaSper.funcs.log('-JaSper::canvas- id de objeto invalida', 2);
+				JaSper.log('-JaSper::canvas- id de objeto invalida', 2);
 				return false;
 			}
 		}
@@ -89,7 +89,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 		this.each(function (){
 			if(this.nodeName.toLowerCase() != 'canvas'){
-				JaSper.funcs.log('-JaSper::animate- el objeto no es canvas', 1);
+				JaSper.log('-JaSper::animate- el objeto no es canvas', 1);
 				return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
 			}
 
@@ -104,7 +104,7 @@ JaSper.funcs.extend(JaSper.prototype, {
 
 JaSper.canvas = {};
 
-JaSper.funcs.extend(JaSper.canvas, {
+JaSper.extend(JaSper.canvas, {
 
 	/**
 	 * Suma un objeto al array de objetos del canvas
@@ -124,7 +124,7 @@ JaSper.funcs.extend(JaSper.canvas, {
 		var validFuncs = {'background': 'background', 'circle': 'circle', 'image': 'image', 'path': 'path', 'polygon': 'polygon', 'text': 'text'};
 
 		if(!props.func || (!JaSper.canvas[props.func] && !validFuncs[props.func])){
-			JaSper.funcs.log('-JaSper::canvas.add- metodo desconocido', 2);
+			JaSper.log('-JaSper::canvas.add- metodo desconocido', 2);
 			return false;
 		}
 		else{
@@ -203,13 +203,13 @@ JaSper.funcs.extend(JaSper.canvas, {
 
 							break;
 						default:
-							JaSper.funcs.log('-JaSper::canvas.animate- submetodo desconocido: ' + func, 2);
+							JaSper.log('-JaSper::canvas.animate- submetodo desconocido: ' + func, 2);
 							return false;
 					}
 				}
 			}
 			else{
-				JaSper.funcs.log('-JaSper::canvas.animate- submetodo desconocido: ' + props[pr], 2);
+				JaSper.log('-JaSper::canvas.animate- submetodo desconocido: ' + props[pr], 2);
 				return false;
 			}
 		}
@@ -858,7 +858,7 @@ JaSper.funcs.extend(JaSper.canvas, {
 	 */
 	valid: function (canvas){
 		if(typeof canvas !== 'object' || typeof canvas.getContext !== 'function'){
-			JaSper.funcs.log('-JaSper::canvas.valid- el objeto no es canvas', 1);
+			JaSper.log('-JaSper::canvas.valid- el objeto no es canvas', 1);
 			return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas
 		}
 
