@@ -1133,7 +1133,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 	};
 
 	//guarda si es la version minificada (true) o normal (false)
-	JaSper.minificado = (function verMinified(){ //comprueba si estamos con la version minificada o la normal
+	JaSper.minificado = (function (){ //comprueba si estamos con la version minificada o la normal
 		var scripts = document.getElementsByTagName('script'); //document.scripts?
 
 		for(var i = 0;i < scripts.length; i++){
