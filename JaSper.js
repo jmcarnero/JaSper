@@ -74,6 +74,44 @@ http://www.gnu.org/copyleft/gpl.html*/
 			},
 
 			/**
+			 * Busca y guarda el valor original de una propiedad CSS de un elemento y lo guarda como propiedad del propio elemento
+			 * ej.:si se busca oDOMElem.style.display, se guardaria como oDOMElem.JaSper.original.display
+			 *
+			 * @param {object} oDOMElem Objeto DOM
+			 * @param {string} sProp Propiedad CSS
+			 * @return {string}
+			 */
+			original: function (oDOMElem, sProp){
+				if(!sProp)
+					return null;
+
+				if(!oDOMElem.JaSper) oDOMElem.JaSper = {};
+				if(!oDOMElem.JaSper.original) oDOMElem.JaSper.original = {};
+
+				if(!oDOMElem.JaSper.original[sProp]){
+					var sActDisplay = JaSper.css.getStyle(oDOMElem, sProp);
+
+					switch(sProp){
+						case 'display':
+							if(oDOMElem.style.display == 'none' || !oDOMElem.style.display){
+								var oElem = document.createElement(oDOMElem.nodeName);
+								JaSper(document.body).append(oElem);
+
+								oDOMElem.JaSper.original[sProp] = JaSper.css.getStyle(oElem, sProp);
+
+								JaSper(document.body).remove(oElem);
+							}
+							oDOMElem.JaSper.original[sProp] = oDOMElem.JaSper.original[sProp] || (sActDisplay != 'none' ? sActDisplay : '');
+							break;
+						default:
+							oDOMElem.JaSper.original[sProp] = sActDisplay;
+					}
+				}
+
+				return oDOMElem.JaSper.original[sProp];
+			},
+
+			/**
 			 * Elimina una clase CSS
 			 *
 			 * @since 2011-09-07
@@ -957,6 +995,74 @@ JaSper.expr[":"] = JaSper.expr.filters;
 		},
 
 		/**
+		 * Ejecucion periodica de funciones
+		 * basado en una idea de Ilya Kantor
+		 *
+		 * Las opciones deben ser:
+		 *  intervalo //cada cuantos ms se hace una ejecucion de accion()
+		 *  duracion //duracion total de ejecucion, en ms
+		 *  function delta //funcion de variacion del progreso
+		 *  function accion //que se hace en cada paso (frame); es el unico parametro obligatorio
+		 *
+		 * ej:
+	JaSper.funcs.setInterval({
+		intervalo: 10,
+		duracion: 1000, //1 s
+		delta: function (dt){return Math.pow(dt, 2);}, //si se omite toma este mismo valor
+		accion: function(delta){
+			domObj.style.left = 10 * delta + "px";
+		}
+	});
+		 *
+		 * @param {object} ops Objeto con opciones
+		 * @return {boolean}
+		 */
+		setInterval: function (oOps){
+			oOps = oOps || {};
+			oOps.intervalo = oOps.intervalo || 40; //25 fps por defecto
+			oOps.duracion = oOps.duracion || 300;
+			oOps.delta = oOps.delta || '';
+			if(typeof oOps.delta == 'string'){
+				switch(oOps.delta){
+					case 'cuadratica': //variacion cuadratica (cuanto mayor sea el exponente mayor la aceleracion)
+						oOps.delta = function (dt){return Math.pow(dt, 2);};
+						break;
+					case 'arco': //variacion "arco", primero a la inversa y despues directa acelear; en funcion de la intensidad (x)
+						oOps.delta = function (dt, x){x = x || 1.5;return Math.pow(dt, 2) * ((x + 1) * dt - x);};
+						break;
+					case 'bote': //variacion dando botes
+						oOps.delta = function (dt){for(var a = 0, b = 1; ; a += b, b /= 2){if(dt >= (7 - 4 * a) / 11){return -Math.pow((11 - 6 * a - 11 * dt) / 4, 2) + Math.pow(b, 2);}}};
+						//oOps.delta = oOps.delta || function (dt, x){return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);}; //variacion elastica, similar a dando botes (x define el rango inicial)
+						break;
+					case 'elastica': //variacion elastica, similar a dando botes (x define el rango inicial)
+						oOps.delta = function (dt, x){x = x || 1.5;return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);};
+						break;
+					case 'lineal':
+					default: //por defecto variacion lineal
+						oOps.delta = function (dt){return dt;};
+				}
+			}
+
+			if(!oOps.accion)
+				return false;
+
+			var oInicio = new Date();
+
+			var oInterval = setInterval(function (){
+				var fProgreso = (new Date() - oInicio) / oOps.duracion;
+
+				var fDelta = oOps.delta(fProgreso);
+				oOps.accion(fDelta);
+
+				if(fProgreso > 1){
+					clearInterval(oInterval);
+				}
+			}, oOps.intervalo);
+
+			return true; //animacion finalizada
+		},
+
+		/**
 		 * Emulacion de la funcion "sprintf".
 		 * El primer parametro debe ser una cadena, los siguientes los valores a sustituir (en el mismo orden que aparezcan en la cadena)
 		 *
@@ -1592,12 +1698,12 @@ JaSper.extend(JaSper.prototype, {
 	 * Ejecuta la funcion pasada de forma periodica, indefinidamente o no
 	 *
 	 * @since 2010-12-16
+	 * @todo devolver los id para controlarlos fuera; this en la funcion pasada deben ser los nodos JaSper?
 	 * @param {Object} func Funcion a ejecutar; nombre de la funcion (string), referencia o anonima
 	 * @param {number} intervalo Cada cuanto se ejecuta la funcion, si 0 se ejecutara una sola vez cuando se cumpla lapso (si hay lapso)
 	 * @param {number} lapso Tiempo tras el cual deja de ejecutarse (ambos en milisegundos, 1000ms = 1s)
 	 * @return {Object} JaSper
 	 */
-	//TODO devolver los id para controlarlos fuera; this en la funcion pasada deben ser los nodos JaSper?
 	callPeriodic: function (func, intervalo, lapso){
 		if(!!func){ //si no hay nada que ejecutar se sale
 

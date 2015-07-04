@@ -108,10 +108,10 @@ JaSper.extend(JaSper.prototype, {
 				return JaSper.anim.fade(this, sTipoFade, fade);
 			}
 			else{
-				JaSper.anim.originalDisplay(this);
+				JaSper.css.original(this, 'display');
 
 				if(sActDisplay != 'none' ) sActDisplay = 'none';
-				else sActDisplay = this.originalDisplay;
+				else sActDisplay = this.JaSper.original.display;
 
 				JaSper.css.setStyle(this, 'display', sActDisplay);
 			}
@@ -131,16 +131,17 @@ JaSper.extend(JaSper.anim, {
 
 		iMiliSec = iMiliSec || 300;
 		iIntervalo = iIntervalo || 50;
-		var bIn = (sTipo || 'in') === 'in', iOpacidad = bIn ? 0 : 1, iSalto = iIntervalo / iMiliSec;
+		var bIn = (sTipo || 'in') === 'in', iOpacidad = bIn ? 0 : 1/*, iSalto = iIntervalo / iMiliSec*/;
 
-		JaSper.anim.originalDisplay(oDOMElem);
+		JaSper.css.original(oDOMElem, 'display');
+		JaSper.css.original(oDOMElem, 'fontSize');
 
 		if(bIn){
-			oDOMElem.style.display = oDOMElem.originalDisplay;
+			oDOMElem.style.display = oDOMElem.JaSper.original.display;
 			oDOMElem.style.opacity = iOpacidad;
 		}
 
-		var rDesvanece = window.setInterval(func, iIntervalo);
+		/*var rDesvanece = window.setInterval(func, iIntervalo);
 
 		function func() {
 			iOpacidad = bIn ? iOpacidad + iSalto : iOpacidad - iSalto;
@@ -150,9 +151,22 @@ JaSper.extend(JaSper.anim, {
 				oDOMElem.style.display = 'none';
 			if(iOpacidad <= 0 || iOpacidad >= 1)
 				window.clearInterval(rDesvanece);
-		}
+		}/**/
+		var bFin = JaSper.funcs.setInterval({
+			intervalo: iIntervalo,
+			duracion: iMiliSec,
+			accion: function(delta){
+				var iOpacidad = bIn ? delta : 1 - delta;
+				oDOMElem.style.opacity = iOpacidad;
 
-		return true;
+				oDOMElem.style.fontSize = iOpacidad * parseFloat(oDOMElem.JaSper.original.fontSize); //TODO corregir, el cambio de fontSize afectara a todos los elementos contenidos en oDOMElem, que no nocesariamente tendran el mismo tamaño de texto
+
+				if(iOpacidad <= 0)
+					oDOMElem.style.display = 'none';
+			}
+		});
+
+		return bFin;
 	},
 
 	/**
@@ -180,30 +194,6 @@ JaSper.extend(JaSper.anim, {
 		}
 
 		return false;
-	},
-
-	/**
-	 * Busca y guarda el valor original de la propiedad display de un elemento y lo guarda como propiedad del propio elemento
-	 *
-	 * @param {object} oDOMElem Objeto DOM
-	 * @return {string}
-	 */
-	originalDisplay: function (oDOMElem){
-		if(!oDOMElem.originalDisplay){
-			var sActDisplay = JaSper.css.getStyle(oDOMElem, 'display');
-
-			if(oDOMElem.style.display == 'none' || !oDOMElem.style.display){
-				var oElem = document.createElement(oDOMElem.nodeName);
-				JaSper(document.body).append(oElem);
-
-				oDOMElem.originalDisplay = JaSper.css.getStyle(oElem, 'display');
-
-				JaSper(document.body).remove(oElem);
-			}
-			oDOMElem.originalDisplay = (oDOMElem.originalDisplay || (sActDisplay != 'none' ? sActDisplay : ''));
-		}
-
-		return oDOMElem.originalDisplay;
 	},
 
 	/**
