@@ -134,7 +134,7 @@ JaSper.extend(JaSper.anim, {
 		var bIn = (sTipo || 'in') === 'in', iOpacidad = bIn ? 0 : 1/*, iSalto = iIntervalo / iMiliSec*/;
 
 		JaSper.css.original(oDOMElem, 'display');
-		JaSper.css.original(oDOMElem, 'fontSize');
+		//JaSper.css.original(oDOMElem, 'fontSize');
 
 		if(bIn){
 			oDOMElem.style.display = oDOMElem.JaSper.original.display;
@@ -142,7 +142,6 @@ JaSper.extend(JaSper.anim, {
 		}
 
 		/*var rDesvanece = window.setInterval(func, iIntervalo);
-
 		function func() {
 			iOpacidad = bIn ? iOpacidad + iSalto : iOpacidad - iSalto;
 			oDOMElem.style.opacity = iOpacidad;
@@ -158,8 +157,7 @@ JaSper.extend(JaSper.anim, {
 			accion: function(delta){
 				var iOpacidad = bIn ? delta : 1 - delta;
 				oDOMElem.style.opacity = iOpacidad;
-
-				oDOMElem.style.fontSize = iOpacidad * parseFloat(oDOMElem.JaSper.original.fontSize); //TODO corregir, el cambio de fontSize afectara a todos los elementos contenidos en oDOMElem, que no nocesariamente tendran el mismo tamaño de texto
+				//oDOMElem.style.fontSize = iOpacidad * parseFloat(oDOMElem.JaSper.original.fontSize); //TODO corregir, el cambio de fontSize afectara a todos los elementos contenidos en oDOMElem, que no nocesariamente tendran el mismo tamaño de texto
 
 				if(iOpacidad <= 0)
 					oDOMElem.style.display = 'none';
@@ -167,33 +165,6 @@ JaSper.extend(JaSper.anim, {
 		});
 
 		return bFin;
-	},
-
-	/**
-	 * Devuelve si la propiedad CSS sProp esta disponible en el navegador
-	 * ej.: isCSSProperty('transition')
-	 *
-	 * De una idea original de https://gist.github.com/jackfuchs/556448
-	 * 
-	 * @param {string} sProp Nombre de la propiedad a comprobar
-	 * @return {bool}
-	 */
-	isCSSProperty: function (sProp){
-		var oStyle = (document.body || document.documentElement).style;
-
-		if(typeof oStyle[sProp] == 'string'){
-			return true;
-		}
-
-		var aVars = ['Moz', 'webkit', 'Webkit', 'Khtml', 'O', 'ms'];
-		sProp = sProp.charAt(0).toUpperCase() + sProp.substr(1);
-
-		for(var i=0; i < aVars.length; i++){
-			if(typeof oStyle[aVars[i] + sProp] == 'string')
-				return true;
-		}
-
-		return false;
 	},
 
 	/**
@@ -214,6 +185,37 @@ JaSper.extend(JaSper.anim, {
 			oDOMElem.style.height = '0';
 
 		return true;
+	}
+
+});
+
+JaSper.extend(JaSper.css, {
+
+	/**
+	 * Devuelve si la propiedad CSS sProp esta disponible en el navegador
+	 * ej.: JaSper.css.isValid('transition')
+	 *
+	 * De una idea original de https://gist.github.com/jackfuchs/556448
+	 * 
+	 * @param {string} sProp Nombre de la propiedad a comprobar
+	 * @return {bool}
+	 */
+	isValid: function (sProp){
+		var oStyle = (document.body || document.documentElement).style;
+
+		if(typeof oStyle[sProp] == 'string'){
+			return true;
+		}
+
+		var aVars = ['Moz', 'webkit', 'Webkit', 'Khtml', 'O', 'ms'];
+		sProp = sProp.charAt(0).toUpperCase() + sProp.substr(1);
+
+		for(var i=0; i < aVars.length; i++){
+			if(typeof oStyle[aVars[i] + sProp] == 'string')
+				return true;
+		}
+
+		return false;
 	}
 
 });
