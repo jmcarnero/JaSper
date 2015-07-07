@@ -788,8 +788,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 							this.nodes = document.getElementsByName(match[5]);
 						}else if(match[1]){ //cadena HTML valida, ej. <P><STRONG>hello</STRONG></P>
 							//permite crear nodos desde el html que se le pase
-							var div = document.createElement('DIV');
-							div.innerHTML = sel;
+							var div = JaSper.nodo.crear('div', {innerHTML: sel});
 							this.nodes = div.childNodes;
 							document.removeChild(div);
 						}else{
@@ -903,11 +902,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 						})(scriptQueue[mt]['fn'], scriptQueue[mt]['ctx']);
 					}
 					catch(ex){
-						JaSper.log('-JaSper::loadScript- No se ha podido ejecutar un método. ' + ex, 1);
+						JaSper.log('-JaSper::loadScript- No se ha podido ejecutar el método: [' + ex + ']', 1);
+						JaSper.funcs.loadScriptQueue.push(mt);
 						return;
 					}
 				}
-				JaSper.funcs.loadScriptQueue = [];
 			}
 
 			/*try{ //insertar via DOM en Safari 2.0 falla, asi que aproximacion por fuerza bruta
@@ -915,11 +914,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 				loadQueue(scrPath, 'sf');
 			}
 			catch(e){*/ //for xhtml+xml served content, fall back to DOM methods
-				var script = document.createElement('script');
-				script.id = scrId;
-				//script.charset = "windows-1250";
-				script.type = 'text/javascript';
-				script.src = scrPath; //relativo o absoluto, ej: 'http://path.to.javascript/file.js'
+				var script = JaSper.nodo.crear('script', {id: scrId/*, charset: 'windows-1250'*/, type: 'text/javascript', src: scrPath}); //scrPath -> relativo o absoluto, ej: 'http://path.to.javascript/file.js'
 
 				if(script.readyState){ //IE
 					script.onreadystatechange = function (){
@@ -1209,15 +1204,12 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			//contenedor de los mensajes de debug
 			var e = document.getElementById('JaSperDebug'); //TODO en firefox adquiere los metodos de JaSper, en ie no
 			if(!e){
-				e = document.createElement('ul');
-				e.className = 'JaSperDebug ';
-				e.id = 'JaSperDebug'; //TODO diferenciar id's, por si se crea mas de uno
+				e = JaSper.nodo.crear('ul', {className: 'JaSperDebug ', id: 'JaSperDebug'}); //TODO id -> diferenciar id's, por si se crea mas de uno
 				JaSper('<body>').insertAfter(e);
 			}
 
 			//cada uno de los mensajes de debug
-			var m = document.createElement('li');
-			m.className = 'JaSperDebug' + (lev == 2 ? 'error' : (lev == 1 ? 'warn' : 'info'));
+			var m = JaSper.nodo.crear('li', {className: 'JaSperDebug' + (lev == 2 ? 'error' : (lev == 1 ? 'warn' : 'info'))});
 			m.appendChild(document.createTextNode(mens));
 			JaSper('<body>').append(m, e);
 		}else{
@@ -1251,6 +1243,44 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		return false;
 	})();
 
+	//funciones estaticas de nodos
+	JaSper.nodo = {
+
+		/**
+		 * Crea un elemento HTML (sTag) con las caracteristicas recibicas (oProps)
+		 * 
+		 * @todo comprobar si se crea un elemento HTML valido
+		 * @param {string} Tag HTML
+		 * @param {Object} oProps Propiedades del elemento a crear (las claves seran los nombres de las propiedades del elemento)
+		 * @param {Object} oPadre Padre al que adjuntar el nuevo elemento, si no se recibe ninguno el elemento no se adjunta al arbol DOM
+		 * @return {Object} El objeto creado
+		 */
+		crear: function (sTag, oProps, oPadre){
+			if(!sTag)
+				return null;
+
+			var oElem = document.createElement(sTag);
+
+			if(oProps){
+				if(oProps.id && document.getElementById(oProps.id)){ //si la id no es unica si ignora //TODO crear una id unica?
+					JaSper.log('ID ya en uso: [' + oProps.id + ']', 1);
+					oProps.id = false;
+				}
+
+				for(var sProp in oProps){
+					if(oProps[sProp]){ //no se comprueba si la propiedad y su valor son validos
+						oElem[sProp] = oProps[sProp];
+					}
+				}
+			}
+
+			if(oPadre) //si no se adjunta el elemento creado a algun elemento existente (document u otro) no es visible
+				oPadre.appendChild(oElem);
+
+			return oElem;
+		}
+
+	};
 
 	/**
 	 * Traduccion de los textos de funciones.
@@ -1474,10 +1504,7 @@ JaSper.extend(JaSper.prototype, {
 
 		var elem = null;
 		if(JaSper.funcs.isArray(nodo)){
-			elem = document.createElement(nodo[0]);
-			elem.innerHTML = nodo[1];
-			elem.className = nodo[1];
-			elem.id = nodo[1]; //TODO no repetir
+			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[1], id: nodo[1]}); //TODO id -> no repetir
 		}
 		else elem = nodo;
 
@@ -1566,10 +1593,7 @@ JaSper.extend(JaSper.prototype, {
 	 */
 	insertAfter: function (nodo){
 		if(JaSper.funcs.isArray(nodo)){
-			elem = document.createElement(nodo[0]);
-			elem.innerHTML = nodo[1];
-			elem.className = nodo[1];
-			elem.id = nodo[1]; //TODO no repetir
+			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[1], id: nodo[1]}); //TODO id -> no repetir
 		}
 		else elem = nodo;
 
@@ -1592,10 +1616,7 @@ JaSper.extend(JaSper.prototype, {
 	 */
 	insertBefore: function (nodo){
 		if(JaSper.funcs.isArray(nodo)){
-			elem = document.createElement(nodo[0]);
-			elem.innerHTML = nodo[1];
-			elem.className = nodo[2];
-			elem.id = nodo[3]; //TODO no repetir
+			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[2], id: nodo[3]}); //TODO id -> no repetir
 		}
 		else elem = nodo;
 
@@ -1620,10 +1641,7 @@ JaSper.extend(JaSper.prototype, {
 		nodo = nodo || this; //se usa el objeto JaSper actual si no se pasa ninguno; util para clonar, por ej.
 
 		if(JaSper.funcs.isArray(nodo)){
-			elem = document.createElement(nodo[0]);
-			elem.innerHTML = nodo[1];
-			elem.className = nodo[1];
-			elem.id = nodo[1]; //TODO no repetir
+			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[1], id: nodo[1]}); //TODO id -> no repetir
 		}
 		else elem = nodo;
 
@@ -1757,6 +1775,9 @@ JaSper.extend(JaSper.prototype, {
 			case 'canvas':
 				library = 'JaSper_canvas' + sMinified + '.js';
 				break;
+			case 'lightbox':
+				library = 'JaSper_lightbox' + sMinified + '.js';
+				break;
 			case 'move':
 				library = 'JaSper_move' + sMinified + '.js';
 				break;
@@ -1810,7 +1831,10 @@ JaSper.extend(JaSper.prototype, {
 	fade: function (){return(this.loadMethod('fade', arguments, 'anim'));},
 	slide: function (){return(this.loadMethod('slide', arguments, 'anim'));},
 	slideToggle: function (){return(this.loadMethod('slideToggle', arguments, 'anim'));},
-	toggle: function (){return(this.loadMethod('toggle', arguments, 'anim'));}
+	toggle: function (){return(this.loadMethod('toggle', arguments, 'anim'));},
+
+	/* Visor de imagenes en detalle */
+	lightbox: function (){return(this.loadMethod('lightbox', arguments));},
 });
 
 /**************
