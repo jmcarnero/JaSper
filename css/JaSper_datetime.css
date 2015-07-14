@@ -1,0 +1,21 @@
+/*JaSper CountDown*/
+p.JaSper.countdown {background-color:grey;}
+
+p.JaSper.countdown span {margin:0 5px;}
+
+/*JaSper DatePicker*/
+div.JaSperDatePicker {display:none;float:left;position:absolute;z-index:99;background-color:grey;}
+
+.JaSperDatePicker table {border-width: 1px;border-spacing: 2px;border-style: dotted;border-color: red;border-collapse: separate;background-color:grey;}
+.JaSperDatePicker table>caption {}
+
+.JaSperDatePicker table>caption>span.butMesAnterior {background-color:lime;cursor:pointer;}
+.JaSperDatePicker table>caption>span.butMesSiguiente {background-color:green;cursor:pointer;}
+
+.JaSperDatePicker table thead td {border-width: 2px;padding: 2px;border-style: outset;border-color: blue;}
+
+.JaSperDatePicker table tbody td.mesPasado {border-width: 2px;padding: 2px;border-style: outset;border-color:LightGray;}
+.JaSperDatePicker table tbody td.mesSiguiente {border-width: 2px;padding: 2px;border-style: outset;border-color:DarkGray;}
+.JaSperDatePicker table tbody td.mesActual {border-width: 2px;padding: 2px;border-style: outset;border-color:LightGreen;}
+
+.JaSperDatePicker table tbody td:hover {cursor:pointer;background-color:red;}

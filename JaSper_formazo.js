@@ -123,6 +123,23 @@ JaSper.extend(JaSper.prototype, {
 				}
 			});
 
+			//evita que los select multiple pierdan todos los elementos seleccionados con un simple click
+			JaSper('select[multiple="multiple"]', this).eventAdd('mousedown', function (ev){
+				if(ev.ctrlKey) return; //no hace nada si esta pulsada la tecla control (funciomaniento normal de un select multiple)
+				
+				var aSelected = [];
+				for(var i = 0;i < this.options.length;i++){ //guarda los seleccionados
+					aSelected[i] = this.options[i].selected;
+				}
+		
+				JaSper(this).eventAdd('mouseup', function _mouseup(ev){
+					for(var i = 0;i < this.options.length;i++){ //recupera los previos
+						this.options[i].selected = this.options[i].selected ? !aSelected[i] : aSelected[i];
+					}
+					JaSper(this).eventRemove('mouseup', _mouseup);
+				});
+			});
+
 			//muestra vista previa de la imagen cargada en un input file
 			if(props.preview){
 				JaSper('input[type="file"]', this).each(function (){
@@ -132,7 +149,7 @@ JaSper.extend(JaSper.prototype, {
 					else
 						sPreviewId = '#' + sPreviewId;
 
-					$(this).eventAdd('change', function (){
+					JaSper(this).eventAdd('change', function (){
 						if(typeof FileReader !== "function"){ //No para navegadores antiguos
 							JaSper.log('Vista previa no disponible', 0);
 							return false;

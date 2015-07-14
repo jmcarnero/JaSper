@@ -297,7 +297,7 @@ JaSper.extend(JaSper.canvas, {
 			context.stroke();
 
 			context.beginPath(); //ancla para rotacion
-			context.arc(iBBx + iBBw, iBBy, iRad, (Math.PI/180) * 0, (Math.PI/180) * 270);
+			context.arc(iBBx + iBBw, iBBy, iRad, (Math.PI / 180) * 0, (Math.PI / 180) * 270);
 			context.stroke();
 
 			context.closePath();
@@ -350,8 +350,8 @@ JaSper.extend(JaSper.canvas, {
 		if(props.selected != undefined && props.selected) JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
 
 		context.beginPath();
-		//context.arc(x, y, r, (Math.PI/180) * grados_inicio_de_arco, (Math.PI/180) * grados_fin_de_arco, counterclockwise);
-		context.arc(x, y, props.r, (Math.PI/180) * props.angleStart, (Math.PI/180) * props.angleEnd, props.cclock);
+		//context.arc(x, y, r, (Math.PI / 180) * grados_inicio_de_arco, (Math.PI / 180) * grados_fin_de_arco, counterclockwise);
+		context.arc(x, y, props.r, (Math.PI / 180) * props.angleStart, (Math.PI / 180) * props.angleEnd, props.cclock);
 		context.closePath();
 
 		context.fillStyle = props.fill; //relleno
@@ -568,7 +568,7 @@ JaSper.extend(JaSper.canvas, {
 		var mouseY = (ev.clientY - bRect.top) * (canvas.height / bRect.height);
 
 		var itemsKeys = Object.keys(aItems); //se comprueban en el orden de visualizacion, se hace click sobre el que este visible (mas arriba)
-		hitTest: for(var cont = itemsKeys.length;cont >= 0;--cont){
+		hitTest: for(var cont = itemsKeys.length; cont >= 0; --cont){
 			if(!aItems[itemsKeys[cont]] || !aItems[itemsKeys[cont]].drag) continue hitTest; //solo para elementos draggables
 
 			var iHit = JaSper.canvas.mouseHit(aItems[itemsKeys[cont]], mouseX, mouseY); //devuelve si se ha pulsado en un objeto, su caja de seleccion o en sus arrastradores
@@ -699,7 +699,7 @@ JaSper.extend(JaSper.canvas, {
 		//calcula las posiciones de los vertices y comienza el path
 		context.moveTo(x + props.r * Math.sin(fRadianes), y - props.r * Math.cos(fRadianes));
 		var delta = 2 * Math.PI / props.sides; //angulo entre vertices
-		for(var i = 1;i < props.sides;i++){ //resto de vertices
+		for(var i = 1; i < props.sides; i++){ //resto de vertices
 			fRadianes += props.cclock ? -delta : delta; //angulo de este vertice
 			context.lineTo(x + props.r * Math.sin(fRadianes), y - props.r * Math.cos(fRadianes)); //calcula la posicion del vertice y dibuja una linea hasta el
 		}

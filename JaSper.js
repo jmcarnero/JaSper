@@ -630,7 +630,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 			//la condicion evita que se usen objetos inexistentes (revisar cuando se añade evento para una id que no existe, y luego se dispara el mismo evento para una id existente, esta dispara ambos ya que el primero se asigna a window)
 			if(this.isArrayLike(list)){
 				if(args){
-					for(var x=0,l=list.length;x<l;x++) if(list[x]) callback.apply(list[x],args);
+					for(var x=0,l=list.length;x<l;x++) if(list[x]) callback.apply(list[x], args);
 				}else{
 					for(var x=0,l=list.length;x<l;x++) if(list[x]) callback.call(list[x]);
 				}
@@ -848,6 +848,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 			return ((o) instanceof Function);
 		},
 
+		//devuelve si es un numero; flotante, entero, decimal, ...
+		isNumber: function (num){
+			return !isNaN(parseFloat(num)) && isFinite(num);
+		},
+
 		isString: function (o){
 			return (typeof o == 'string');
 		},
@@ -858,12 +863,13 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 *
 		 * @since 2011-05-10
 		 * @param {string} scrPath Ruta absoluta ("http://ruta/script.js") o relativa a donde se encuentre "JaSper.js" (como "ruta/script.js")
+		 * return {boolean}
 		 */
 		loadScript: function (scrPath){
 			var scrId = 'JaSper_script_' + scrPath.replace(/[^a-zA-Z\d_]+/, '');
 			if(document.getElementById(scrId)){
 				JaSper.log('-JaSper::loadScript- Script (id->' + scrId + ') ya cargado.', 0);
-				return(false); //ya cargado
+				return; //ya cargado
 			}
 
 			var sMinified = JaSper.minificado ? '_min' : ''; //sufijo cuando se trabaja con la version minificada
@@ -885,8 +891,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 			}
 
 			//ejecuta las funciones que esten en cola
-			function loadQueue(scriptSrc, tipo){
+			var loadQueue= function (scriptSrc, tipo){
 				tipo = tipo || false;
+
+				if(!JaSper.funcs.loadScriptQueue) //nada que hacer si no hay funciones
+					return;
 
 				var scriptQueue = JaSper.funcs.loadScriptQueue;
 				JaSper.funcs.loadScriptQueue = [];
@@ -934,7 +943,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 				h.appendChild(script);
 			//}
 
-			return this;
+			return true;
 		},
 
 		//cola de ejecucion de los metodos pedientes de la carga de algun script dinamico
@@ -1247,6 +1256,40 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 	JaSper.nodo = {
 
 		/**
+		 * Cambia o consulta atributos de elementos
+		 * No confundir con consulta/asignacion de estilos CSS
+		 *
+		 * @todo si se intenta cambiar una propiedad (como value) deberia cambiarse directamente (elem.value = 'valor'); bien controlando los casos o enviando a metodos especificos
+		 * @param {Object} oObj Objeto DOM sobre el que consultar/cambiar el atributo
+		 * @param {string} atributo Atributo a cambiar/consultar
+		 * @param {string} valor Nuevo valor para el atributo, si no se pasa nada se devuelve el valor actual
+		 * @return {string} Valor actual (en consulta) o valor antiguo (en asignacion)
+		 */
+		attrib: function (oObj, atributo, valor){
+			var ret = null;
+			atributo = (atributo || '').toLowerCase();
+
+			if(oObj && atributo){
+				var sData = atributo.indexOf('data-') == 0 ? atributo.substr(5).toLowerCase() : null; //atributos tipo custom data (HTML5), ej.: data-info="ejemplo de datos"; deben usarse con DOMobject.dataset.info
+
+				ret = sData ? oObj.dataset[sData] : oObj.getAttribute(atributo); //consulta, se devuelve el valor; el actual o antiguo (si a continuacion se pone nuevo)
+
+				if(valor !== undefined){ 
+					if(valor){
+						if(sData) oObj.dataset[sData] = valor;
+						else oObj.setAttribute(atributo, valor);
+					}
+					else{ //si se quiere borrar un atributo no debe hacerse con setAttribute
+						if(sData) oObj.dataset[sData] = null;
+						else oObj.removeAttribute(atributo);
+					}
+				}
+			}
+
+			return ret;
+		},
+
+		/**
 		 * Crea un elemento HTML (sTag) con las caracteristicas recibicas (oProps)
 		 * 
 		 * @todo comprobar si se crea un elemento HTML valido
@@ -1261,15 +1304,44 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 
 			var oElem = document.createElement(sTag);
 
+			function _tipo(sTipo){ //devuelve si es atributo (0) o propiedad (1) o nada (-1)
+				sTipo = sTipo || null;
+				var iRet = -1, aTipos = {'innerHTML' : 1, 'style' : 2};
+
+				if(aTipos[sTipo]){
+					if(aTipos[sTipo] == 2){ //algunos atributos pueden comportarse como propiedades; "style" si es un objeto es propiedad y no atributo
+						if(typeof sTipo == 'string')
+							iRet = 0;
+						else if(typeof sTipo == 'object')
+							iRet = 1;
+					}
+					else{
+						iRet = aTipos[sTipo];
+					}
+				}
+
+				return iRet;
+			}
+
 			if(oProps){
 				if(oProps.id && document.getElementById(oProps.id)){ //si la id no es unica si ignora //TODO crear una id unica?
 					JaSper.log('ID ya en uso: [' + oProps.id + ']', 1);
 					oProps.id = false;
 				}
 
+				//obj.style.cssText = 'position:absolute;top:300px;left:300px;width:200px;height:200px;-moz-border-radius:100px;border:1px  solid #ddd;-moz-box-shadow: 0px 0px 8px  #fff;display:none;';
+				//yourElement.setAttribute("style", "background-color:red; font-size:2em;");
+
 				for(var sProp in oProps){
 					if(oProps[sProp]){ //no se comprueba si la propiedad y su valor son validos
+						var iTipo = _tipo(sProp);
+
+						if(iTipo == 1){
 						oElem[sProp] = oProps[sProp];
+					}
+						else{ //cualquier cosa que no sea propiedad se trata como atributo
+							oElem.setAttribute(sProp, oProps[sProp]);
+						}
 					}
 				}
 			}
@@ -1536,18 +1608,11 @@ JaSper.extend(JaSper.prototype, {
 
 		this.each(function (atr, val){
 			if(val === undefined){ //no se ha pasado valor, solo consulta, se devuelve el valor del primer nodo
-				if(ret == this){
-					ret = this.getAttribute(atr);
-				}
+				ret = JaSper.nodo.attrib(this, atr);
 				return;
 			}
 			else{
-				if(val){
-					this.setAttribute(atr, val);
-				}
-				else{ //si se quiere borrar un atributo no debe hacerse con setAttribute
-					this.removeAttribute(atr);
-				}
+				JaSper.nodo.attrib(this, atr, val);
 			}
 		}, [atributo, valor]);
 
@@ -1775,6 +1840,9 @@ JaSper.extend(JaSper.prototype, {
 			case 'canvas':
 				library = 'JaSper_canvas' + sMinified + '.js';
 				break;
+			case 'datetime':
+				library = 'JaSper_datetime' + sMinified + '.js';
+				break;
 			case 'lightbox':
 				library = 'JaSper_lightbox' + sMinified + '.js';
 				break;
@@ -1809,7 +1877,25 @@ JaSper.extend(JaSper.prototype, {
 		return this;
 	},
 
+	/* Animaciones de elementos DOM mediante propiedades CSS */
+	fade: function (){return(this.loadMethod('fade', arguments, 'anim'));},
+	slide: function (){return(this.loadMethod('slide', arguments, 'anim'));},
+	slideToggle: function (){return(this.loadMethod('slideToggle', arguments, 'anim'));},
+	toggle: function (){return(this.loadMethod('toggle', arguments, 'anim'));},
+
+	/* AJAX */
 	ajax: function (){return(this.loadMethod('ajax', arguments));},
+
+	/* Canvas */
+	animate: function (){return(this.loadMethod('animate', arguments, 'canvas'));},
+	canvas: function (){return(this.loadMethod('canvas', arguments, 'canvas'));},
+
+	/* Visor de imagenes en detalle */
+	lightbox: function (){return(this.loadMethod('lightbox', arguments));},
+
+	/* Fechas o relacionadas con fechas */
+	countdown: function (){return(this.loadMethod('countdown', arguments, 'datetime'));},
+	datePicker: function (){return(this.loadMethod('datePicker', arguments, 'datetime'));},
 
 	/* Movimiento de elementos */
 	move: function (){return(this.loadMethod('move', arguments));},
@@ -1817,24 +1903,11 @@ JaSper.extend(JaSper.prototype, {
 	/* Sistema de valoracion, Rating */
 	rating: function (){return(this.loadMethod('rating', arguments));},
 
-	/* Canvas */
-	animate: function (){return(this.loadMethod('animate', arguments, 'canvas'));},
-	canvas: function (){return(this.loadMethod('canvas', arguments, 'canvas'));},
-
 	/* Rich Text Box */
 	rtb: function (){return(this.loadMethod('rtb', arguments));},
 
 	/* Validacion de formularios */
-	validar: function (){return(this.loadMethod('validar', arguments));},
-
-	/* Animaciones de elementos DOM mediante propiedades CSS */
-	fade: function (){return(this.loadMethod('fade', arguments, 'anim'));},
-	slide: function (){return(this.loadMethod('slide', arguments, 'anim'));},
-	slideToggle: function (){return(this.loadMethod('slideToggle', arguments, 'anim'));},
-	toggle: function (){return(this.loadMethod('toggle', arguments, 'anim'));},
-
-	/* Visor de imagenes en detalle */
-	lightbox: function (){return(this.loadMethod('lightbox', arguments));},
+	validar: function (){return(this.loadMethod('validar', arguments));}
 });
 
 /**************

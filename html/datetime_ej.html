@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
+<head>
+	<title>Ejemplo de uso de datetime</title>
+	<link rel="stylesheet" type="text/css" media="screen,projection" href="../css/JaSper_datetime.css" />
+	<script type="text/javascript" src="../JaSper.js"></script>
+	<script type="text/javascript"><!--
+
+	/**
+	 * Crea un arco de circulo
+	 *
+	 * @param string id Id del elemento en el que se creara el canvas que contendra el arco; si no existe el elemento canvas se crea
+	 * @param integer arc
+	 */
+	function canvasArc(tiempo, total){
+		var radius = 70;
+
+		var oCanvas = $('canvas', this).nodes[0] || JaSper.nodo.crear('canvas', {width: radius * 2 + 5, height: radius * 2 + 5}, this);
+
+		arc = tiempo / total;
+
+		var context = oCanvas.getContext('2d');
+		var centerX = oCanvas.width / 2;
+		var centerY = oCanvas.height / 2;
+		arc = arc * 2 * Math.PI;
+
+		context.beginPath();
+		context.arc(centerX, centerY, radius, 0, arc, false);
+		//context.fillStyle = 'green';
+		//context.fill();
+		context.lineWidth = 4;
+		context.strokeStyle = '#511487';
+		context.stroke();
+	}
+
+	$(document).ready(function (){
+		$('#datepicker').datePicker({});
+		$('#countdown').countdown(new Date('2015-08-01T00:00') / 1000, canvasArc);
+	});
+	--></script>
+</head>
+<body>
+	<h1>Ejemplo de uso de datetime</h1>
+	<p>Cuenta atrás</p>
+	<div id="countdown"></div>
+	<p>Selector de fechas: <input id="datepicker" type="text" /></p>
+</body>
+</html>
