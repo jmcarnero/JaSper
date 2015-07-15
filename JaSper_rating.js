@@ -38,6 +38,9 @@ JaSper.extend(JaSper.langs, {
  *
  * si la página no tiene "DOCTYPE" dara error en IE al intentar "this.innerHTML = outHtml;"
  * usar (por ej.) <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+ *
+ * @author José M. Carnero
+ * @version 1.0
  */
 JaSper.extend(JaSper.prototype, {
 

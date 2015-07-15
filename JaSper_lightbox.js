@@ -22,7 +22,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  *
  * @author José M. Carnero
  * @since 2015-07-07
- * @version 1.0b
+ * @version 1.0
  */
 JaSper.extend(JaSper.prototype, {
 

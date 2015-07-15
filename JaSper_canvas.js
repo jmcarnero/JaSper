@@ -20,6 +20,8 @@ http://www.gnu.org/copyleft/gpl.html*/
 /**
  * Funciones para Canvas
  * 
+ * @author José M. Carnero
+ * @version 1.0
  */
 
 JaSper.extend(JaSper.prototype, {

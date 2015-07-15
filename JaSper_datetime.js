@@ -20,11 +20,12 @@ http://www.gnu.org/copyleft/gpl.html*/
 /**
  * Funciones de fechas y de tiempo
  * Datepicker
+ * Countdown
  * Timepicker
  *
  * @author José M. Carnero
  * @since 2015-06-24
- * @version 1b
+ * @version 1.0
  */
 JaSper.extend(JaSper.prototype, {
 

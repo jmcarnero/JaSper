@@ -17,10 +17,14 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 'use strict';
 
-/**************************************
- * Funciones de movimiento de objetos *
- * (div, p, ...)                      *
- **************************************/
+/**
+ * Funciones de movimiento de objetos
+ * (div, p, ...)
+ * Con callbacks de inicio, fin de movimiento y mientras se esta moviendo
+ *
+ * @author José M. Carnero
+ * @version 2.0
+ */
 JaSper.extend(JaSper.prototype, {
 
 	/**
@@ -39,7 +43,7 @@ JaSper.extend(JaSper.prototype, {
 		props.shadow = props.shadow || false; //mientras el objeto se mueve pone un objeto sombra con su tamaño en la posicion actual (true), o se mueve sin mover el resto de objetos (false)
 		props.restrict = props.restrict || false; //limita el movimiento del objeto al eje 'x', eje 'y' o sin limites false
 
-		//CALLBACKS en los tres casos reciben como primer parametro el objeto que se esta moviendo, referenciable como this //TODO pensar que hacer con lo que se devuelve (si se devuelve algo)
+		//CALLBACKS en los tres casos reciben como primer parametro el evento disparado (evento del raton), segundo parametro es el objeto sobre el que esta el puntero y el objeto que se esta moviendo como this //TODO pensar que hacer con lo que se devuelve (si se devuelve algo)
 		props.onMove = props.onMove || false; //callback a ejecutar mientras se mueve; CUIDADO, se ejecutara CONTINUAMENTE mientras se mueva el objeto
 		props.onMoveEnd = props.onMoveEnd || false; //callback a ejecutar cuando finaliza el movimiento
 		props.onMoveStart = props.onMoveStart || false; //callback a ejecutar cuando se inicia el movimiento
@@ -48,7 +52,7 @@ JaSper.extend(JaSper.prototype, {
 
 		var createShadow = function (obj){
 			JaSperShadow = document.createElement(obj.tagName);
-			JaSperShadow.id = 'JaSper_shadow';
+			//JaSperShadow.id = 'JaSper_shadow';
 			JaSperShadow.innerHTML = '&nbsp';
 			JaSperShadow.style = obj.style;
 			JaSperShadow.className = obj.className + ' JaSper_shadow';
@@ -87,7 +91,10 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.remove(document, 'mousemove', funcs[0]);
 			JaSper.event.remove(document, 'mouseup', funcs[1]);
 
-			if(typeof props.onMoveEnd === 'function') props.onMoveEnd.call(obj);
+			if(typeof props.onMoveEnd === 'function'){
+				var oTarget = JaSper.move.elementFromPoint(event);
+				props.onMoveEnd.call(obj, event, oTarget);
+			}
 
 			/*var pos = posMouse(event);
 			window.ultimoElemento = detectaElemento(pos, elemento.id);
@@ -100,7 +107,10 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.preventDefault(event);
 			JaSper.event.stop(event);
 
-			if(typeof props.onMove === 'function') props.onMove.call(obj);
+			if(typeof props.onMove === 'function'){
+				var oTarget = JaSper.move.elementFromPoint(event);
+				props.onMove.call(obj, event, oTarget);
+			}
 
 			var pos = posMouse(event);
 			var top = obj.posMoveStart['y'] + (props.restrict == 'x' ? 0 : pos['y'] - obj.posMouseInicial['y']);
@@ -157,7 +167,10 @@ JaSper.extend(JaSper.prototype, {
 			else if(event.button) normalclick = event.button;
 			if(normalclick != 1) return(false);
 
-			if(typeof props.onMoveStart === 'function') props.onMoveStart.call(obj);
+			if(typeof props.onMoveStart === 'function'){
+				var oTarget = JaSper.move.elementFromPoint(event);
+				props.onMoveStart.call(obj, event, oTarget);
+			}
 
 			if(props.shadow){
 				createShadow(obj);
@@ -239,5 +252,50 @@ JaSper.extend(JaSper.prototype, {
 		//pone los eventos que lanzaran el movimiento de cada elemento
 		this.eventAdd('mousedown', function (e){moveStart(e, this);}); //TODO eliminar este evento al finalizar el movimiento?
 	}
+
+});
+
+JaSper.move = {};
+
+JaSper.extend(JaSper.move, {
+
+	//devuelve el elemento sobre el que se encuentra el raton cuando se llama
+	//utiliza un evento de raton que debe contener posicion x e y del raton
+	elementFromPoint: function (mouseEvent){
+		if(document.elementFromPoint){
+			var x = mouseEvent.clientX, y = mouseEvent.clientY, isRelative = true, iDesp = 0;
+			if((iDesp = JaSper.css.getStyle(document, 'scrollTop')) > 0){
+				isRelative = (document.elementFromPoint(0, iDesp + JaSper.css.getStyle(window, 'height')) == null);
+			}
+			else if((iDesp = JaSper.css.getStyle(document, 'scrollLeft')) >0){
+				isRelative = (document.elementFromPoint(iDesp + JaSper.css.getStyle(window, 'width'), 0) == null);
+			}
+
+			if(!isRelative){
+				x += JaSper.css.getStyle(document, 'scrollLeft');
+				y += JaSper.css.getStyle(document, 'scrollTop');
+			}
+
+			return document.elementFromPoint(x, y);
+		}
+
+		return (function (ev){
+			var oTarget = ev.explicitOriginalTarget; //TODO ver que hacer en navegadores sin esta propiedad
+
+			if(!oTarget)
+				return null
+
+			// reparent target if it is a text node to emulate IE's behavior
+			if (oTarget.nodeType == Node.TEXT_NODE)
+				oTarget = oTarget.parentNode;
+		
+			// change an HTML target to a BODY target to emulate IE's behavior (if we are in an HTML document)
+			if (oTarget.nodeName.toUpperCase() == "HTML")
+				oTarget = document.getElementsByTagName("BODY").item(0);
+
+			return oTarget;
+		})(mouseEvent);
+	}
+
 
 });

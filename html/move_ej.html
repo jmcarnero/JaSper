@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+	<title>test js framework</title>
+	<script type="text/javascript" src="../JaSper.js"></script>
+	<script type="text/javascript"><!--
+		$().ready(function(){
+			$('.mueveme').setStyle('cursor', 'pointer').move({
+				onMoveEnd: function (ev, oTarget){
+					var aNodos = JaSper('li').nodes;
+
+					if(aNodos.indexOf(oTarget) >= 0){
+						console.log('final');
+						console.log(oTarget);
+					}
+				}
+			});
+		});
+	--></script>
+</head>
+<body>
+	<h1>test move</h1>
+	<p>origen: <span id="origen"></span><br />destino: <span id="destino"></span><br />evento: <span id="evento"></span></p>
+	<div>
+	<span class="mueveme" style="left:20px;width:60px;height:20px;z-index:5;cursor:pointer;background-color:green;">mueveme</span>
+	<span class="mueveme" style="left:200px;width:60px;height:20px;z-index:5;cursor:pointer;background-color:maroon;">mueveme</span>
+	</div>
+	<br /><form action="#" method="post" class="formb">
+		<ul>
+			<li><label for="campo1">etiqueta input text </label><input id="campo1" name="campo1" type="text" value="valor input text" /></li>
+			<li><label for="campo2">etiqueta textarea </label><textarea id="campo2" name="campo2">valor campo1</textarea></li>
+			<li><label for="select">etiqueta select </label><select id="select" name="select">
+					<option value="opción 1">opción 1</option>
+					<option value="opción 2">opción 2</option>
+
+					<option value="opción 3">opción 3</option>
+					<option value="opción 4">opción 4</option>
+					<option value="opción 5">opción 5</option>
+				</select>
+			</li>
+			<li>radio buttons
+				<ul>
+					<li><label for="radio1">etiqueta radio1 </label><input id="radio1" name="radio" value="valor radio1" /></li>
+
+					<li><label for="radio2">etiqueta radio2 </label><input id="radio2" name="radio" value="valor radio2" /></li>
+					<li><label for="radio3">etiqueta radio3 </label><input id="radio3" name="radio" value="valor radio3" /></li>
+				</ul>
+			</li>
+			<li><input id="butsubmit" name="butsubmit" type="submit" value="botón de enviar" /></li>
+		</ul>
+	</form>
+</body>
+</html>

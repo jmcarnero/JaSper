@@ -1,18 +1,26 @@
-# JaSper v3.2b [José M. Carnero](http://sargazos.net)
+# JaSper v3.3 [José M. Carnero](http://sargazos.net)
 ===
 
 ## JavaScript framework.
 
 - Selector XPath y CSS.
-- Carga dinámica de componentes (normal y minificado).
+- Extremadamente ligero
+- Fácil de extender y modularizar
+- Carga dinámica (en demanda) de componentes (normal y minificado).
 - Gestión de nodos y eventos.
 - Traducción automática de textos.
+- 'use strict'
+
+Módulos incluidos:
+
 - [AJAX](JaSper_ajax.js) con callbacks para inicio, fin y fallo de peticion.
 - [Animaciones CSS](JaSper_anim.js).
-- [Canvas](JaSper_canvas.js)  (en desarrollo).
-- [Movimiento de objetos](JaSper_move.js) (en desarrollo).
-- [Validación de formularios](JaSper_formazo.js).
-- [Valoración](JaSper_rating.js).
+- [Canvas](JaSper_canvas.js) (en desarrollo).
+- [Carrusel de imágenes](JaSper_lightbox.js).
+- [Fechas](JaSper_datetime.js) con cuenta atrás y selector de fechas.
+- [Movimiento de objetos](JaSper_move.js) con callbacks de inicio, fin y durante el movimiento; información del objeto bajo el movimiento.
+- [Validación de formularios](JaSper_formazo.js) con previsualizacion de imágenes a subir.
+- [Valoración](JaSper_rating.js) con estrellas, en desarrollo con barras.
 
 *Ejemplo:*
 ```javascript
@@ -25,7 +33,8 @@ $(document).debug().ready(function(){
 });
 ```
 
-_Testeo en Firefox_
+_Testeo en Firefox_.
+_También funciona en Chrome e IE_.
 
 ====
 **In English:**
@@ -33,15 +42,23 @@ _Testeo en Firefox_
 ## JavaScript framework.
 
 - XPath selector and CSS selector.
-- Dynamic loading of components (normal and minified).
+- Extremely lightweight.
+- Easy to extend and modularize.
+- Dynamic loading (on demand) of components (normal and minified).
 - Node and events management.
 - Text translation.
+- 'use strict'
+
+Modules included:
+
 - [AJAX](JaSper_ajax.js) with start callback, end callback and fail callback.
 - [Canvas](JaSper_canvas.js)  (draft version).
 - [CSS animations](JaSper_anim.js).
-- [Forms validation](JaSper_formazo.js).
-- [Object movement](JaSper_move.js) (draft version).
-- [Rating](JaSper_rating.js).
+- [Dates](JaSper_datetime.js) with countdown and date picker.
+- [Forms validation](JaSper_formazo.js) with upload image preview.
+- [Image carousel](JaSper_lightbox.js).
+- [Object movement](JaSper_move.js) with movement start callback, end movement callback and in move callback; under mouse object information.
+- [Rating](JaSper_rating.js) with starts, bars in development.
 
 *Example:*
 ```javascript
@@ -54,4 +71,5 @@ $(document).debug().ready(function(){
 });
 ```
 
-_Tested on Firefox_
+_Tested on Firefox_.
+_Also works on Chrome and IE_.

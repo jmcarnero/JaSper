@@ -53,6 +53,14 @@ JaSper.extend(JaSper.langs, {
 	'valida/url':'URL no v\u00E1lida.\nFormato recomendado: "http://dominio.tld"'}
 });
 
+/**
+ * Validación de formularios
+ * Previsualiza imágenes antes de subirlas {props.preview}
+ * Funcionamiento estandar de select multiple alterado, evita que se desmarquen todas las opciones al dar click sin control
+ *
+ * @author José M. Carnero
+ * @version 2.0
+ */
 JaSper.extend(JaSper.prototype, {
 
 	/**

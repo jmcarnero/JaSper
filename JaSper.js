@@ -25,7 +25,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  *
  * @author José M. Carnero
  * @since 2010-06-21
- * @version 3.2b
+ * @version 3.3
  * @see Al final del archivo estan las extensiones necesarias de prototipos de objetos del sistema (polyfills)
  */
 (function (window, undefined){
@@ -718,7 +718,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 			//si no se pasa ningun selector se usa document
 			sel = sel || document;
 
-			this.version = JaSper.version = 'JaSper v3.2b',
+			this.version = JaSper.version = 'JaSper v3.3',
 			this.nodes = this.nodes || [],
 			//this.funcs = {}, //funciones estaticas generales
 			//this.event = {}, //funciones estaticas de eventos
@@ -737,7 +737,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 					var iterator = this.context.evaluate(sel, this.context, null, XPathResult.ANY_TYPE, null);
 					try {
 						var thisNode;
-						while (thisNode = iterator.iterateNext()){
+						while(thisNode = iterator.iterateNext()){
 							this.nodes.push(thisNode);
 						}
 					}
@@ -891,7 +891,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 			}
 
 			//ejecuta las funciones que esten en cola
-			var loadQueue= function (scriptSrc, tipo){
+			var loadQueue = function (scriptSrc, tipo){
 				tipo = tipo || false;
 
 				if(!JaSper.funcs.loadScriptQueue) //nada que hacer si no hay funciones
@@ -965,7 +965,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 		readyFuncs: [],
 
-		runReady: function (){for (var i = 0; i < this.readyFuncs.length; i++) this.readyFuncs[i]();},
+		runReady: function (){for(var i = 0; i < JaSper.funcs.readyFuncs.length; i++) JaSper.funcs.readyFuncs[i]();},
 
 		/**
 		 * Devuelve elementos por selector ej. DIV P SPAN
@@ -1290,6 +1290,74 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		},
 
 		/**
+		 * Devuelve la posicion y tamaño de la caja imaginaria (bounding box) que rodea al elemento pasado
+		 * 
+		 * @param {Object} oObj Objeto DOM del que calcular su caja
+		 * @return {Object} left, top, width y height de la caja del elemento
+		 */
+		boundingRect: function (oObj){
+			if(!oObj)
+				return;
+
+			var x = 0, y = 0, w = 0, h = 0, x2 = 0, y2 = 0, rect = null;
+
+			if(oObj.getBoundingClientRect){ //ie, Firefox 3+, Chrome, Opera 9.5+, Safari 4+
+				rect = oObj.getBoundingClientRect();
+
+				x = rect.left;
+				y = rect.top;
+				w = rect.right - rect.left;
+				h = rect.bottom - rect.top;
+
+				if(navigator.appName.toLowerCase() == "microsoft internet explorer"){ //bounding rectangle incluye los bordes top y left del area de cliente
+					x -= document.documentElement.clientLeft;
+					y -= document.documentElement.clientTop;
+
+					var zoomFactor = (function (){ //devuelve 1 excepto para ie < 8, a niveles de zoom != 1
+						var factor = 1;
+						if(document.body.getBoundingClientRect){
+							rect = document.body.getBoundingClientRect (); //en ie < 8 rect devuelve pixel fisicos (no logicos, independientes de zoom)
+							var physicalW = rect.right - rect.left;
+							var logicalW = document.body.offsetWidth;
+
+							factor = Math.round((physicalW / logicalW) * 100) / 100; //el nivel de zoom level es un porcentaje (entero)
+						}
+						return factor;
+					})();
+
+					if(zoomFactor != 1){ //ie 7
+						x = Math.round(x / zoomFactor);
+						y = Math.round(y / zoomFactor);
+						w = Math.round(w / zoomFactor);
+						h = Math.round(h / zoomFactor);
+					}
+				}
+			}
+			else{ //Firefox, Opera and Safari; versiones viejas
+				var offset = {x : 0, y : 0}, scrolled = {x : 0, y : 0};
+				while(oObj.offsetParent){
+					offset.x += oObj.offsetParent.offsetLeft;
+					offset.y += oObj.offsetParent.offsetTop;
+
+					if(oObj.offsetParent.tagName.toLowerCase () != "html"){
+						scrolled.x += oObj.offsetParent.scrollLeft;
+						scrolled.y += oObj.offsetParent.scrollTop;
+					}
+				}
+
+				x = offset.x - scrolled.x;
+				y = offset.y - scrolled.y;
+				w = oObj.offsetWidth;
+				h = oObj.offsetHeight;
+			}
+
+			x2 = x + w;
+			y2 = y + h;
+
+			return {top: y, bottom: y2, left: x, right: x2, width: w, height: h, boundingClientRect: rect};
+		},
+
+		/**
 		 * Crea un elemento HTML (sTag) con las caracteristicas recibicas (oProps)
 		 * 
 		 * @todo comprobar si se crea un elemento HTML valido
@@ -1424,13 +1492,18 @@ JaSper.extend(JaSper.prototype, {
 	 * http://snipplr.com/view.php?codeview&id=6156
 	 */
 	ready: function (f){
-		if(!JaSper.funcs.msie && !JaSper.funcs.webkit && document.addEventListener) return document.addEventListener('DOMContentLoaded', f, false);
+		//if(!JaSper.funcs.msie && !JaSper.funcs.webkit && document.addEventListener) return document.addEventListener('DOMContentLoaded', f, false);
+		if(document.addEventListener) return document.addEventListener('DOMContentLoaded', f, false);
 		if(JaSper.funcs.readyFuncs.push(f) > 1) return;
 		if(JaSper.funcs.msie){
 			(function (){
-				try{document.documentElement.doScroll('left'); JaSper.funcs.runReady();}
+				var t = setInterval(function (){
+					try{document.documentElement.doScroll('left');JaSper.funcs.runReady();clearInterval(t);}
+					catch(err){/*aun no ready*/}
+				}, 5);
+				/*try{document.documentElement.doScroll('left'); JaSper.funcs.runReady();}
 				catch(err){setTimeout(f, 0);}
-				//catch (err){setTimeout(arguments.callee, 0);}
+				//catch (err){setTimeout(arguments.callee, 0);}*/
 			})();
 		}
 		else if(JaSper.funcs.webkit){
