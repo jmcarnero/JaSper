@@ -37,9 +37,12 @@ JaSper.extend(JaSper.langs, {
 	'ajax/ajax_7':'Error'}
 });
 
-/*******************************
-** Funciones AJAX para JaSper **
-*******************************/
+/**
+ * Funciones AJAX para JaSper
+ *
+ * @author José M. Carnero
+ * @version 1.0
+ */
 JaSper.extend(JaSper.prototype, {
 
 	/**
@@ -65,9 +68,7 @@ cbFail: function (jsf, xhr){return;}, //function Callback a ejecutar cuando fall
 }
 	 * </code>
 	 *
-	 * @author José M. Carnero
 	 * @since 2010-12-14
-	 * @version 1.0
 	 * @param {string} url Direccion que devolvera los datos por ajax (obligatorio)
 	 * @param {string} valores Valores que se enviaran, si la peticion es POST
 	 * @param {string} metodo Metodo de comunicacion con url (GET o POST)

@@ -7,7 +7,8 @@
 - Extremadamente ligero
 - Fácil de extender y modularizar
 - Carga dinámica (en demanda) de componentes (normal y minificado).
-- Gestión de nodos y eventos.
+- Gestión de nodos.
+- Gestión de eventos. Permite añadir varios (separados por comas) al mismo elemento DOM y mismo callback. Permite eliminar todos los eventos de un elemento DOM (incluyendo aquellos con callback anónimo), sólo los asociados a un determinado evento, etc.
 - Traducción automática de textos.
 - 'use strict'
 
@@ -34,6 +35,7 @@ $(document).debug().ready(function(){
 ```
 
 _Testeo en Firefox_.
+
 _También funciona en Chrome e IE_.
 
 ====
@@ -45,7 +47,8 @@ _También funciona en Chrome e IE_.
 - Extremely lightweight.
 - Easy to extend and modularize.
 - Dynamic loading (on demand) of components (normal and minified).
-- Node and events management.
+- Node management.
+- Event management. You can add multiple events (comma separated) to one DOM element and one unique callback. Can delete all events associated to a DOM element (included anonymous callbacks), or only those associated with a specific event, ...
 - Text translation.
 - 'use strict'
 
@@ -58,7 +61,7 @@ Modules included:
 - [Forms validation](JaSper_formazo.js) with upload image preview.
 - [Image carousel](JaSper_lightbox.js).
 - [Object movement](JaSper_move.js) with movement start callback, end movement callback and in move callback; under mouse object information.
-- [Rating](JaSper_rating.js) with starts, bars in development.
+- [Rating](JaSper_rating.js) with stars, bars in development.
 
 *Example:*
 ```javascript
@@ -72,4 +75,6 @@ $(document).debug().ready(function(){
 ```
 
 _Tested on Firefox_.
+
 _Also works on Chrome and IE_.
+
