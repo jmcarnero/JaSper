@@ -3,25 +3,31 @@
 <head>
 	<title>test js framework</title>
 	<script type="text/javascript" src="../JaSper.js"></script>
-	<script type="text/javascript">
-	<!--
-		//window.onload = function(){alert(jsframe.prototype.toString());}
-		$().ready(function(){
-			$(".formb * li").eventAdd("mouseenter", function (){
-				this.style.backgroundColor = "red";}).eventAdd("mouseleave", function (){this.style.backgroundColor = "yellow";
-			});
-			$('.mueveme').move();
-			$('<input>')
-				.eventAdd('click', function (){
-					alert(this.value?this.value:'valor desconocido');})
-				.eventAdd('mouseup', function (ev){
-					document.getElementById('destino').innerHTML = JaSper.event.target(ev);});
-			$('<body>')
-				.eventAdd('mousemove', function (ev){
-					document.getElementById('destino').innerHTML = JaSper.event.target(ev);});
+	<script type="text/javascript"><!--
+	$().debug().ready(function(){
+		$(".formb * li").eventAdd("mouseenter", function (){
+			this.style.backgroundColor = "red";
+		}).eventAdd("mouseleave", function (){
+			this.style.backgroundColor = "yellow";
 		});
-	-->
-	</script>
+
+		$('.mueveme').move();
+
+		$('<input>').eventAdd('click', function (){
+			alert(this.value?this.value:'valor desconocido');
+		}).eventAdd('mouseup', function (ev){
+			document.getElementById('destino').innerHTML = JaSper.event.target(ev);
+		});
+
+		$('<body>').eventAdd('mousemove', function (ev){
+			document.getElementById('destino').innerHTML = JaSper.event.target(ev);
+		});
+
+		$('select').eventAdd('click,mouseover,lalal', function (ev){
+			alert(ev.toString());
+		}).eventRemove();
+	});
+	//--></script>
 </head>
 <body>
 	<h1>test js framework</h1>
@@ -30,7 +36,7 @@
 	<span class="mueveme" style="left:20px;width:60px;height:20px;z-index:5;cursor:pointer;background-color:green;">mueveme</span>
 	<span class="mueveme" style="left:200px;width:60px;height:20px;z-index:5;cursor:pointer;background-color:maroon;">mueveme</span>
 	</div>
-	<br /><form action="#" method="post" class="formb">
+	<form action="#" method="post" class="formb">
 		<ul>
 			<li><label for="campo1">etiqueta input text </label><input id="campo1" name="campo1" type="text" value="valor input text" /></li>
 			<li><label for="campo2">etiqueta textarea </label><textarea id="campo2" name="campo2">valor campo1</textarea></li>

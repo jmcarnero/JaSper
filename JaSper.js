@@ -23,6 +23,9 @@ http://www.gnu.org/copyleft/gpl.html*/
  * Basada inicialmente en Getme.js Version 1.0.4 (Rob Reid)
  * y en otros (se menciona donde corresponda si se conoce su origen)
  *
+ * Se añade a cada objeto DOM (cuando sea necesario) la propiedad JaSper, que contendra (por ejemplo) los eventos que se le hayan asignado, para poder quitarlos en bloque
+ * al estar estas propiedades personalizadas agregadas al objeto al que pertenecen no se pierden si se mueve, y desaparecen si desaparece el objeto
+ *
  * @author José M. Carnero
  * @since 2010-06-21
  * @version 3.3
@@ -85,10 +88,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 				if(!sProp)
 					return null;
 
-				if(!oDOMElem.JaSper) oDOMElem.JaSper = {};
-				if(!oDOMElem.JaSper.original) oDOMElem.JaSper.original = {};
+			oDOMElem.JaSper = oDOMElem.JaSper || {};
+			oDOMElem.JaSper.css = oDOMElem.JaSper.css || {};
+			oDOMElem.JaSper.css.original = oDOMElem.JaSper.css.original || {};
 
-				if(!oDOMElem.JaSper.original[sProp]){
+			if(!oDOMElem.JaSper.css.original[sProp]){
 					var sActDisplay = JaSper.css.getStyle(oDOMElem, sProp);
 
 					switch(sProp){
@@ -97,18 +101,18 @@ http://www.gnu.org/copyleft/gpl.html*/
 								var oElem = document.createElement(oDOMElem.nodeName);
 								JaSper(document.body).append(oElem);
 
-								oDOMElem.JaSper.original[sProp] = JaSper.css.getStyle(oElem, sProp);
+							oDOMElem.JaSper.css.original[sProp] = JaSper.css.getStyle(oElem, sProp);
 
 								JaSper(document.body).remove(oElem);
 							}
-							oDOMElem.JaSper.original[sProp] = oDOMElem.JaSper.original[sProp] || (sActDisplay != 'none' ? sActDisplay : '');
+						oDOMElem.JaSper.css.original[sProp] = oDOMElem.JaSper.css.original[sProp] || (sActDisplay != 'none' ? sActDisplay : '');
 							break;
 						default:
-							oDOMElem.JaSper.original[sProp] = sActDisplay;
+						oDOMElem.JaSper.css.original[sProp] = sActDisplay;
 					}
 				}
 
-				return oDOMElem.JaSper.original[sProp];
+			return oDOMElem.JaSper.css.original[sProp];
 			},
 
 			/**
@@ -162,24 +166,43 @@ http://www.gnu.org/copyleft/gpl.html*/
 	 */
 	JaSper.event = {
 
-			/**
-			 * Adjunta eventos
-			 *
-			 * @param {object} oElem Objeto al que poner el evento
-			 * @param {string} sEvento Nombre del evento, ej: "click" (como "onclick" sin "on")
-			 * @param {Function} oFuncion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
-			 * @param {boolean} bCapt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
-			 * @return {Object} JaSper
-			 */
-			add: function (oElem, sEvento, oFuncion, bCapt){
-				if(typeof oFuncion == 'string')
-					oFuncion = window[oFuncion];
+		/**
+		 * Adjunta eventos
+		 *
+		 * @param {object} oElem Objeto al que poner el evento
+		 * @param {string} sEvento Nombre del evento, ej: "click" (como "onclick" sin "on"); pueden pasarse varios, separados por comas ('click,mouseup,submit'), evidentemente a todos se asignara el mismo callback
+		 * @param {Function} oFuncion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
+		 * @param {boolean} bCapt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
+		 * @return {Object} JaSper
+		 */
+		add: function (oElem, sEvento, oFuncion, bCapt){
+			if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8){ //sin eventos en nodos texto y comentarios
+				JaSper.log('[JaSper::event.add] No se asignan eventos a nodos de texto o comentarios.', 0);
+				return undefined;
+			}
 
-				bCapt = bCapt || false;
+			if(typeof oFuncion == 'string')
+				oFuncion = window[oFuncion];
+
+			bCapt = bCapt || false;
+
+			var aEvento = sEvento.split(','); //soporte para mas de un evento, separados por comas; si solo se pasa uno aparece como aEvento[0]
+			for(var i = 0; i < aEvento.length; i++){
+				sEvento = aEvento[i];
+
+				//verifica si se puede usar el evento //TODO mejorar la verificacion de la existencia de eventos antes de aplicarlos
+				if(oElem['on' + sEvento] === undefined){
+					JaSper.log('[JaSper::event.add] No se puede aplicar el evento [' + sEvento + ']', 1);
+					continue;
+				}
+
+				//esta propiedad contiene valores creados por el framework, en este caso la lista de eventos añadidos al objeto, bajo oElem.JaSper.event.-evento- (permite luego quitarlos en bloque o quitar cuando se ha asignado un callback anonimo)
+				oElem.JaSper = oElem.JaSper || {};
+				oElem.JaSper.event = oElem.JaSper.event || {};
+				oElem.JaSper.event[sEvento] = oElem.JaSper.event[sEvento] || [];
+				oElem.JaSper.event[sEvento].push(oFuncion);
 
 				if(document.addEventListener){ //w3c
-					if(!oElem || oElem.nodeType == 3 || this.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
-
 					//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
 					switch(sEvento){
 						case 'mouseenter':
@@ -189,7 +212,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 							oElem.addEventListener('mouseout', JaSper.event.mouseEnter(oFuncion), bCapt);
 							break;
 						case 'mousewheel':
-							//recoger el movimiento de la rueda con "ev.wheelDelta = ev.wheelDelta || -(ev.detail);" (3 rueda arriba, -3 rueda abajo)
+							//recoger el movimiento de la rueda con "ev.wheelDelta = ev.wheelDelta || -(ev.detail);" (3 rueda arriba, -3 rueda abajo) //el valor varia segun navegador
 							if(JaSper.funcs.gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
 								sEvento = 'DOMMouseScroll';
 								oFuncion = JaSper.event.mouseWheel(oFuncion);
@@ -199,14 +222,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 					}
 
 					if(window.eventTrigger){
-						if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
 						oElem.addEventListener(sEvento, function (){window.eventTrigger.call(oElem, sEvento);}, bCapt);
 					}
 				}
 				else if(document.attachEvent){ //ie
 					var clave = oElem + sEvento + oFuncion;
-
-					if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
 
 					oElem['e' + clave] = oFuncion;
 					oElem[clave] = function (){oElem['e' + clave](window.event);};
@@ -215,17 +235,12 @@ http://www.gnu.org/copyleft/gpl.html*/
 					if(window.eventTrigger){
 						var clave = oElem + sEvento + window.eventTrigger;
 
-						if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
-
 						oElem['e' + clave] = function (){window.eventTrigger.call(oElem, sEvento);};
 						oElem[clave] = function (){oElem['e' + clave](window.event);};
 						oElem.attachEvent('on' + sEvento, oElem[clave]);
 					}
 				}
-				else{ //DOM level 0
-					if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
-
-					//idea original de Simon Willison
+				else{ //DOM level 0 //idea original de Simon Willison
 					var old_evt = oElem['on' + sEvento];
 					if(typeof oElem['on' + sEvento] != 'function') oElem['on' + sEvento] = oFuncion;
 					else{
@@ -236,7 +251,6 @@ http://www.gnu.org/copyleft/gpl.html*/
 					}
 
 					if(window.eventTrigger){
-						if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8) return undefined; //sin eventos en nodos texto y comentarios
 						var old_evt = oElem['on' + sEvento];
 						this['on' + sEvento] = function (){
 							if(old_evt) old_evt();
@@ -244,9 +258,30 @@ http://www.gnu.org/copyleft/gpl.html*/
 						};
 					}
 				}
+			}
 
-				return;
-			},
+			return;
+		},
+
+		//http://perfectionkills.com/detecting-event-support-without-browser-sniffing/
+		/*eventSupported: function (eventName){
+			var TAGNAMES = {
+					'select':'input','change':'input',
+					'submit':'form','reset':'form',
+					'error':'img','load':'img','abort':'img'
+			}
+
+			var el = document.createElement(TAGNAMES[eventName] || 'div');
+			eventName = 'on' + eventName;
+			var isSupported = (eventName in el);
+			if (!isSupported) {
+				el.setAttribute(eventName, 'return;');
+				isSupported = typeof el[eventName] == 'function';
+			}
+			el = null;
+			
+			return isSupported;
+		},*/
 
 		/**
 		 * Correccion de codigo de tecla pulsada.
@@ -463,19 +498,43 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 *
 		 * @todo eliminar todos los eventos del elemento si no se pasan parametros
 		 * @param {object} oElem Objeto al que poner el evento
-		 * @param {string} sEvento Nombre del evento, ej: "click" (como "onclick" sin "on")
-		 * @param {Function} oFuncion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
+		 * @param {string} sEvento Nombre del evento, ej: "click" (como "onclick" sin "on"); si no se pasa nada se borran todos los eventos asociados a oElem
+		 * @param {Function} oFuncion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"; si no se pasa borra todos los asociados a oElem y sEvento (si esta declarado)
 		 * @param {boolean} bCapt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
 		 * @return {Object} JaSper
 		 */
 		remove: function (oElem, sEvento, oFuncion, bCapt){
+			function removeBatch(oElem, sEvento, oFuncion){
+				var aViejosEventos = oElem.JaSper.event, bRemove;
+				oElem.JaSper.event = null;
+
+				for(var sViejoEvento in aViejosEventos){
+					bRemove = false;
+					if(!sEvento || sEvento == sViejoEvento)
+						bRemove = true;
+
+					for(var i = 0; i < aViejosEventos[sViejoEvento].length; i++){
+						if(bRemove || (!oFuncion || oFuncion == aViejosEventos[sViejoEvento][i]))
+							bRemove = true;
+
+						if(bRemove)
+							JaSper.event.remove(oElem, sViejoEvento, aViejosEventos[sViejoEvento][i]);
+						else
+							oElem.JaSper.event[sViejoEvento].push(aViejosEventos[sViejoEvento][i]);
+					}
+				}
+			}
+
+			if(!sEvento || !oFuncion){
+				removeBatch(oElem, sEvento, oFuncion);
+			}
+
 			if(typeof oFuncion == 'string')
 				oFuncion = window[oFuncion]; //TODO try para distinguir nombre_de_funcion de nombre_de_funcion(params) (evaluar esta ultima)
 
 			bCapt = bCapt || false;
 
 			if(document.addEventListener){ //w3c
-				//TODO problemas para quitar eventos con funciones anonimas (como el retorno de mouseEnter); asignarlo previamente a una variable cuando se pone el evento?
 				//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
 				switch(sEvento){
 					case 'mouseenter':
@@ -510,7 +569,8 @@ http://www.gnu.org/copyleft/gpl.html*/
 				}
 			}
 			else{ //DOM level 0
-				eval('oElem.on' + sEvento + ' = null;');
+				//eval('oElem.on' + sEvento + ' = null;');
+				oElem['on' + sEvento] = null;
 			}
 
 			return;
@@ -788,9 +848,9 @@ http://www.gnu.org/copyleft/gpl.html*/
 							this.nodes = document.getElementsByName(match[5]);
 						}else if(match[1]){ //cadena HTML valida, ej. <P><STRONG>hello</STRONG></P>
 							//permite crear nodos desde el html que se le pase
-							var div = JaSper.nodo.crear('div', {innerHTML: sel});
-							this.nodes = div.childNodes;
-							document.removeChild(div);
+							var oDiv = JaSper.nodo.crear('div', {innerHTML: sel});
+							this.nodes = oDiv.childNodes;
+							document.removeChild(oDiv);
 						}else{
 							// if querySelectorAll is available for modern browsers we can use that e.g
 							// FF 3.2+, Safari 3.2+, Opera 10, Chrome 3, IE 8 (standards mode)
@@ -1490,6 +1550,9 @@ JaSper.extend(JaSper.prototype, {
 	 * $().ready(function (){[...]});
 	 * 
 	 * http://snipplr.com/view.php?codeview&id=6156
+	 *
+	 * @todo eliminar el evento cuando ya no sea necesario
+	 * @param {function} f Funcion a ejecutar
 	 */
 	ready: function (f){
 		//if(!JaSper.funcs.msie && !JaSper.funcs.webkit && document.addEventListener) return document.addEventListener('DOMContentLoaded', f, false);
@@ -2038,3 +2101,19 @@ if(!Object.keys){
 		};
 	}());
 };
+
+/**
+ * Rellena (de momento solo por la izquierda) la cadena sStr con el caracter sPadChar, si la cadena sStr tiene una longitud inferior a iPadLen
+ * ej.: strPad('123', '0', '5'), devuelve '00123'
+ *
+ * @todo permitir rellanr con una cadena, no solo con un caracter (variara la longitud de relleno)
+ * @param {string} sStr Cadena a rellenar
+ * @param {string} sPadChar Caracter de relleno
+ * @param {number} iPadLen Longitud maxima de relleno
+ * @return {string}
+ */
+/*function strPad(sStr, sPadChar, iPadLen){
+	var sRet = sStr;
+	sRet = (sPadChar + sStr).slice(-iPadLen);
+	return sRet;
+}*/
