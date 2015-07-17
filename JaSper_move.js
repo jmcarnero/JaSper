@@ -37,7 +37,7 @@ JaSper.extend(JaSper.prototype, {
 	move: function (props){
 
 		if(typeof props !== 'object') var props = {};
-		props.container = props.container || false; //limita el movimiento del objeto al contendedor en que se encuentra (si true) //TODO de momento solo limita a parentNode, pasar como parametro el objeto contenedor
+		props.container = props.container || false; //limita el movimiento del objeto al contendedor en que se encuentra (true es parentNode), pasar como parametro el objeto contenedor (objeto DOM)
 		props.reset = props.reset == undefined ? true : props.reset; //posicion final del objeto: true (devuelve a la posicion de inicio), false (se queda donde se suelte)
 		props.place = props.place || false; //true -> mueve la sombra indicando el lugar que ocupara el elemento cuando se suelte (desplazando su entorno), si reset == false; o false -> se situara sobre los demas (via z-index y position absolute, sin molestar) si reset == false (si no volvera a su lugar original)
 		props.shadow = props.shadow || false; //mientras el objeto se mueve pone un objeto sombra con su tamaño en la posicion actual (true), o se mueve sin mover el resto de objetos (false)
@@ -51,17 +51,18 @@ JaSper.extend(JaSper.prototype, {
 		var JaSperShadow;
 
 		var createShadow = function (obj){
-			JaSperShadow = document.createElement(obj.tagName);
-			//JaSperShadow.id = 'JaSper_shadow';
-			JaSperShadow.innerHTML = '&nbsp';
-			JaSperShadow.style = obj.style;
-			JaSperShadow.className = obj.className + ' JaSper_shadow';
+			JaSperShadow = JaSper.nodo.crear(obj.tagName, {
+				//id: 'JaSper_shadow',
+				innerHTML: '&nbsp',
+				class: obj.className + ' JaSper_shadow'
+			});
+			//JaSperShadow.style = obj.style;
 			//JaSperShadow.className = nodo[1]; //TODO asignar una clase "sombra"?
-			/*JaSperShadow.style.position = obj.posStyle;
+			JaSperShadow.style.position = obj.posStyle;
 			JaSperShadow.style.top = obj.offsetTop;
 			JaSperShadow.style.left = obj.offsetLeft;
 			JaSperShadow.style.height = obj.clientHeight;
-			JaSperShadow.style.width = obj.clientWidth;*/
+			JaSperShadow.style.width = obj.clientWidth;
 			JaSperShadow.style.border = '1px dashed black';
 			JaSperShadow.style.backgroundColor = '#CACACA';
 			obj.parentNode.insertBefore(JaSperShadow, obj.nextSibling);
@@ -75,8 +76,8 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.stop(event);
 
 			if(props.reset){
-				obj.style.left = obj.posMoveStart['x'] + 'px';
-				obj.style.top = obj.posMoveStart['y'] + 'px';
+				obj.style.left = (obj.posMoveStart['x'] - obj.posMoveStart['mx']) + 'px';
+				obj.style.top = (obj.posMoveStart['y'] - obj.posMoveStart['my']) + 'px';
 
 				obj.style.position = obj.posStyle;
 			}
@@ -95,11 +96,6 @@ JaSper.extend(JaSper.prototype, {
 				var oTarget = JaSper.move.elementFromPoint(event);
 				props.onMoveEnd.call(obj, event, oTarget);
 			}
-
-			/*var pos = posMouse(event);
-			window.ultimoElemento = detectaElemento(pos, elemento.id);
-
-			return window.ultimoElemento;*/
 		};
 
 		/* mover */
@@ -112,14 +108,14 @@ JaSper.extend(JaSper.prototype, {
 				props.onMove.call(obj, event, oTarget);
 			}
 
-			var pos = posMouse(event);
-			var top = obj.posMoveStart['y'] + (props.restrict == 'x' ? 0 : pos['y'] - obj.posMouseInicial['y']);
-			var left = obj.posMoveStart['x'] + (props.restrict == 'y' ? 0 : pos['x'] - obj.posMouseInicial['x']);
+			var pos = JaSper.move.posMouse(event);
+			var top = obj.posMoveStart['y'] + (props.restrict == 'x' ? 0 : pos['y'] - obj.posMouseInicial['y'] - obj.posMoveStart['my']);
+			var left = obj.posMoveStart['x'] + (props.restrict == 'y' ? 0 : pos['x'] - obj.posMouseInicial['x'] - obj.posMoveStart['mx']);
 
-			//limita el movimiento del objeto a la caja que lo contiene
+			//limita el movimiento del objeto a la caja que lo contiene o a la indicada en "container"
 			if(props.container){ //TODO controlar en que direccion se mueve el raton para simplificar hacia donde se limita el movimiento
-				var bottom = top + obj.posMoveStart['h'];
-				var right = left + obj.posMoveStart['w'];
+				var bottom = obj.posMoveStart['y2']; //top + obj.posMoveStart['h'];
+				var right = obj.posMoveStart['x2']; //left + obj.posMoveStart['w'];
 
 				if(top < obj.posMoveStartParent['y']) top = obj.posMoveStartParent['y'];
 				if(left < obj.posMoveStartParent['x']) left = obj.posMoveStartParent['x'];
@@ -176,11 +172,12 @@ JaSper.extend(JaSper.prototype, {
 				createShadow(obj);
 			}
 
-			obj.posMoveStart = posObject(obj);
-			obj.posMouseInicial = posMouse(event);
+			obj.posMoveStart = JaSper.move.posObject(obj);
+			obj.posMouseInicial = JaSper.move.posMouse(event);
 
 			if(props.container){
-				obj.posMoveStartParent = posObject(obj.parentNode);
+				//TODO controlar si container es una cadena de texto o un objeto DOM (de momento debe ser esto ultimo)
+				obj.posMoveStartParent = JaSper.move.posObject(props.container === true ? obj.parentNode : props.container);
 
 				obj.parentNode.style.top = obj.posMoveStartParent['y'] + 'px'; //fuerza al contenedor a que conserve su tamaño; cuando los objetos en movimiento cambian a absolute desaparece el hueco y cambia el tamaño del parent
 				obj.parentNode.style.left = obj.posMoveStartParent['x'] + 'px';
@@ -192,8 +189,8 @@ JaSper.extend(JaSper.prototype, {
 			obj.posStyle = obj.style.position;
 			obj.style.position = 'absolute';
 
-			obj.style.top = obj.posMoveStart['y'] + 'px';
-			obj.style.left = obj.posMoveStart['x'] + 'px';
+			obj.style.top = (obj.posMoveStart['y'] - obj.posMoveStart['my']) + 'px';
+			obj.style.left = (obj.posMoveStart['x'] - obj.posMoveStart['mx']) + 'px';
 			obj.style.width = obj.posMoveStart['w'] + 'px';
 			obj.style.height = obj.posMoveStart['h'] + 'px';
 
@@ -201,52 +198,10 @@ JaSper.extend(JaSper.prototype, {
 			obj.style.zIndex += 10;
 
 			//var funMov = function (e){moveObject(e, obj);}, funFin = function (e){moveEnd(e, obj, [funMov, arguments.callee]);}; //"arguments.calle es imprescindible para poder desregistrar el evento, problemas pasando la definicion de la funcion...
-			var funMov = function (e){moveObject(e, obj);}, funFin = function funFinCalle(e){moveEnd(e, obj, [funMov, funFinCalle]);};
+			var funMov = function (e){moveObject(e, obj);}, funFin = function funFinCall(e){moveEnd(e, obj, [funMov, funFinCall]);};
 
 			JaSper.event.add(document, 'mousemove', funMov);
 			JaSper.event.add(document, 'mouseup', funFin);
-
-		};
-
-		/* devuelve la posicion del elemento con respecto a su contenedor (left y top), (array=>['x'] - ['y']) */
-		var posObject = function (obj){
-			//TODO el tamaño de las cajas no se calcula igual en todos los navegadores
-			var boxLeft = parseInt(JaSper.css.getStyle(obj, 'marginLeft'));
-			var boxTop = parseInt(JaSper.css.getStyle(obj, 'marginTop'));
-
-			//http://www.quirksmode.org/js/findpos.html
-			var objLT = obj;
-			var curleft = obj.offsetLeft - boxLeft;
-			var curtop = obj.offsetTop - boxTop;
-			while(objLT = objLT.offsetParent){
-				curleft += objLT.offsetLeft;
-				curtop += objLT.offsetTop;
-			}
-
-			var pos = new Array();
-			pos['w'] = parseInt(JaSper.css.getStyle(obj, 'width')); //pos['w'] = obj.offsetWidth; //ancho del elemento
-			pos['h'] = parseInt(JaSper.css.getStyle(obj, 'height')); //pos['h'] = obj.offsetHeight; //alto del elemento
-			pos['x'] = curleft;
-			pos['y'] = curtop;
-			pos['x2'] = pos['x'] + pos['w']; //esquina inferior derecha
-			pos['y2'] = pos['y'] + pos['h'];
-
-			return pos;
-		};
-
-		/* devuelve la posicion del puntero, (array=>["x"] - ["y"]) */
-		var posMouse = function (event){
-			var pos = new Array();
-			if(navigator.userAgent.toLowerCase().indexOf("msie") >= 0){
-				/* document.body.clientLeft/clientTop es el tamaño del borde (usualmente 2px) que encierra al documento ya que en IE este no empieza en (0,0) */
-			 	pos['x'] = window.event.clientX + document.body.clientLeft + document.body.scrollLeft;
-				pos['y'] = window.event.clientY + document.body.clientTop + document.body.scrollTop;
-			}
-			else{
-				pos['x'] = event.clientX + window.pageXOffset;
-				pos['y'] = event.clientY + window.pageYOffset;
-			}
-			return pos;
 		};
 
 		//pone los eventos que lanzaran el movimiento de cada elemento
@@ -295,7 +250,48 @@ JaSper.extend(JaSper.move, {
 
 			return oTarget;
 		})(mouseEvent);
+	},
+
+	/* devuelve la posicion del elemento con respecto al documento (top, left, etc.) y su tamaño */
+	posObject: function (obj){
+		//TODO el tamaño de las cajas no se calcula igual en todos los navegadores
+
+		//http://www.quirksmode.org/js/findpos.html
+		var objLT = obj;
+		var curleft = obj.offsetLeft;
+		var curtop = obj.offsetTop;
+		while(objLT = objLT.offsetParent){
+			curleft += objLT.offsetLeft;
+			curtop += objLT.offsetTop;
 	}
 
+		var pos = new Array();
+		pos['w'] = parseInt(JaSper.css.getStyle(obj, 'width')); //pos['w'] = obj.offsetWidth; //ancho del elemento
+		pos['h'] = parseInt(JaSper.css.getStyle(obj, 'height')); //pos['h'] = obj.offsetHeight; //alto del elemento
+		pos['x'] = curleft;
+		pos['y'] = curtop;
+		pos['x2'] = pos['x'] + pos['w']; //esquina inferior derecha
+		pos['y2'] = pos['y'] + pos['h'];
+
+		pos['mx'] = parseInt(JaSper.css.getStyle(obj, 'marginLeft'));
+		pos['my'] = parseInt(JaSper.css.getStyle(obj, 'marginTop'));
+
+		return pos;
+	},
+
+	/* devuelve la posicion del puntero, (array=>["x"] - ["y"]) */
+	posMouse: function (event){
+		var pos = new Array();
+		if(navigator.userAgent.toLowerCase().indexOf("msie") >= 0){
+			/* document.body.clientLeft/clientTop es el tamaño del borde (usualmente 2px) que encierra al documento ya que en IE este no empieza en (0,0) */
+			pos['x'] = window.event.clientX + document.body.clientLeft + document.body.scrollLeft;
+			pos['y'] = window.event.clientY + document.body.clientTop + document.body.scrollTop;
+		}
+		else{
+			pos['x'] = event.clientX + window.pageXOffset;
+			pos['y'] = event.clientY + window.pageYOffset;
+		}
+		return pos;
+	}
 
 });
