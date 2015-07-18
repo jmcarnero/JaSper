@@ -77,8 +77,9 @@ JaSper.extend(JaSper.prototype, {
 					oCallback(oObjs.hor, oTiemposParciales.hor, 24);
 			}
 			if(oTiemposTotales.dia){
-					oObjs.dia.innerHTML = oTiemposParciales.dia;
-					oCallback(oObjs.dia, oTiemposParciales.dia, 30);
+					oObjs.dia.innerHTML = Math.floor(oTiemposTotales.dia);
+					//oCallback(oObjs.dia, oTiemposParciales.dia, 30);
+					oCallback(oObjs.dia, Math.floor(oTiemposTotales.dia), 365); //TODO toma como referencia la duracion de un año, cambiar?
 			}
 
 			var callCountdown = setTimeout(function (){oPinta(oObjs, iPeriodo);}, 1000); //espera un segundo

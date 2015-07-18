@@ -4,8 +4,8 @@
 ## JavaScript framework.
 
 - Selector XPath y CSS.
-- Extremadamente ligero
-- Fácil de extender y modularizar
+- Extremadamente ligero.
+- Fácil de extender y modularizar.
 - Carga dinámica (en demanda) de componentes (normal y minificado).
 - Gestión de nodos.
 - Gestión de eventos. Permite añadir varios (separados por comas) al mismo elemento DOM y mismo callback. Permite eliminar todos los eventos de un elemento DOM (incluyendo aquellos con callback anónimo), sólo los asociados a un determinado evento, etc.

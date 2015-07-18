@@ -191,7 +191,8 @@ http://www.gnu.org/copyleft/gpl.html*/
 				sEvento = aEvento[i];
 
 				//verifica si se puede usar el evento //TODO mejorar la verificacion de la existencia de eventos antes de aplicarlos
-				if(oElem['on' + sEvento] === undefined){
+				var aEventsCustom = ['mouseenter', 'mouseleave', 'mousewheel']; //eventos remapeados (ver mas abajo)
+				if(aEventsCustom.indexOf(sEvento) == -1 && oElem['on' + sEvento] === undefined){
 					JaSper.log('[JaSper::event.add] No se puede aplicar el evento [' + sEvento + ']', 1);
 					continue;
 				}

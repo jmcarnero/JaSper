@@ -23,7 +23,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  * Con callbacks de inicio, fin de movimiento y mientras se esta moviendo
  *
  * @author José M. Carnero
- * @version 2.0
+ * @version 2.1
  */
 JaSper.extend(JaSper.prototype, {
 
@@ -93,7 +93,11 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.remove(document, 'mouseup', funcs[1]);
 
 			if(typeof props.onMoveEnd === 'function'){
+				var iAntZindex = obj.style.zIndex;
+				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
 				var oTarget = JaSper.move.elementFromPoint(event);
+				obj.style.zIndex = iAntZindex;
+
 				props.onMoveEnd.call(obj, event, oTarget);
 			}
 		};
@@ -104,7 +108,11 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.stop(event);
 
 			if(typeof props.onMove === 'function'){
+				var iAntZindex = obj.style.zIndex;
+				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
 				var oTarget = JaSper.move.elementFromPoint(event);
+				obj.style.zIndex = iAntZindex;
+
 				props.onMove.call(obj, event, oTarget);
 			}
 
@@ -158,13 +166,17 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.preventDefault(event);
 			JaSper.event.stop(event);
 
-			var normalclick;
+			var normalclick = 1;
 			if(event.which) normalclick = event.which;
 			else if(event.button) normalclick = event.button;
-			if(normalclick != 1) return(false);
+			if(normalclick != 1) return false;
 
 			if(typeof props.onMoveStart === 'function'){
+				var iAntZindex = obj.style.zIndex;
+				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
 				var oTarget = JaSper.move.elementFromPoint(event);
+				obj.style.zIndex = iAntZindex;
+
 				props.onMoveStart.call(obj, event, oTarget);
 			}
 
@@ -237,16 +249,19 @@ JaSper.extend(JaSper.move, {
 		return (function (ev){
 			var oTarget = ev.explicitOriginalTarget; //TODO ver que hacer en navegadores sin esta propiedad
 
-			if(!oTarget)
-				return null
+			if(!oTarget){
+				return null;
+			}
 
 			// reparent target if it is a text node to emulate IE's behavior
-			if (oTarget.nodeType == Node.TEXT_NODE)
+			if(oTarget.nodeType == Node.TEXT_NODE){
 				oTarget = oTarget.parentNode;
+			}
 		
 			// change an HTML target to a BODY target to emulate IE's behavior (if we are in an HTML document)
-			if (oTarget.nodeName.toUpperCase() == "HTML")
+			if(oTarget.nodeName.toUpperCase() == "HTML"){
 				oTarget = document.getElementsByTagName("BODY").item(0);
+			}
 
 			return oTarget;
 		})(mouseEvent);
