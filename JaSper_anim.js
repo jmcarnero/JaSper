@@ -111,7 +111,7 @@ JaSper.extend(JaSper.prototype, {
 				JaSper.css.original(this, 'display');
 
 				if(sActDisplay != 'none' ) sActDisplay = 'none';
-				else sActDisplay = this.JaSper.css.original.display;
+				else sActDisplay = JaSper.nodo.extend(this).css.original.display;
 
 				JaSper.css.setStyle(this, 'display', sActDisplay);
 			}
@@ -137,8 +137,8 @@ JaSper.extend(JaSper.anim, {
 		//JaSper.css.original(oDOMElem, 'fontSize');
 
 		if(bIn){
-			oDOMElem.style.display = oDOMElem.JaSper.css.original.display;
-			oDOMElem.style.opacity = iOpacidad;
+			oDOMElem.style.display = JaSper.nodo.extend(oDOMElem).css.original.display;
+			oDOMElem.style.opacity = iOpacidad; //TODO esta es una propiedad CSS3, en IE debe usarse "filter()"
 		}
 
 		/*var rDesvanece = window.setInterval(func, iIntervalo);
@@ -157,7 +157,7 @@ JaSper.extend(JaSper.anim, {
 			accion: function(delta){
 				var iOpacidad = bIn ? delta : 1 - delta;
 				oDOMElem.style.opacity = iOpacidad;
-				//oDOMElem.style.fontSize = iOpacidad * parseFloat(oDOMElem.JaSper.css.original.fontSize); //TODO corregir, el cambio de fontSize afectara a todos los elementos contenidos en oDOMElem, que no nocesariamente tendran el mismo tamaño de texto
+				//oDOMElem.style.fontSize = iOpacidad * parseFloat(JaSper.nodo.extend(oDOMElem).css.original.fontSize); //TODO corregir, el cambio de fontSize afectara a todos los elementos contenidos en oDOMElem, que no nocesariamente tendran el mismo tamaño de texto
 
 				if(iOpacidad <= 0)
 					oDOMElem.style.display = 'none';

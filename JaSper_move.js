@@ -35,8 +35,7 @@ JaSper.extend(JaSper.prototype, {
 	 * @return object
 	 */
 	move: function (props){
-
-		if(typeof props !== 'object') var props = {};
+		props = props || {};
 		props.container = props.container || false; //limita el movimiento del objeto al contendedor en que se encuentra (true es parentNode), pasar como parametro el objeto contenedor (objeto DOM)
 		props.reset = props.reset == undefined ? true : props.reset; //posicion final del objeto: true (devuelve a la posicion de inicio), false (se queda donde se suelte)
 		props.place = props.place || false; //true -> mueve la sombra indicando el lugar que ocupara el elemento cuando se suelte (desplazando su entorno), si reset == false; o false -> se situara sobre los demas (via z-index y position absolute, sin molestar) si reset == false (si no volvera a su lugar original)

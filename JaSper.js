@@ -88,11 +88,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 				if(!sProp)
 					return null;
 
-			oDOMElem.JaSper = oDOMElem.JaSper || {};
-			oDOMElem.JaSper.css = oDOMElem.JaSper.css || {};
-			oDOMElem.JaSper.css.original = oDOMElem.JaSper.css.original || {};
+				var oExtend = JaSper.nodo.extend(oDOMElem);
+				oExtend.css = oExtend.css || {};
+				oExtend.css.original = oExtend.css.original || {};
 
-			if(!oDOMElem.JaSper.css.original[sProp]){
+				if(!oExtend.css.original[sProp]){
 					var sActDisplay = JaSper.css.getStyle(oDOMElem, sProp);
 
 					switch(sProp){
@@ -101,18 +101,20 @@ http://www.gnu.org/copyleft/gpl.html*/
 								var oElem = document.createElement(oDOMElem.nodeName);
 								JaSper(document.body).append(oElem);
 
-							oDOMElem.JaSper.css.original[sProp] = JaSper.css.getStyle(oElem, sProp);
+								oExtend.css.original[sProp] = JaSper.css.getStyle(oElem, sProp);
 
 								JaSper(document.body).remove(oElem);
 							}
-						oDOMElem.JaSper.css.original[sProp] = oDOMElem.JaSper.css.original[sProp] || (sActDisplay != 'none' ? sActDisplay : '');
+							oExtend.css.original[sProp] = oExtend.css.original[sProp] || (sActDisplay != 'none' ? sActDisplay : '');
 							break;
 						default:
-						oDOMElem.JaSper.css.original[sProp] = sActDisplay;
+							oExtend.css.original[sProp] = sActDisplay;
 					}
 				}
 
-			return oDOMElem.JaSper.css.original[sProp];
+				JaSper.nodo.extend(oDOMElem, oExtend);
+
+				return oExtend.css.original[sProp];
 			},
 
 			/**
@@ -198,10 +200,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 				}
 
 				//esta propiedad contiene valores creados por el framework, en este caso la lista de eventos añadidos al objeto, bajo oElem.JaSper.event.-evento- (permite luego quitarlos en bloque o quitar cuando se ha asignado un callback anonimo)
-				oElem.JaSper = oElem.JaSper || {};
-				oElem.JaSper.event = oElem.JaSper.event || {};
-				oElem.JaSper.event[sEvento] = oElem.JaSper.event[sEvento] || [];
-				oElem.JaSper.event[sEvento].push(oFuncion);
+				var oObjExtend = JaSper.nodo.extend(oElem);
+				oObjExtend.event = oObjExtend.event || {};
+				oObjExtend.event[sEvento] = oObjExtend.event[sEvento] || [];
+				oObjExtend.event[sEvento].push(oFuncion);
+				JaSper.nodo.extend(oElem, oObjExtend);
 
 				if(document.addEventListener){ //w3c
 					//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
@@ -506,8 +509,9 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 */
 		remove: function (oElem, sEvento, oFuncion, bCapt){
 			function removeBatch(oElem, sEvento, oFuncion){
-				var aViejosEventos = oElem.JaSper.event, bRemove;
-				oElem.JaSper.event = null;
+				var oObjExtend = JaSper.nodo.extend(oElem);
+				var aViejosEventos = oObjExtend.event, bRemove;
+				oObjExtend.event = null;
 
 				for(var sViejoEvento in aViejosEventos){
 					bRemove = false;
@@ -521,9 +525,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 						if(bRemove)
 							JaSper.event.remove(oElem, sViejoEvento, aViejosEventos[sViejoEvento][i]);
 						else
-							oElem.JaSper.event[sViejoEvento].push(aViejosEventos[sViejoEvento][i]);
+							oObjExtend.event[sViejoEvento].push(aViejosEventos[sViejoEvento][i]);
 					}
 				}
+
+				JaSper.nodo.extend(oElem, oObjExtend);
 			}
 
 			if(!sEvento || !oFuncion){
@@ -1479,13 +1485,52 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 				oPadre.appendChild(oElem);
 
 			return oElem;
+		},
+
+		/**
+		 * Extiende un elemento DOM con propiedades JaSper
+		 * Si no se pasa el segundo parametro devuelve el estado actual de las propiedades extendidas JaSper
+		 * 
+		 * @param {Object} oDom Objeto DOM a extender
+		 * @param {Object} addObj Objeto con metodos que se agregaran a oDom
+		 */
+		extend: function (oDom, addObj){
+			if(!JaSper.funcs.isDOMObject(oDom)){
+				JaSper.log('[JaSper::nodo.extend] Se está intentando extender un nodo no DOM', 1);
+				return false;
+			}
+
+			var sExtendProp = 'JaSper'; //nombre de la propiedad que recogera las propiedades extendidas JaSper
+			oDom[sExtendProp] = oDom[sExtendProp] || {};
+
+			//devuelve el extendido actual si no se pide extender mas
+			//si no se ha extendido este objeto DOM con propiedades JaSper devuelve un objeto vacio
+			if(!addObj){
+				return oDom[sExtendProp];
+			}
+
+			/*function subExtend(obj, props){ //TODO de momento extiende recursivamente objetos, si alguna propiedad contiene un array no sigue esa rama
+				for(var a in props){
+					if(typeof obj[a] == 'object'){
+						obj[a] = subExtend(obj[a], props[a]);
+					}
+					obj[a] = props[a];
+				}
+				return obj;
+			}
+
+			oDom[sExtendProp] = subExtend(oDom[sExtendProp], addObj);/**/
+
+			for(var a in addObj){
+				oDom[sExtendProp][a] = addObj[a];
+			}
 		}
 
 	};
 
 	/**
 	 * Traduccion de los textos de funciones.
-	 * Con la variable "JaSper.lang" (generada por PHP por ejemplo: $_SESSION['l10n']) 
+	 * Con la variable "JaSper.lang" (generada por PHP por ejemplo: $_SESSION['l10n'])
 	 * que contenga el codigo de lenguaje que actualmente solicita el navegador; 
 	 * ya que javascript no puede leer directamente las cabeceras que envia el navegador;
 	 * 
