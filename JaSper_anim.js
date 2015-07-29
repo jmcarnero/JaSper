@@ -138,25 +138,24 @@ JaSper.extend(JaSper.anim, {
 
 		if(bIn){
 			oDOMElem.style.display = JaSper.nodo.extend(oDOMElem).css.original.display;
-			oDOMElem.style.opacity = iOpacidad; //TODO esta es una propiedad CSS3, en IE debe usarse "filter()"
+
+			if(oDOMElem.filters !== undefined) //IE <= 8
+				oDOMElem.filters.item("DXImageTransform.Microsoft.Alpha").opacity = iOpacidad * 100;
+			else
+			oDOMElem.style.opacity = iOpacidad;
 		}
 
-		/*var rDesvanece = window.setInterval(func, iIntervalo);
-		function func() {
-			iOpacidad = bIn ? iOpacidad + iSalto : iOpacidad - iSalto;
-			oDOMElem.style.opacity = iOpacidad;
-
-			if(iOpacidad <= 0)
-				oDOMElem.style.display = 'none';
-			if(iOpacidad <= 0 || iOpacidad >= 1)
-				window.clearInterval(rDesvanece);
-		}/**/
 		var bFin = JaSper.funcs.setInterval({
 			intervalo: iIntervalo,
 			duracion: iMiliSec,
-			accion: function(delta){
-				var iOpacidad = bIn ? delta : 1 - delta;
+			accion: function(fDelta){
+				var iOpacidad = bIn ? fDelta : 1 - fDelta;
+		
+				if(oDOMElem.filters !== undefined)
+					oDOMElem.filters.item("DXImageTransform.Microsoft.Alpha").opacity = iOpacidad * 100;
+				else
 				oDOMElem.style.opacity = iOpacidad;
+		
 				//oDOMElem.style.fontSize = iOpacidad * parseFloat(JaSper.nodo.extend(oDOMElem).css.original.fontSize); //TODO corregir, el cambio de fontSize afectara a todos los elementos contenidos en oDOMElem, que no nocesariamente tendran el mismo tamaño de texto
 
 				if(iOpacidad <= 0)
