@@ -74,6 +74,8 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.preventDefault(event);
 			JaSper.event.stop(event);
 
+			var oTarget = null, iAntZindex = null;
+
 			if(props.reset){
 				obj.style.left = (obj.posMoveStart['x'] - obj.posMoveStart['mx']) + 'px';
 				obj.style.top = (obj.posMoveStart['y'] - obj.posMoveStart['my']) + 'px';
@@ -83,6 +85,15 @@ JaSper.extend(JaSper.prototype, {
 
 			if(props.shadow){
 				JaSperShadow.parentNode.removeChild(JaSperShadow); //TODO desenganchar del arbol DOM en lugar de borrarlo para no estar continuamente creandolo?
+
+				iAntZindex = iAntZindex || obj.style.zIndex;
+				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
+				oTarget = oTarget || JaSper.move.elementFromPoint(event);
+				obj.style.zIndex = iAntZindex;
+
+				oTarget.parentNode.appendChild(obj);
+
+				obj.style.position = obj.posStyle;
 			}
 
 			//devolver el elemento a su nivel
@@ -92,9 +103,9 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.remove(document, 'mouseup', funcs[1]);
 
 			if(typeof props.onMoveEnd === 'function'){
-				var iAntZindex = obj.style.zIndex;
+				iAntZindex = iAntZindex || obj.style.zIndex;
 				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
-				var oTarget = JaSper.move.elementFromPoint(event);
+				oTarget = oTarget || JaSper.move.elementFromPoint(event);
 				obj.style.zIndex = iAntZindex;
 
 				props.onMoveEnd.call(obj, event, oTarget);
@@ -106,10 +117,21 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.preventDefault(event);
 			JaSper.event.stop(event);
 
-			if(typeof props.onMove === 'function'){
-				var iAntZindex = obj.style.zIndex;
+			var oTarget = null, iAntZindex = null;
+
+			if(props.shadow){
+				iAntZindex = iAntZindex || obj.style.zIndex;
 				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
-				var oTarget = JaSper.move.elementFromPoint(event);
+				oTarget = oTarget || JaSper.move.elementFromPoint(event);
+				obj.style.zIndex = iAntZindex;
+
+				oTarget.parentNode.appendChild(JaSperShadow);
+			}
+
+			if(typeof props.onMove === 'function'){
+				iAntZindex = iAntZindex || obj.style.zIndex;
+				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
+				oTarget = oTarget || JaSper.move.elementFromPoint(event);
 				obj.style.zIndex = iAntZindex;
 
 				props.onMove.call(obj, event, oTarget);
@@ -132,6 +154,11 @@ JaSper.extend(JaSper.prototype, {
 
 			obj.style.top = top + 'px';
 			obj.style.left = left + 'px';
+
+			/*if(props.shadow){ //la sombra se mueve a saltos, ocupando el espacio entre objetos donde se colocara el objeto movido al soltarlo
+				JaSperShadow.style.left = left + 'px';
+				JaSperShadow.style.top = top + 'px';
+			}*/
 
 			$('origen').html = JaSper.event.source(event);//obj;
 			//document.getElementById('destino').innerHTML = JaSper.event.target(event);
@@ -252,12 +279,12 @@ JaSper.extend(JaSper.move, {
 				return null;
 			}
 
-			// reparent target if it is a text node to emulate IE's behavior
+			//imita el comportamiento de IE devuelve el padre para nodos de texto
 			if(oTarget.nodeType == Node.TEXT_NODE){
 				oTarget = oTarget.parentNode;
 			}
 		
-			// change an HTML target to a BODY target to emulate IE's behavior (if we are in an HTML document)
+			//imita el comportamiento de IE devuelve devuelve tag body cuando es tag html
 			if(oTarget.nodeName.toUpperCase() == "HTML"){
 				oTarget = document.getElementsByTagName("BODY").item(0);
 			}
