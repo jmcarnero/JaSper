@@ -887,32 +887,32 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 		//devuelve si es un nodo o elemento DOM
 		//TODO cambiar el retorno para distinguir nodo de elemento
-		isDOMObject: function (o){
-			var bNode = (
-					typeof Node === "object" ? o instanceof Node : 
-						o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
-			);
+		isDOMObject: function (obj){
+			var bWindow = (obj === window); //el objeto window no se ajusta a ninguno de los siguientes, pero puede recibir eventos (por ejemplo) como cualquier otro elemento HTML
 
-			var bElement = (
-					typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
-						o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string"
-			);
+			var bNode = (typeof Node === 'object' ? 
+					obj instanceof Node : 
+						obj && typeof obj === 'object' && typeof obj.nodeType === 'number' && typeof obj.nodeName === 'string');
 
-			return bNode || bElement;
+			var bElement = (typeof HTMLElement === 'object' ? 
+					obj instanceof HTMLElement : //DOM2
+						obj && typeof obj === 'object' && obj !== null && obj.nodeType === 1 && typeof obj.nodeName === 'string');
+
+			return bWindow || bNode || bElement;
 		},
 
-		isArray: function (o){
-			return Object.prototype.toString.call(o) == '[object Array]';
+		isArray: function (obj){
+			return Object.prototype.toString.call(obj) == '[object Array]';
 		},
 
 		//objetos con propiedades tipo array (array/nodelist)
-		isArrayLike: function (o){
+		isArrayLike: function (obj){
 			// window, strings (y functions) tambien tienen 'length'
-			return (o && o.length && !this.isFunction(o) && !this.isString(o) && o !== window);
+			return (obj && obj.length && !this.isFunction(obj) && !this.isString(obj) && obj !== window);
 		},
 
-		isFunction: function (o){
-			return ((o) instanceof Function);
+		isFunction: function (obj){
+			return ((obj) instanceof Function);
 		},
 
 		//devuelve si es un numero; flotante, entero, decimal, ...
@@ -920,8 +920,8 @@ http://www.gnu.org/copyleft/gpl.html*/
 			return !isNaN(parseFloat(num)) && isFinite(num);
 		},
 
-		isString: function (o){
-			return (typeof o == 'string');
+		isString: function (obj){
+			return (typeof obj == 'string');
 		},
 
 		/**

@@ -79,14 +79,14 @@ JaSper.extend(JaSper.prototype, {
 
 			clases: { //clases css e identificadores de filtros
 				error: props.clases.error || 'frmError', //clase de errores
-				obligatorio: props.clases.obligatorio || 'frmObligatorio',
+				obligatorio: props.clases.obligatorio || 'obligatorio',
 				clave: props.clases.clave || 'clave',
-				email: props.clases.email || 'frmEmail',
+				email: props.clases.email || 'email',
 				entero: props.clases.entero || 'entero',
 				fichero: props.clases.fichero || 'fichero',
 				fecha: props.clases.fecha || 'fecha',
 				nif: props.clases.nif || 'nif',
-				numerico: props.clases.numerico || 'frmNumerico',
+				numerico: props.clases.numerico || 'numerico',
 				telefono: props.clases.telefono || 'telefono',
 				url: props.clases.url || 'url'
 			}
