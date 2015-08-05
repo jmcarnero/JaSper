@@ -64,6 +64,7 @@ JaSper.extend(JaSper.prototype, {
 			JaSperShadow.style.width = obj.clientWidth;
 			JaSperShadow.style.border = '1px dashed black';
 			JaSperShadow.style.backgroundColor = '#CACACA';
+
 			obj.parentNode.insertBefore(JaSperShadow, obj.nextSibling);
 
 			return JaSperShadow;
@@ -86,14 +87,18 @@ JaSper.extend(JaSper.prototype, {
 			if(props.shadow){
 				JaSperShadow.parentNode.removeChild(JaSperShadow); //TODO desenganchar del arbol DOM en lugar de borrarlo para no estar continuamente creandolo?
 
-				iAntZindex = iAntZindex || obj.style.zIndex;
-				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
-				oTarget = oTarget || JaSper.move.elementFromPoint(event);
-				obj.style.zIndex = iAntZindex;
+				if(!props.reset){
+					iAntZindex = iAntZindex || obj.style.zIndex;
+					obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
+					oTarget = oTarget || JaSper.move.elementFromPoint(event);
+					obj.style.zIndex = iAntZindex;
 
-				oTarget.parentNode.appendChild(obj);
+					var oAux = oTarget.nextSibling || oTarget;
+					oAux.parentNode.insertBefore(obj, oAux);
+					//oTarget.parentNode.appendChild(obj);
 
-				obj.style.position = obj.posStyle;
+					obj.style.position = obj.posStyle;
+				}
 			}
 
 			//devolver el elemento a su nivel
@@ -117,15 +122,29 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.preventDefault(event);
 			JaSper.event.stop(event);
 
+			var pos = JaSper.move.posMouse(event); //posicion del raton
+
 			var oTarget = null, iAntZindex = null;
 
 			if(props.shadow){
+				JaSperShadow = JaSperShadow.parentNode.removeChild(JaSperShadow);
+
 				iAntZindex = iAntZindex || obj.style.zIndex;
 				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
 				oTarget = oTarget || JaSper.move.elementFromPoint(event);
 				obj.style.zIndex = iAntZindex;
 
-				oTarget.parentNode.appendChild(JaSperShadow);
+				var aTargetPos = JaSper.move.posObject(oTarget);
+
+				if(pos['y'] < (aTargetPos['y'] + 10)){ //la sombra esta en el extremo superior del objetivo
+					oTarget.parentNode.insertBefore(JaSperShadow, oTarget);
+				}
+				else if(pos['y'] > (aTargetPos['y2'] - 10) && oTarget.nextSibling){ //la sombra esta en el extremo inferior del objetivo
+					oTarget.parentNode.insertBefore(JaSperShadow, oTarget.nextSibling);
+				}
+				else{ //la sombra esta en el centro del objetivo
+					oTarget.parentNode.appendChild(JaSperShadow);
+				}
 			}
 
 			if(typeof props.onMove === 'function'){
@@ -137,7 +156,6 @@ JaSper.extend(JaSper.prototype, {
 				props.onMove.call(obj, event, oTarget);
 			}
 
-			var pos = JaSper.move.posMouse(event);
 			var top = obj.posMoveStart['y'] + (props.restrict == 'x' ? 0 : pos['y'] - obj.posMouseInicial['y'] - obj.posMoveStart['my']);
 			var left = obj.posMoveStart['x'] + (props.restrict == 'y' ? 0 : pos['x'] - obj.posMouseInicial['x'] - obj.posMoveStart['mx']);
 
@@ -155,37 +173,10 @@ JaSper.extend(JaSper.prototype, {
 			obj.style.top = top + 'px';
 			obj.style.left = left + 'px';
 
-			/*if(props.shadow){ //la sombra se mueve a saltos, ocupando el espacio entre objetos donde se colocara el objeto movido al soltarlo
-				JaSperShadow.style.left = left + 'px';
-				JaSperShadow.style.top = top + 'px';
-			}*/
-
 			$('origen').html = JaSper.event.source(event);//obj;
 			//document.getElementById('destino').innerHTML = JaSper.event.target(event);
 			$('evento').html = JaSper.event.name(event);
 		};
-
-		/*var mueveObj = function (e){
-			evt = e || window.event;
-			var moz = document.getElementById && !document.all;
-			var obj = JaSper.event.source(e);
-
-			document.getElementById('origen').innerHTML = obj;
-			document.getElementById('destino').innerHTML = $(this).destinoEvento(e);
-			document.getElementById('evento').innerHTML = $(this).nombreEvento(e);
-
-			newLeft = moz ? evt.clientX : event.clientX;
-			newTop = moz ? evt.clientY : event.clientY;
-
-			// Posicionamos el objeto en las nuevas coordenadas y aplicamos unas desviaciones
-			// horizontal y vertical correspondientes a la mitad del ancho y alto del elemento
-			// que movemos para colocar el puntero en el centro de la capa movible.
-			obj.style.left = (newLeft - parseInt(obj.style.width)/2) + 'px';
-			obj.style.top = (newTop - parseInt(obj.style.height)/2) + 'px';
-
-			// Devolvemos false para no realizar ninguna acción posterior
-			return false;
-		};*/
 
 		/* inicia movimiento */
 		var moveStart = function (event, obj){
@@ -304,7 +295,7 @@ JaSper.extend(JaSper.move, {
 		while(objLT = objLT.offsetParent){
 			curleft += objLT.offsetLeft;
 			curtop += objLT.offsetTop;
-	}
+		}
 
 		var pos = new Array();
 		pos['w'] = parseInt(JaSper.css.getStyle(obj, 'width')); //pos['w'] = obj.offsetWidth; //ancho del elemento

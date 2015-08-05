@@ -5,9 +5,9 @@
 	<script type="text/javascript" src="../JaSper.js"></script>
 	<script type="text/javascript"><!--
 	$().debug().ready(function(){
+
 		$('.mueveme').setStyle('cursor', 'pointer').move({
-			shadow: true,
-			//reset: false,
+			reset: false,
 			onMoveEnd: function (ev, oTarget){
 				var aNodos = $('td').nodes;
 
@@ -16,6 +16,18 @@
 				}
 			}
 		});
+
+		$('.lista').setStyle('cursor', 'move').move({
+			shadow: true,
+			container: document.getElementById('ulLista'),
+			restrict: 'y',
+			onMove: function (event, oTarget){
+				//var pos = JaSper.move.posObject(oTarget);
+				//$(this).html(pos['x'] + ' x ' + pos['y']);
+				$(this).html(new Date().getTime());
+			}
+		});
+
 	});
 	--></script>
 	<style type="text/css">
@@ -27,6 +39,9 @@
 	#tablero {clear:both;border:1px solid black;}
 	#tablero tr {background-color:lavender;}
 	#tablero tr td {border:1px solid grey;height:105px;width:105px;}
+
+	ul#ulLista {clear:both;margin-top:10px;width:120px;}
+	ul#ulLista li.lista {border:1px solid grey;height:25px;width:100px;}
 	</style>
 </head>
 <body>
@@ -47,5 +62,12 @@
 		<span class="mueveme verde">mueveme verde</span>
 		<span class="mueveme azul">mueveme azul</span>
 	</div>
+	<ul id="ulLista">
+		<li class="lista">Elemento 1</li>
+		<li class="lista">Elemento 2</li>
+		<li class="lista">Elemento 3</li>
+		<li class="lista">Elemento 4</li>
+		<li class="lista">Elemento 5</li>
+	</ul>
 </body>
 </html>

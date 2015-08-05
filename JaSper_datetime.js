@@ -65,16 +65,16 @@ JaSper.extend(JaSper.prototype, {
 			oTiemposParciales.dia = Math.floor(oTiemposTotales.dia % 30);
 
 			if(oTiemposTotales.seg){
-					oObjs.seg.innerHTML = oTiemposParciales.seg;
-					oCallback(oObjs.seg, oTiemposParciales.seg, 60);
+				oObjs.seg.innerHTML = oTiemposParciales.seg;
+				oCallback(oObjs.seg, oTiemposParciales.seg, 60);
 			}
 			if(oTiemposTotales.min){
-					oObjs.min.innerHTML = oTiemposParciales.min;
-					oCallback(oObjs.min, oTiemposParciales.min, 60);
+				oObjs.min.innerHTML = oTiemposParciales.min;
+				oCallback(oObjs.min, oTiemposParciales.min, 60);
 			}
 			if(oTiemposTotales.hor){
-					oObjs.hor.innerHTML = oTiemposParciales.hor;
-					oCallback(oObjs.hor, oTiemposParciales.hor, 24);
+				oObjs.hor.innerHTML = oTiemposParciales.hor;
+				oCallback(oObjs.hor, oTiemposParciales.hor, 24);
 			}
 			if(oTiemposTotales.dia){
 					oObjs.dia.innerHTML = Math.floor(oTiemposTotales.dia);

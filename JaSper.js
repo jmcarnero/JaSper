@@ -48,102 +48,102 @@ http://www.gnu.org/copyleft/gpl.html*/
 	//funciones estaticas de estilos/CSS (espacio de nombres)
 	JaSper.css = {
 
-			/**
-			 * Añade una clase CSS
-			 *
-			 * @since 2011-09-07
-			 * @param {object} oElem Objeto al que añadir la clase
-			 * @param {string} cName Nombre de la clase
-			 */
-			addClass: function (oElem, cName){
-				if(typeof cName === "string"){
-					if(oElem.className.indexOf(cName) == -1)
-						oElem.className += ' ' + cName; 
-				}
-			},
-
-			/**
-			 * recupera una regla css de document o del elemento pasado
-			 */
-			getStyle: function (elem, cssRule){
-				elem = (!elem)?document.defaultView:elem; 
-				var sRet = '';
-				if(elem.nodeType == 1){
-					if(document.defaultView && document.defaultView.getComputedStyle) sRet = document.defaultView.getComputedStyle(elem, "")[cssRule]; //Firefox
-					else if(elem.currentStyle) sRet = elem.currentStyle[cssRule]; //IE
-					else sRet = elem.style[cssRule]; //try and get inline style
-				}
-				return sRet;
-			},
-
-			/**
-			 * Busca y guarda el valor original de una propiedad CSS de un elemento y lo guarda como propiedad del propio elemento
-			 * ej.:si se busca oDOMElem.style.display, se guardaria como oDOMElem.JaSper.original.display
-			 *
-			 * @param {object} oDOMElem Objeto DOM
-			 * @param {string} sProp Propiedad CSS
-			 * @return {string}
-			 */
-			original: function (oDOMElem, sProp){
-				if(!sProp)
-					return null;
-
-				var oExtend = JaSper.nodo.extend(oDOMElem);
-				oExtend.css = oExtend.css || {};
-				oExtend.css.original = oExtend.css.original || {};
-
-				if(!oExtend.css.original[sProp]){
-					var sActDisplay = JaSper.css.getStyle(oDOMElem, sProp);
-
-					switch(sProp){
-						case 'display':
-							if(oDOMElem.style.display == 'none' || !oDOMElem.style.display){
-								var oElem = document.createElement(oDOMElem.nodeName);
-								JaSper(document.body).append(oElem);
-
-								oExtend.css.original[sProp] = JaSper.css.getStyle(oElem, sProp);
-
-								JaSper(document.body).remove(oElem);
-							}
-							oExtend.css.original[sProp] = oExtend.css.original[sProp] || (sActDisplay != 'none' ? sActDisplay : '');
-							break;
-						default:
-							oExtend.css.original[sProp] = sActDisplay;
-					}
-				}
-
-				JaSper.nodo.extend(oDOMElem, oExtend);
-
-				return oExtend.css.original[sProp];
-			},
-
-			/**
-			 * Elimina una clase CSS
-			 *
-			 * @since 2011-09-07
-			 * @param {object} oElem Objeto al que añadir la clase
-			 * @param {string} cName Nombre de la clase
-			 */
-			removeClass: function(oElem, cName){
-				if(typeof cName === "string"){
-					if(oElem.className.indexOf(cName) > -1)
-						oElem.className = oElem.className.substr(0, oElem.className.indexOf(cName) - 1) + oElem.className.substr(oElem.className.indexOf(cName) + cName.length);
-				}
-			},
-
-			/**
-			 * pone una regla css de document o del elemento pasado al valor pasado
-			 */
-			setStyle: function (elem, cssRule, value){
-				elem = (!elem)?document.defaultView:elem; 
-
-				if(elem.nodeType == 1){
-					//elem.style.cssText = value;
-					elem.style[cssRule] = value;
-					return true;
-				}
-				return false;
+		/**
+		 * Añade una clase CSS
+		 *
+		 * @since 2011-09-07
+		 * @param {object} oElem Objeto al que añadir la clase
+		 * @param {string} cName Nombre de la clase
+		 */
+		addClass: function (oElem, cName){
+			if(typeof cName === "string"){
+				if(oElem.className.indexOf(cName) == -1)
+					oElem.className += ' ' + cName; 
 			}
+		},
+
+		/**
+		 * recupera una regla css de document o del elemento pasado
+		 */
+		getStyle: function (elem, cssRule){
+			elem = (!elem)?document.defaultView:elem; 
+			var sRet = '';
+			if(elem.nodeType == 1){
+				if(document.defaultView && document.defaultView.getComputedStyle) sRet = document.defaultView.getComputedStyle(elem, "")[cssRule]; //Firefox
+				else if(elem.currentStyle) sRet = elem.currentStyle[cssRule]; //IE
+				else sRet = elem.style[cssRule]; //try and get inline style
+			}
+			return sRet;
+		},
+
+		/**
+		 * Busca y guarda el valor original de una propiedad CSS de un elemento y lo guarda como propiedad del propio elemento
+		 * ej.:si se busca oDOMElem.style.display, se guardaria como oDOMElem.JaSper.original.display
+		 *
+		 * @param {object} oDOMElem Objeto DOM
+		 * @param {string} sProp Propiedad CSS
+		 * @return {string}
+		 */
+		original: function (oDOMElem, sProp){
+			if(!sProp)
+				return null;
+
+			var oExtend = JaSper.nodo.extend(oDOMElem);
+			oExtend.css = oExtend.css || {};
+			oExtend.css.original = oExtend.css.original || {};
+
+			if(!oExtend.css.original[sProp]){
+				var sActDisplay = JaSper.css.getStyle(oDOMElem, sProp);
+
+				switch(sProp){
+					case 'display':
+						if(oDOMElem.style.display == 'none' || !oDOMElem.style.display){
+							var oElem = document.createElement(oDOMElem.nodeName);
+							JaSper(document.body).append(oElem);
+
+							oExtend.css.original[sProp] = JaSper.css.getStyle(oElem, sProp);
+
+							JaSper(document.body).remove(oElem);
+						}
+						oExtend.css.original[sProp] = oExtend.css.original[sProp] || (sActDisplay != 'none' ? sActDisplay : '');
+						break;
+					default:
+						oExtend.css.original[sProp] = sActDisplay;
+				}
+			}
+
+			JaSper.nodo.extend(oDOMElem, oExtend);
+
+			return oExtend.css.original[sProp];
+		},
+
+		/**
+		 * Elimina una clase CSS
+		 *
+		 * @since 2011-09-07
+		 * @param {object} oElem Objeto al que añadir la clase
+		 * @param {string} cName Nombre de la clase
+		 */
+		removeClass: function(oElem, cName){
+			if(typeof cName === "string"){
+				if(oElem.className.indexOf(cName) > -1)
+					oElem.className = oElem.className.substr(0, oElem.className.indexOf(cName) - 1) + oElem.className.substr(oElem.className.indexOf(cName) + cName.length);
+			}
+		},
+
+		/**
+		 * pone una regla css de document o del elemento pasado al valor pasado
+		 */
+		setStyle: function (elem, cssRule, value){
+			elem = (!elem)?document.defaultView:elem; 
+
+			if(elem.nodeType == 1){
+				//elem.style.cssText = value;
+				elem.style[cssRule] = value;
+				return true;
+			}
+			return false;
+		}
 
 	}; 
 
@@ -1472,8 +1472,8 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 						var iTipo = _tipo(sProp);
 
 						if(iTipo == 1){
-						oElem[sProp] = oProps[sProp];
-					}
+							oElem[sProp] = oProps[sProp];
+						}
 						else{ //cualquier cosa que no sea propiedad se trata como atributo
 							oElem.setAttribute(sProp, oProps[sProp]);
 						}
@@ -1592,9 +1592,9 @@ JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Ejecuta la funcion pasada cuando se haya cargado todo el arbol DOM
-	 * 
+	 *
 	 * $().ready(function (){[...]});
-	 * 
+	 *
 	 * http://snipplr.com/view.php?codeview&id=6156
 	 *
 	 * @todo eliminar el evento cuando ya no sea necesario

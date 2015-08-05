@@ -142,7 +142,7 @@ JaSper.extend(JaSper.anim, {
 			if(oDOMElem.filters !== undefined) //IE <= 8
 				oDOMElem.filters.item("DXImageTransform.Microsoft.Alpha").opacity = iOpacidad * 100;
 			else
-			oDOMElem.style.opacity = iOpacidad;
+				oDOMElem.style.opacity = iOpacidad;
 		}
 
 		var bFin = JaSper.funcs.setInterval({
@@ -154,7 +154,7 @@ JaSper.extend(JaSper.anim, {
 				if(oDOMElem.filters !== undefined)
 					oDOMElem.filters.item("DXImageTransform.Microsoft.Alpha").opacity = iOpacidad * 100;
 				else
-				oDOMElem.style.opacity = iOpacidad;
+					oDOMElem.style.opacity = iOpacidad;
 		
 				//oDOMElem.style.fontSize = iOpacidad * parseFloat(JaSper.nodo.extend(oDOMElem).css.original.fontSize); //TODO corregir, el cambio de fontSize afectara a todos los elementos contenidos en oDOMElem, que no nocesariamente tendran el mismo tamaño de texto
 
