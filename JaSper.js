@@ -28,7 +28,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  *
  * @author José M. Carnero
  * @since 2010-06-21
- * @version 3.3
+ * @version 3.4
  * @see Al final del archivo estan las extensiones necesarias de prototipos de objetos del sistema (polyfills)
  */
 (function (window, undefined){
@@ -785,7 +785,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 			//si no se pasa ningun selector se usa document
 			sel = sel || document;
 
-			this.version = JaSper.version = 'JaSper v3.3',
+			this.version = JaSper.version = 'JaSper v3.4',
 			this.nodes = this.nodes || [],
 			//this.funcs = {}, //funciones estaticas generales
 			//this.event = {}, //funciones estaticas de eventos
@@ -1551,6 +1551,17 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 
 		return(JaSper.funcs.sprintf.apply(this, trad));
 	};
+
+	//guarda si se esta en un dispositivo con capacidades tactiles
+	//FIXME no es completamente fiable
+	JaSper.tactil = (function (){ //comprueba si estamos con la version minificada o la normal
+		var bTactil = 'ontouchstart' in window
+			|| ('onmsgesturechange' in window || navigator.maxTouchPoints) //ie10
+			|| false;
+
+		return bTactil;
+	})();
+
 
 	//esto convierte el constructor en prototipo, permitira extender JaSper() extendiendo JaSper.prototype
 	JaSper.funcs.init.prototype = JaSper.prototype;

@@ -23,7 +23,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  * Con callbacks de inicio, fin de movimiento y mientras se esta moviendo
  *
  * @author José M. Carnero
- * @version 2.1
+ * @version 2.2
  */
 JaSper.extend(JaSper.prototype, {
 
@@ -37,8 +37,7 @@ JaSper.extend(JaSper.prototype, {
 	move: function (props){
 		props = props || {};
 		props.container = props.container || false; //limita el movimiento del objeto al contendedor en que se encuentra (true es parentNode), pasar como parametro el objeto contenedor (objeto DOM)
-		props.reset = props.reset == undefined ? true : props.reset; //posicion final del objeto: true (devuelve a la posicion de inicio), false (se queda donde se suelte)
-		props.place = props.place || false; //true -> mueve la sombra indicando el lugar que ocupara el elemento cuando se suelte (desplazando su entorno), si reset == false; o false -> se situara sobre los demas (via z-index y position absolute, sin molestar) si reset == false (si no volvera a su lugar original)
+		props.reset = props.reset == undefined ? true : props.reset; //posicion final del objeto: true (devuelve a la posicion de inicio), false (se queda donde se suelte, ocupa el lugar de la sombra si shadow esta puesto)
 		props.shadow = props.shadow || false; //mientras el objeto se mueve pone un objeto sombra con su tamaño en la posicion actual (true), o se mueve sin mover el resto de objetos (false)
 		props.restrict = props.restrict || false; //limita el movimiento del objeto al eje 'x', eje 'y' o sin limites false
 
@@ -47,35 +46,39 @@ JaSper.extend(JaSper.prototype, {
 		props.onMoveEnd = props.onMoveEnd || false; //callback a ejecutar cuando finaliza el movimiento
 		props.onMoveStart = props.onMoveStart || false; //callback a ejecutar cuando se inicia el movimiento
 
-		var JaSperShadow;
+		var oSombra;
+		
+		var oEventos = { //eventos usados en dispositivos tactiles o con puntero
+			inicio: (JaSper.tactil ? 'touchstart' : 'mousedown'), //evento de inicio de movimiento
+			mueve: (JaSper.tactil ? 'touchmove' : 'mousemove'), //evento de movimiento
+			fin: (JaSper.tactil ? 'touchend' : 'mouseup') //evento de final de movimiento
+		};
 
 		var createShadow = function (obj){
-			JaSperShadow = JaSper.nodo.crear(obj.tagName, {
+			oSombra = JaSper.nodo.crear(obj.tagName, {
 				//id: 'JaSper_shadow',
 				innerHTML: '&nbsp',
 				class: obj.className + ' JaSper_shadow'
 			});
-			//JaSperShadow.style = obj.style;
-			//JaSperShadow.className = nodo[1]; //TODO asignar una clase "sombra"?
-			JaSperShadow.style.position = obj.posStyle;
-			JaSperShadow.style.top = obj.offsetTop;
-			JaSperShadow.style.left = obj.offsetLeft;
-			JaSperShadow.style.height = obj.clientHeight;
-			JaSperShadow.style.width = obj.clientWidth;
-			JaSperShadow.style.border = '1px dashed black';
-			JaSperShadow.style.backgroundColor = '#CACACA';
+			//oSombra.style = obj.style;
+			//oSombra.className = nodo[1]; //TODO asignar una clase "sombra"?
+			oSombra.style.position = obj.posStyle;
+			oSombra.style.top = obj.offsetTop;
+			oSombra.style.left = obj.offsetLeft;
+			oSombra.style.height = obj.clientHeight;
+			oSombra.style.width = obj.clientWidth;
+			oSombra.style.border = '1px dashed black';
+			oSombra.style.backgroundColor = '#CACACA';
 
-			obj.parentNode.insertBefore(JaSperShadow, obj.nextSibling);
+			obj.parentNode.insertBefore(oSombra, obj.nextSibling);
 
-			return JaSperShadow;
+			return oSombra;
 		};
 
 		/* finaliza movimiento */
 		var moveEnd = function (event, obj, funcs){
 			JaSper.event.preventDefault(event);
 			JaSper.event.stop(event);
-
-			var oTarget = null, iAntZindex = null;
 
 			if(props.reset){
 				obj.style.left = (obj.posMoveStart['x'] - obj.posMoveStart['mx']) + 'px';
@@ -85,32 +88,26 @@ JaSper.extend(JaSper.prototype, {
 			}
 
 			if(props.shadow){
-				JaSperShadow.parentNode.removeChild(JaSperShadow); //TODO desenganchar del arbol DOM en lugar de borrarlo para no estar continuamente creandolo?
-
 				if(!props.reset){
-					iAntZindex = iAntZindex || obj.style.zIndex;
-					obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
-					oTarget = oTarget || JaSper.move.elementFromPoint(event);
-					obj.style.zIndex = iAntZindex;
-
-					var oAux = oTarget.nextSibling || oTarget;
-					oAux.parentNode.insertBefore(obj, oAux);
-					//oTarget.parentNode.appendChild(obj);
-
 					obj.style.position = obj.posStyle;
+					obj = obj.parentNode.removeChild(obj);
+				
+					oSombra.parentNode.insertBefore(obj, oSombra);
 				}
+
+				oSombra.parentNode.removeChild(oSombra); //TODO desenganchar del arbol DOM en lugar de borrarlo para no estar continuamente creandolo?
 			}
 
 			//devolver el elemento a su nivel
 			obj.style.zIndex -= 10;
 
-			JaSper.event.remove(document, 'mousemove', funcs[0]);
-			JaSper.event.remove(document, 'mouseup', funcs[1]);
+			JaSper.event.remove(document, oEventos.mueve, funcs[0]);
+			JaSper.event.remove(document, oEventos.fin, funcs[1]);
 
 			if(typeof props.onMoveEnd === 'function'){
-				iAntZindex = iAntZindex || obj.style.zIndex;
+				var iAntZindex = obj.style.zIndex;
 				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
-				oTarget = oTarget || JaSper.move.elementFromPoint(event);
+				var oTarget = JaSper.move.elementFromPoint(event);
 				obj.style.zIndex = iAntZindex;
 
 				props.onMoveEnd.call(obj, event, oTarget);
@@ -127,23 +124,23 @@ JaSper.extend(JaSper.prototype, {
 			var oTarget = null, iAntZindex = null;
 
 			if(props.shadow){
-				JaSperShadow = JaSperShadow.parentNode.removeChild(JaSperShadow);
+				oSombra = oSombra.parentNode.removeChild(oSombra);
 
 				iAntZindex = iAntZindex || obj.style.zIndex;
 				obj.style.zIndex = -999; //evita que se detecte como target al elemento que se esta moviendo
 				oTarget = oTarget || JaSper.move.elementFromPoint(event);
 				obj.style.zIndex = iAntZindex;
 
-				var aTargetPos = JaSper.move.posObject(oTarget);
+				var aTargetPos = JaSper.move.posObject(oTarget), iTargetHei = Math.round(aTargetPos['h'] / 2);
 
-				if(pos['y'] < (aTargetPos['y'] + 10)){ //la sombra esta en el extremo superior del objetivo
-					oTarget.parentNode.insertBefore(JaSperShadow, oTarget);
+				if(pos['y'] < (aTargetPos['y'] + iTargetHei)){ //la sombra esta en el extremo superior del objetivo
+					oTarget.parentNode.insertBefore(oSombra, oTarget);
 				}
-				else if(pos['y'] > (aTargetPos['y2'] - 10) && oTarget.nextSibling){ //la sombra esta en el extremo inferior del objetivo
-					oTarget.parentNode.insertBefore(JaSperShadow, oTarget.nextSibling);
+				else if(pos['y'] > (aTargetPos['y2'] - iTargetHei) && oTarget.nextSibling){ //la sombra esta en el extremo inferior del objetivo
+					oTarget.parentNode.insertBefore(oSombra, oTarget.nextSibling);
 				}
 				else{ //la sombra esta en el centro del objetivo
-					oTarget.parentNode.appendChild(JaSperShadow);
+					oTarget.parentNode.appendChild(oSombra);
 				}
 			}
 
@@ -229,12 +226,12 @@ JaSper.extend(JaSper.prototype, {
 			//var funMov = function (e){moveObject(e, obj);}, funFin = function (e){moveEnd(e, obj, [funMov, arguments.callee]);}; //"arguments.calle es imprescindible para poder desregistrar el evento, problemas pasando la definicion de la funcion...
 			var funMov = function (e){moveObject(e, obj);}, funFin = function funFinCall(e){moveEnd(e, obj, [funMov, funFinCall]);};
 
-			JaSper.event.add(document, 'mousemove', funMov);
-			JaSper.event.add(document, 'mouseup', funFin);
+			JaSper.event.add(document, oEventos.mueve, funMov);
+			JaSper.event.add(document, oEventos.fin, funFin);
 		};
 
 		//pone los eventos que lanzaran el movimiento de cada elemento
-		this.eventAdd('mousedown', function (e){moveStart(e, this);}); //TODO eliminar este evento al finalizar el movimiento?
+		this.eventAdd(oEventos.inicio, function (e){moveStart(e, this);}); //TODO eliminar este evento al finalizar el movimiento?
 	}
 
 });
