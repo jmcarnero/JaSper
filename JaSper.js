@@ -1503,11 +1503,15 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			var sExtendProp = 'JaSper'; //nombre de la propiedad que recogera las propiedades extendidas JaSper
 			oDom[sExtendProp] = oDom[sExtendProp] || {};
 
-			//devuelve el extendido actual si no se pide extender mas
-			//si no se ha extendido este objeto DOM con propiedades JaSper devuelve un objeto vacio
-			if(!addObj){
-				return oDom[sExtendProp];
+			if(addObj){
+				for(var a in addObj){
+					oDom[sExtendProp][a] = addObj[a];
+				}
 			}
+
+			//devuelve el extendido actual
+			//si no se ha extendido este objeto DOM con propiedades JaSper devuelve un objeto vacio
+			return oDom[sExtendProp];
 
 			/*function subExtend(obj, props){ //TODO de momento extiende recursivamente objetos, si alguna propiedad contiene un array no sigue esa rama
 				for(var a in props){
@@ -1520,10 +1524,6 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			}
 
 			oDom[sExtendProp] = subExtend(oDom[sExtendProp], addObj);/**/
-
-			for(var a in addObj){
-				oDom[sExtendProp][a] = addObj[a];
-			}
 		}
 
 	};

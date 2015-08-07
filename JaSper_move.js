@@ -23,7 +23,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  * Con callbacks de inicio, fin de movimiento y mientras se esta moviendo
  *
  * @author José M. Carnero
- * @version 2.2
+ * @version 2.3
  */
 JaSper.extend(JaSper.prototype, {
 
@@ -81,8 +81,10 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.stop(event);
 
 			if(props.reset){
-				obj.style.left = (obj.posMoveStart['x'] - obj.posMoveStart['mx']) + 'px';
-				obj.style.top = (obj.posMoveStart['y'] - obj.posMoveStart['my']) + 'px';
+				var oObjProps = JaSper.nodo.extend(obj);
+
+				obj.style.left = (oObjProps.posMoveStart['x'] - oObjProps.posMoveStart['mx']) + 'px';
+				obj.style.top = (oObjProps.posMoveStart['y'] - oObjProps.posMoveStart['my']) + 'px';
 
 				obj.style.position = obj.posStyle;
 			}
@@ -119,7 +121,7 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.preventDefault(event);
 			JaSper.event.stop(event);
 
-			var pos = JaSper.move.posMouse(event); //posicion del raton
+			var pos = JaSper.move.posPuntero(event); //posicion del raton
 
 			var oTarget = null, iAntZindex = null;
 
@@ -153,18 +155,20 @@ JaSper.extend(JaSper.prototype, {
 				props.onMove.call(obj, event, oTarget);
 			}
 
-			var top = obj.posMoveStart['y'] + (props.restrict == 'x' ? 0 : pos['y'] - obj.posMouseInicial['y'] - obj.posMoveStart['my']);
-			var left = obj.posMoveStart['x'] + (props.restrict == 'y' ? 0 : pos['x'] - obj.posMouseInicial['x'] - obj.posMoveStart['mx']);
+			var oObjProps = JaSper.nodo.extend(obj);
+
+			var top = oObjProps.posMoveStart['y'] + (props.restrict == 'x' ? 0 : pos['y'] - oObjProps.posPunteroInicial['y'] - oObjProps.posMoveStart['my']);
+			var left = oObjProps.posMoveStart['x'] + (props.restrict == 'y' ? 0 : pos['x'] - oObjProps.posPunteroInicial['x'] - oObjProps.posMoveStart['mx']);
 
 			//limita el movimiento del objeto a la caja que lo contiene o a la indicada en "container"
 			if(props.container){ //TODO controlar en que direccion se mueve el raton para simplificar hacia donde se limita el movimiento
-				var bottom = obj.posMoveStart['y2']; //top + obj.posMoveStart['h'];
-				var right = obj.posMoveStart['x2']; //left + obj.posMoveStart['w'];
+				var bottom = oObjProps.posMoveStart['y2']; //top + oObjProps.posMoveStart['h'];
+				var right = oObjProps.posMoveStart['x2']; //left + oObjProps.posMoveStart['w'];
 
-				if(top < obj.posMoveStartParent['y']) top = obj.posMoveStartParent['y'];
-				if(left < obj.posMoveStartParent['x']) left = obj.posMoveStartParent['x'];
-				if(bottom > obj.posMoveStartParent['y2']) top = obj.posMoveStartParent['y2'] - obj.posMoveStart['h'];
-				if(right > obj.posMoveStartParent['x2']) left = obj.posMoveStartParent['x2'] - obj.posMoveStart['w'];
+				if(top < oObjProps.posMoveStartParent['y']) top = oObjProps.posMoveStartParent['y'];
+				if(left < oObjProps.posMoveStartParent['x']) left = oObjProps.posMoveStartParent['x'];
+				if(bottom > oObjProps.posMoveStartParent['y2']) top = oObjProps.posMoveStartParent['y2'] - oObjProps.posMoveStart['h'];
+				if(right > oObjProps.posMoveStartParent['x2']) left = oObjProps.posMoveStartParent['x2'] - oObjProps.posMoveStart['w'];
 			}
 
 			obj.style.top = top + 'px';
@@ -198,27 +202,27 @@ JaSper.extend(JaSper.prototype, {
 				createShadow(obj);
 			}
 
-			obj.posMoveStart = JaSper.move.posObject(obj);
-			obj.posMouseInicial = JaSper.move.posMouse(event);
+			JaSper.nodo.extend(obj, {posMoveStart: JaSper.move.posObject(obj)});
+			var oObjProps = JaSper.nodo.extend(obj, {posPunteroInicial: JaSper.move.posPuntero(event)});
 
 			if(props.container){
 				//TODO controlar si container es una cadena de texto o un objeto DOM (de momento debe ser esto ultimo)
-				obj.posMoveStartParent = JaSper.move.posObject(props.container === true ? obj.parentNode : props.container);
+				oObjProps = JaSper.nodo.extend(obj, {posMoveStartParent: JaSper.move.posObject(props.container === true ? obj.parentNode : props.container)});
 
-				obj.parentNode.style.top = obj.posMoveStartParent['y'] + 'px'; //fuerza al contenedor a que conserve su tamaño; cuando los objetos en movimiento cambian a absolute desaparece el hueco y cambia el tamaño del parent
-				obj.parentNode.style.left = obj.posMoveStartParent['x'] + 'px';
-				obj.parentNode.style.width = obj.posMoveStartParent['w'] + 'px';
-				obj.parentNode.style.height = obj.posMoveStartParent['h'] + 'px';
+				obj.parentNode.style.top = oObjProps.posMoveStartParent['y'] + 'px'; //fuerza al contenedor a que conserve su tamaño; cuando los objetos en movimiento cambian a absolute desaparece el hueco y cambia el tamaño del parent
+				obj.parentNode.style.left = oObjProps.posMoveStartParent['x'] + 'px';
+				obj.parentNode.style.width = oObjProps.posMoveStartParent['w'] + 'px';
+				obj.parentNode.style.height = oObjProps.posMoveStartParent['h'] + 'px';
 			}
 
 			//TODO de momento solo mueve con position:absolute
 			obj.posStyle = obj.style.position;
 			obj.style.position = 'absolute';
 
-			obj.style.top = (obj.posMoveStart['y'] - obj.posMoveStart['my']) + 'px';
-			obj.style.left = (obj.posMoveStart['x'] - obj.posMoveStart['mx']) + 'px';
-			obj.style.width = obj.posMoveStart['w'] + 'px';
-			obj.style.height = obj.posMoveStart['h'] + 'px';
+			obj.style.top = (oObjProps.posMoveStart['y'] - oObjProps.posMoveStart['my']) + 'px';
+			obj.style.left = (oObjProps.posMoveStart['x'] - oObjProps.posMoveStart['mx']) + 'px';
+			obj.style.width = oObjProps.posMoveStart['w'] + 'px';
+			obj.style.height = oObjProps.posMoveStart['h'] + 'px';
 
 			//poner el elemento sobre los demas
 			obj.style.zIndex += 10;
@@ -309,16 +313,25 @@ JaSper.extend(JaSper.move, {
 	},
 
 	/* devuelve la posicion del puntero, (array=>["x"] - ["y"]) */
-	posMouse: function (event){
+	//TODO devolver tanto tactil como no tactil, para permitir movimiento con raton y dedo en dispositivos tactiles
+	posPuntero: function (event){
 		var pos = new Array();
-		if(navigator.userAgent.toLowerCase().indexOf("msie") >= 0){
-			/* document.body.clientLeft/clientTop es el tamaño del borde (usualmente 2px) que encierra al documento ya que en IE este no empieza en (0,0) */
-			pos['x'] = window.event.clientX + document.body.clientLeft + document.body.scrollLeft;
-			pos['y'] = window.event.clientY + document.body.clientTop + document.body.scrollTop;
+
+		if(JaSper.tactil){ //posicion en dispositivos tactiles
+			//"changedTouches" guarda la posicion de los puntos tocados (en caso de dispositivos multitactiles cada indice sera un dedo, por ejemplo)
+			pos['x'] = event.changedTouches[0].pageX;
+			pos['y'] = event.changedTouches[0].pageY;
 		}
-		else{
-			pos['x'] = event.clientX + window.pageXOffset;
-			pos['y'] = event.clientY + window.pageYOffset;
+		else{ //posicion con raton o puntero
+			if(navigator.userAgent.toLowerCase().indexOf("msie") >= 0){
+				/* document.body.clientLeft/clientTop es el tamaño del borde (usualmente 2px) que encierra al documento ya que en IE este no empieza en (0,0) */
+				pos['x'] = window.event.clientX + document.body.clientLeft + document.body.scrollLeft;
+				pos['y'] = window.event.clientY + document.body.clientTop + document.body.scrollTop;
+			}
+			else{
+				pos['x'] = event.clientX + window.pageXOffset;
+				pos['y'] = event.clientY + window.pageYOffset;
+			}
 		}
 		return pos;
 	}

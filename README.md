@@ -19,7 +19,7 @@ Módulos incluidos:
 - [Canvas](JaSper_canvas.js) (en desarrollo).
 - [Carrusel de imágenes](JaSper_lightbox.js).
 - [Fechas](JaSper_datetime.js) con cuenta atrás y selector de fechas.
-- [Movimiento de objetos](JaSper_move.js) con callbacks de inicio, fin y durante el movimiento; información del objeto bajo el movimiento.
+- [Movimiento de objetos](JaSper_move.js) con callbacks de inicio, fin y durante el movimiento; información del objeto bajo el movimiento; dispositivos táctiles.
 - [Validación de formularios](JaSper_formazo.js) con previsualizacion de imágenes a subir.
 - [Valoración](JaSper_rating.js) con estrellas, en desarrollo con barras.
 
@@ -60,7 +60,7 @@ Modules included:
 - [Dates](JaSper_datetime.js) with countdown and date picker.
 - [Forms validation](JaSper_formazo.js) with upload image preview.
 - [Image carousel](JaSper_lightbox.js).
-- [Object movement](JaSper_move.js) with movement start callback, end movement callback and in move callback; under mouse object information.
+- [Object movement](JaSper_move.js) with movement start callback, end movement callback and in move callback; under mouse object information; touch devices.
 - [Rating](JaSper_rating.js) with stars, bars in development.
 
 *Example:*
@@ -77,4 +77,3 @@ $(document).debug().ready(function(){
 _Tested on Firefox_.
 
 _Also works on Chrome and IE_.
-
