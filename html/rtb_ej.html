@@ -1,0 +1,28 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
+<head>
+	<title>Ejemplo de uso de Rich Text Box</title>
+	<link rel="stylesheet" type="text/css" media="screen,projection" href="../css/JaSper_rtb.css" />
+	<script type="text/javascript" src="../JaSper.js"></script>
+	<script type="text/javascript">
+	<!--
+		$().ready(function(){
+			$('.rtb').debug().rtb();
+		});
+	-->
+	</script>
+	<style type="text/css">
+		input[type='text'], textarea {width:240px;height:240px;}
+	</style>
+</head>
+<body>
+	<h1>pruebas RTB</h1>
+	<p>texto 1:<br /><textarea id="tb1" class="rtb"></textarea></p>
+	<br />
+	<p>checkbox:<br /><input id="cb1" type='checkbox' class="rtb" /></p>
+	<br />
+	<p>texto 2:<br /><textarea id="tb2" class="rtb">&lt;strong&gt;prueba&lt;/strong&gt; de &lt;em&gt;texto&lt;/em&gt;</textarea></p>
+	<br />
+	<p>texto 3:<br /><input id="it1" type='text' class="rtb" value='input text' /></p>
+</body>
+</html>

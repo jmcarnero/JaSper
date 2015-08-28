@@ -22,6 +22,7 @@ Módulos incluidos:
 - [Movimiento de objetos](JaSper_move.js) con callbacks de inicio, fin y durante el movimiento; información del objeto bajo el movimiento; dispositivos táctiles.
 - [Validación de formularios](JaSper_formazo.js) con previsualizacion de imágenes a subir.
 - [Valoración](JaSper_rating.js) con estrellas, en desarrollo con barras.
+- [Editor de texto enriquecido](JaSper_rtb.js) (en desarrollo).
 
 *Ejemplo:*
 ```javascript
@@ -55,13 +56,14 @@ _También funciona en Chrome e IE_.
 Modules included:
 
 - [AJAX](JaSper_ajax.js) with start callback, end callback and fail callback.
-- [Canvas](JaSper_canvas.js)  (draft version).
+- [Canvas](JaSper_canvas.js) (draft version).
 - [CSS animations](JaSper_anim.js).
 - [Dates](JaSper_datetime.js) with countdown and date picker.
 - [Forms validation](JaSper_formazo.js) with upload image preview.
 - [Image carousel](JaSper_lightbox.js).
 - [Object movement](JaSper_move.js) with movement start callback, end movement callback and in move callback; under mouse object information; touch devices.
 - [Rating](JaSper_rating.js) with stars, bars in development.
+- [Rich text box](JaSper_rtb.js) (draft version).
 
 *Example:*
 ```javascript
