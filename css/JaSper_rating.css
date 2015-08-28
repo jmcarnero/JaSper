@@ -1,4 +1,4 @@
-.JaSperRating {display:block;width:150px;height:30px;margin:0px;padding:0px;background: url('../imgs/rating_stars.png') top left repeat-x;}
-.JaSperRating_inactive {width:30px;height:30px;margin:0px;padding:0px;position:absolute;}
-.JaSperRating_over {width:30px;height:30px;margin:0px;padding:0px;position:absolute;background: url('../imgs/rating_stars.png') left center;}
-.JaSperRating_active {width:30px;height:30px;margin:0px;padding:0px;position:absolute;background: url('../imgs/rating_stars.png') left bottom;}
+.JaSper_rating {display:block;width:150px;height:30px;margin:0px;padding:0px;background: url('../imgs/JaSper_rating_stars.png') top left repeat-x;}
+.JaSper_rating_inactive {width:30px;height:30px;margin:0px;padding:0px;position:absolute;}
+.JaSper_rating_over {width:30px;height:30px;margin:0px;padding:0px;position:absolute;background: url('../imgs/JaSper_rating_stars.png') left center;}
+.JaSper_rating_active {width:30px;height:30px;margin:0px;padding:0px;position:absolute;background: url('../imgs/JaSper_rating_stars.png') left bottom;}

@@ -1441,7 +1441,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 
 			function _tipo(sTipo){ //devuelve si es atributo (0) o propiedad (1) o nada (-1)
 				sTipo = sTipo || null;
-				var iRet = -1, aTipos = {'innerHTML' : 1, 'style' : 2};
+				var iRet = -1, aTipos = {className: 1, innerHTML: 1, style: 2};
 
 				if(aTipos[sTipo]){
 					if(aTipos[sTipo] == 2){ //algunos atributos pueden comportarse como propiedades; "style" si es un objeto es propiedad y no atributo
@@ -1850,10 +1850,10 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	insertAfter: function (nodo){
+		var elem = nodo;
 		if(JaSper.funcs.isArray(nodo)){
 			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[1], id: nodo[1]}); //TODO id -> no repetir
 		}
-		else elem = nodo;
 
 		this.each(function (el){
 			/*if (tn.lastChild) tn.insertBefore(e, tn.lastChild);

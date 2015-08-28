@@ -54,7 +54,7 @@ JaSper.extend(JaSper.prototype, {
 
 		if(typeof properties !== 'object') var properties = {};
 
-		properties.classPrefix = properties.classPrefix || 'JaSperRating'; //prefijo para los nombres de las clases css; tambien se asigna esto como nombre de clase a todos los elementos seleccionados
+		properties.classPrefix = properties.classPrefix || 'JaSper_rating'; //prefijo para los nombres de las clases css; tambien se asigna esto como nombre de clase a todos los elementos seleccionados
 		properties.classInactive = properties.classPrefix + (properties.classInactive || '_inactive'); //clase css para estrellas inactivas
 		properties.classOver = properties.classPrefix + (properties.classOver || '_over'); //clase css para estrellas con el puntero encima (pero no marcadas)
 		properties.classActive = properties.classPrefix + (properties.classActive || '_active'); //clase css para estrellas marcadas

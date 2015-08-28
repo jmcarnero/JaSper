@@ -333,6 +333,7 @@ JaSper.extend(JaSper.move, {
 				pos['y'] = event.clientY + window.pageYOffset;
 			}
 		}
+
 		return pos;
 	}
 
