@@ -53,7 +53,7 @@ JaSper.extend(JaSper.langs, {
  *
  * @author José M. Carnero
  * @since 2012-05-15
- * @version 1.0b
+ * @version 1.0
  */
 
 JaSper.extend(JaSper.prototype, {
@@ -96,10 +96,11 @@ JaSper.extend(JaSper.prototype, {
 
 		//inicializando
 		this.each(function (){
-			var sTagName = this.tagName ? this.tagName.toLowerCase() : '', sType = this.type ? this.type.toLowerCase() : '';
+			var oOriginal = this; //referencia a conservar para eventos
+			var sOriginalTagName = oOriginal.tagName ? oOriginal.tagName.toLowerCase() : '', sOriginalType = oOriginal.type ? oOriginal.type.toLowerCase() : '';
 
-			var tipoTag = (sTagName == 'input' && sType == 'text') ? 'text' : ((sTagName == 'textarea' && sType == 'textarea') ? 'textarea' : false); //comprueba si se puede aplicar rtb sobre el elemento
-			if(!tipoTag){
+			var sOriginalTipoCont = (sOriginalTagName == 'input' && sOriginalType == 'text') ? 'value' : ((sOriginalTagName == 'textarea' && sOriginalType == 'textarea') ? 'value' : false); //Que propiedad almacenara el contenido enriquecido //TODO otros tipos permitidos?
+			if(!sOriginalTipoCont){
 				JaSper.log('[JaSper::rtb] No se soportan elementos [' + this.toString() + '].', 0);
 				return;
 			}
@@ -115,7 +116,7 @@ JaSper.extend(JaSper.prototype, {
 				className: 'JaSper_rtb contenedor'
 			}); //contenedor
 			cont.style.width = thisX + 'px';
-			cont.style.height = (tipoTag == 'text')?'':thisY + 'px';
+			cont.style.height = thisY + 'px';
 
 			var edit = JaSper.nodo.crear('div', {
 				id: this.id + '_rtb_div',
@@ -126,7 +127,7 @@ JaSper.extend(JaSper.prototype, {
 				return false;
 			}
 			edit.style.height = (thisY - 18) + 'px';
-			edit.innerHTML = JaSper.rtb.decode_entities(tipoTag == 'text' ? this.value : this.innerHTML);
+			edit.innerHTML = JaSper.rtb.decode_entities(this[sOriginalTipoCont]);
 			edit.innerHTML = (edit.innerHTML == '' ? '<br />'  : edit.innerHTML); //si no, pinta un cursor que ocupa todo el alto a la izquierda
 			edit.spellcheck || false;
 			edit.styleWithCSS = false; //sin esto se crean estilos en linea
@@ -152,10 +153,8 @@ JaSper.extend(JaSper.prototype, {
 			cont.appendChild(toolbar);
 			cont.appendChild(edit);
 
-			var oOriginal = this;
-			JaSper.event.add(edit, 'blur', function (){ //FIXME no esta guardando correctamente en el elemento del formulario
-				if(tipoTag == 'text') oOriginal.value = this.innerHTML;
-				else oOriginal.innerHTML = this.innerHTML;
+			JaSper.event.add(edit, 'blur', function (){
+				oOriginal[sOriginalTipoCont] = this.innerHTML;
 			});
 		
 			this.parentNode.insertBefore(cont, this.nextSibling);
