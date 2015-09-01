@@ -62,9 +62,12 @@ JaSper.extend(JaSper.prototype, {
 	 * editor Rich Text Box
 	 * 
 	 * @since 2011-05-31
-	 * @return object
+	 * @param {object} oPreferencias Preferencias: botones -> array de botones que se mostraran
+	 * @return {object}
 	 */
-	rtb: function (){
+	rtb: function (oPreferencias){
+		oPreferencias = oPreferencias || {};
+
 		var oBotones = {
 			bgcolor: {comando: false, css: null, nombre: JaSper._t('Background Color'), tags: [], tecla: ''},
 			bold: {comando: 'bold', css: {'font-weight' : 'bold'}, nombre: JaSper._t('Bold'), tags: ['B','STRONG'], tecla: 'b'},
@@ -91,8 +94,9 @@ JaSper.extend(JaSper.prototype, {
 			ul: {comando: 'insertunorderedlist', css: null, nombre: JaSper._t('Insert Unordered List'), tags: ['UL'], tecla: ''},
 			underline: {comando: 'Underline', css: {'text-decoration' : 'underline'}, nombre: JaSper._t('Underline'), tags: ['U'], tecla: 'u'},
 			unlink: {comando: false, css: null, nombre: JaSper._t('Unlink'), tags: [], tecla: ''}
-		},
-		aBotonesLista = ['bold','italic','underline','left','center','right','justify','ol','ul','fontSize','fontFamily','fontFormat','indent','outdent','image','link','unlink','forecolor','bgcolor'];
+		};
+
+		var aBotonesLista = oPreferencias.botones || ['bold','italic','underline','left','center','right','justify','ol','ul','fontSize','fontFamily','fontFormat','indent','outdent','image','link','unlink','forecolor','bgcolor'];
 
 		//inicializando
 		this.each(function (){
@@ -116,7 +120,7 @@ JaSper.extend(JaSper.prototype, {
 				className: 'JaSper_rtb contenedor'
 			}); //contenedor
 			cont.style.width = thisX + 'px';
-			cont.style.height = thisY + 'px';
+			cont.style.minHeight = thisY + 'px';
 
 			var edit = JaSper.nodo.crear('div', {
 				id: this.id + '_rtb_div',
@@ -144,7 +148,7 @@ JaSper.extend(JaSper.prototype, {
 				//si se hace en onclick se pierde el foco del elemento editable y no funciona; onmouseout debe devolver o anular el evento para que no se pierda el foco del elemento editable
 				var sTemp = '<div class="JaSper_rtb button ' + aBotonesLista[i] + '" title="' + oBoton.nombre + '" ';
 				sTemp += 'onmousedown="JaSper.rtb.command(\'' + edit.id + '\', \'' + oBoton.comando + '\', null);return false;">';
-				sTemp += oBoton.tecla;
+				sTemp += oBoton.tecla || '&nbsp;';
 				sTemp += '</div>';
 
 				toolbar.innerHTML += sTemp;
