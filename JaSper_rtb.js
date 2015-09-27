@@ -28,7 +28,6 @@ JaSper.extend(JaSper.langs, {
 	'Font Format': 'Formato de fuente',
 	'Foreground Color': 'Color',
 	'Horizontal Rule': 'Línea horizontal',
-	'See HTML': 'Ver HTML',
 	'Image': 'Imagen',
 	'Indent Text': 'Indentar',
 	'Italic': 'Cursiva',
@@ -36,15 +35,19 @@ JaSper.extend(JaSper.langs, {
 	'Left Align': 'Alinear izquierda',
 	'Link': 'Enlace',
 	'Insert Ordered List': 'Insertar lista numerada',
+	'Redo': 'Rehacer',
 	'Remove Indent': 'Quitar indentación',
 	'Remove Formatting': 'Quitar formato',
 	'Right Align': 'Alinear derecha',
 	'Strike Through': 'Tachar',
+	'See code': 'Ver código',
 	'Subscript': 'Subíndice',
 	'Superscript': 'Superíndice',
 	'Insert Unordered List': 'Insertar lista',
 	'Underline': 'Subrayar',
-	'Unlink': 'Quitar enlace'}
+	'Undo': 'Deshacer',
+	'Unlink': 'Quitar enlace',
+	'XHTML mode': 'Modo XHTML'}
 });
 
 /**
@@ -53,10 +56,81 @@ JaSper.extend(JaSper.langs, {
  *
  * @author José M. Carnero
  * @since 2012-05-15
- * @version 1.0
+ * @version 1.2
  */
 
 JaSper.extend(JaSper.prototype, {
+
+	/**
+	 * Selector de colores
+	 *
+	 * Basado en FlexiColorPicker (licencia MIT) de David Durman
+	 * http://www.daviddurman.com/flexi-color-picker
+	 *
+	 * @since 2015-09-12
+	 */
+	colorPicker: function (){
+
+		var sTipo = (window.SVGAngle || document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1") ? "SVG" : "VML"), slide, picker;
+
+		//barra de colores
+		var oSlide = JaSper.nodo.crear('div', {
+			class: 'JaSper slide wrapper',
+			innerHTML: '<div class="indicator"></div>'
+		});
+		//caja de seleccion
+		var oPicker = JaSper.nodo.crear('div', {
+			class: 'JaSper picker wrapper',
+			innerHTML: '<div class="indicator"></div>'
+		});
+
+		if(sTipo == 'SVG'){
+			if (!document.namespaces['svg']){
+				document.namespaces.add('svg', 'urn:http://www.w3.org/2000/svg', '');
+			}
+
+			JaSper.nodo.crear('div', {}, oSlide, [
+				JaSper.nodo.crear('svg', {
+					xmlns: 'http://www.w3.org/2000/svg',
+					version: '1.1',
+					innerHTML: '<defs><linearGradient id="gradient-hsv" x1="0%" y1="100% x2="0%" y2="0%"><stop offset="0%" stop-color="#FF0000" stop-opacity="1" /><stop offset="13%" stop-color="#FF00FF" stop-opacity="1" /><stop offset="25%" stop-color="#8000FF" stop-opacity="1" /><stop offset="38%" stop-color="#0040FF" stop-opacity="1" /><stop offset="50%" stop-color="#00FFFF" stop-opacity="1" /><stop offset="63%" stop-color="#00FF40" stop-opacity="1" /><stop offset="75%" stop-color="#0BED00" stop-opacity="1" /><stop offset="88%" stop-color="#FFFF00" stop-opacity="1" /><stop offset="100%" stop-color="#FF0000" stop-opacity="1" /></linearGradient></defs><rect x="0" y="0" width="100%" height="100%" fill="url(#gradient-hsv)" />',
+					style: 'width:100%;height:100%'
+				})
+			]);
+
+			JaSper.nodo.crear('div', {}, oPicker, [
+				JaSper.nodo.crear('svg', {
+					xmlns: 'http://www.w3.org/2000/svg',
+					version: '1.1',
+					innerHTML: '<defs><linearGradient id="gradient-black" x1="0%" y1="100% x2="100%" y2="100%"><stop offset="100%" stop-color="#000000" stop-opacity="1" /><stop offset="100%" stop-color="#CC9A81" stop-opacity="0" /></linearGradient><linearGradient id="gradient-white" x1="0%" y1="100% x2="100%" y2="100%"><stop offset="100%" stop-color="#FFFFFF" stop-opacity="1" /><stop offset="100%" stop-color="#CC9A81" stop-opacity="0" /></linearGradient></defs><rect x="0" y="0" width="100%" height="100%" fill="url(#gradient-white)" /><rect x="0" y="0" width="100%" height="100%" fill="url(#gradient-black)" />',
+					style: 'width:100%;height:100%'
+				})
+			]);
+		}
+		else if(sTipo == 'VML'){
+			if (!document.namespaces['vml']){
+				document.namespaces.add('vml', 'urn:schemas-microsoft-com:vml', '#default#VML');
+			}
+
+			JaSper.nodo.crear('div', {}, oSlide, [
+				JaSper.nodo.crear('div', {
+					innerHTML: '<vml:rect style="position:absolute;top:0;left:0;width:100%;height:100%" stroked="f" filled="t"><vml:fill type="gradient" method="none" angle="0" color="red" color2="red" colors="8519f fuchsia;.25 #8000ff;24903f #0040ff;.5 aqua;41287f #00ff40;.75 #0bed00;57671f yellow"></vml:fill></vml:rect>',
+					style: 'position:relative;width:100%;height:100%'
+				})
+			]);
+
+			JaSper.nodo.crear('div', {}, oPicker, [
+				JaSper.nodo.crear('div', {
+					innerHTML: '<vml:rect style="position:absolute;left:-1px;top:-1px;width:101%;height:101%" stroked="f" filled="t"><vml:fill type="gradient" method="none" angle="270" color="#FFFFFF" opacity="100%" color2="#CC9A81" o:opacity2="0%"></vml:fill></vml:rect><vml:rect style="position: absolute; left: 0px; top: 0px; width: 100%; height: 101%" stroked="f" filled="t"><vml:fill type="gradient" method="none" angle="0" color="#000000" opacity="100%" color2="#CC9A81" o:opacity2="0%"></vml:fill></vml:rect>',
+					style: 'position:relative;width:100%;height:100%'
+				})
+			]);
+		}
+		else{
+			JaSper.log('[JaSper::rtb.colorPicker] No se puede construir.', 1);
+			return false;
+		}
+	},
 
 	/**
 	 * editor Rich Text Box
@@ -69,37 +143,45 @@ JaSper.extend(JaSper.prototype, {
 		oPreferencias = oPreferencias || {};
 
 		var oBotones = {
-			bgcolor: {comando: false, css: null, nombre: JaSper._t('Background Color'), tags: [], tecla: ''},
-			bold: {comando: 'bold', css: {'font-weight' : 'bold'}, nombre: JaSper._t('Bold'), tags: ['B','STRONG'], tecla: 'b'},
-			center: {comando: 'justifycenter', css: null, nombre: JaSper._t('Center Align'), tags: [], tecla: ''},
-			fontSize: {comando: false, css: null, nombre: JaSper._t('Font Size'), tags: [], tecla: ''},
-			fontFamily: {comando: false, css: null, nombre: JaSper._t('Font Family'), tags: [], tecla: ''},
+			backColor: {comando: 'HiliteColor', css: null, nombre: JaSper._t('Background Color'), tags: [], tecla: ''}, //IE usa BackColor (fuera de IE backColor pone color de fondo del elemento entero, no de la seleccion)
+			bold: {comando: 'Bold', css: {'font-weight' : 'bold'}, nombre: JaSper._t('Bold'), tags: ['B','STRONG'], tecla: 'b'},
+			center: {comando: 'JustifyCenter', css: null, nombre: JaSper._t('Center Align'), tags: [], tecla: ''},
+			fontSize: {comando: 'FontSize', css: null, nombre: JaSper._t('Font Size'), tags: [], tecla: ''}, //Changes the font size for the selection or at the insertion point. This requires an HTML font size (1-7) to be passed in as a value argument
+			fontFamily: {comando: 'FontName', css: null, nombre: JaSper._t('Font Family'), tags: [], tecla: ''}, //Changes the font name for the selection or at the insertion point. This requires a font name string ("Arial" for example) to be passed in as a value argument
 			fontFormat: {comando: false, css: null, nombre: JaSper._t('Font Format'), tags: [], tecla: ''},
-			forecolor: {comando: false, css: null, nombre: JaSper._t('Foreground Color'), tags: [], tecla: ''},
-			hr: {comando: 'insertHorizontalRule', css: null, nombre: JaSper._t('Horizontal Rule'), tags: [], tecla: ''},
-			html: {comando: false, css: null, nombre: JaSper._t('See HTML'), tags: [], tecla: ''},
-			image: {comando: false, css: null, nombre: JaSper._t('Image'), tags: false, tecla: ''},
-			indent: {comando: 'indent', css: null, nombre: JaSper._t('Indent Text'), tags: [], tecla: ''},
+			foreColor: {comando: 'ForeColor', css: null, nombre: JaSper._t('Foreground Color'), tags: [], tecla: ''}, //Changes a font color for the selection or at the insertion point. This requires a color value string to be passed in as a value argument
+			hr: {comando: 'InsertHorizontalRule', css: null, nombre: JaSper._t('Horizontal Rule'), tags: [], tecla: ''}, //Inserts a horizontal rule at the insertion point (deletes selection)
+			image: {comando: 'InsertImage', css: null, nombre: JaSper._t('Image'), tags: false, tecla: ''}, //Inserts an image at the insertion point (deletes selection). Requires the image SRC URI string to be passed in as a value argument. The URI must contain at least a single character, which may be a white space. (Internet Explorer will create a link with a null URI value.)
+			indent: {comando: 'Indent', css: null, nombre: JaSper._t('Indent Text'), tags: [], tecla: ''},
 			italic: {comando: 'Italic', css: {'font-style' : 'italic'}, nombre: JaSper._t('Italic'), tags: ['EM','I'], tecla: 'i'},
-			justify: {comando: 'justifyfull', css: null, nombre: JaSper._t('Justify Align'), tags: [], tecla: ''},
-			left: {comando: 'justifyleft', css: null, nombre: JaSper._t('Left Align'), tags: [], tecla: ''},
+			justify: {comando: 'JustifyFull', css: null, nombre: JaSper._t('Justify Align'), tags: [], tecla: ''},
+			left: {comando: 'JustifyLeft', css: null, nombre: JaSper._t('Left Align'), tags: [], tecla: ''},
 			link: {comando: false, css: null, nombre: JaSper._t('Link'), tags: [], tecla: ''},
-			ol: {comando: 'insertorderedlist', css: null, nombre: JaSper._t('Insert Ordered List'), tags: ['OL'], tecla: ''},
-			outdent: {comando: 'outdent', css: null, nombre: JaSper._t('Remove Indent'), tags: [], tecla: ''},
-			removeformat: {comando: 'removeformat', css: null, nombre: JaSper._t('Remove Formatting'), tags: [], tecla: ''},
-			right: {comando: 'justifyright', css: null, nombre: JaSper._t('Right Align'), tags: [], tecla: ''},
-			strikethrough: {comando: 'strikeThrough', css: {'text-decoration' : 'line-through'}, nombre: JaSper._t('Strike Through'), tags: [], tecla: ''},
-			subscript: {comando: 'subscript', css: null, nombre: JaSper._t('Subscript'), tags: ['SUB'], tecla: ''},
-			superscript: {comando: 'superscript', css: null, nombre: JaSper._t('Superscript'), tags: ['SUP'], tecla: ''},
-			ul: {comando: 'insertunorderedlist', css: null, nombre: JaSper._t('Insert Unordered List'), tags: ['UL'], tecla: ''},
+			ol: {comando: 'InsertOrderedList', css: null, nombre: JaSper._t('Insert Ordered List'), tags: ['OL'], tecla: ''},
+			outdent: {comando: 'Outdent', css: null, nombre: JaSper._t('Remove Indent'), tags: [], tecla: ''},
+			redo: {comando: 'Redo', css: null, nombre: JaSper._t('Redo'), tags: [], tecla: ''}, //Redoes the previous undo command
+			removeFormat: {comando: 'RemoveFormat', css: null, nombre: JaSper._t('Remove Formatting'), tags: [], tecla: ''},
+			right: {comando: 'Justifyright', css: null, nombre: JaSper._t('Right Align'), tags: [], tecla: ''},
+			strikeThrough: {comando: 'StrikeThrough', css: {'text-decoration' : 'line-through'}, nombre: JaSper._t('Strike Through'), tags: [], tecla: ''},
+			subscript: {comando: 'Subscript', css: null, nombre: JaSper._t('Subscript'), tags: ['SUB'], tecla: ''},
+			superscript: {comando: 'Superscript', css: null, nombre: JaSper._t('Superscript'), tags: ['SUP'], tecla: ''},
+			ul: {comando: 'InsertUnorderedList', css: null, nombre: JaSper._t('Insert Unordered List'), tags: ['UL'], tecla: ''},
 			underline: {comando: 'Underline', css: {'text-decoration' : 'underline'}, nombre: JaSper._t('Underline'), tags: ['U'], tecla: 'u'},
-			unlink: {comando: false, css: null, nombre: JaSper._t('Unlink'), tags: [], tecla: ''}
+			undo: {comando: 'Undo', css: null, nombre: JaSper._t('Undo'), tags: [], tecla: ''}, //Undoes the last executed command
+			unlink: {comando: false, css: null, nombre: JaSper._t('Unlink'), tags: [], tecla: ''},
+			verCodigo: {comando: 'f:JaSper.rtb.verCodigo', css: null, nombre: JaSper._t('See code'), tags: [], tecla: ''}, //TODO mejorar llamadas a funciones
+			xhtml: {comando: false, css: null, nombre: JaSper._t('XHTML mode'), tags: [], tecla: ''}
 		};
 
-		var aBotonesLista = oPreferencias.botones || ['bold','italic','underline','left','center','right','justify','ol','ul','fontSize','fontFamily','fontFormat','indent','outdent','image','link','unlink','forecolor','bgcolor'];
+		var aBotonesLista = oPreferencias.botones || ['bold', 'italic', 'underline', 'left', 'center', 'right', 'justify', 'ol', 'ul', 'fontSize', 'fontFamily', 'fontFormat', 'indent', 'outdent', 'image', 'link', 'unlink', 'foreColor', 'backColor', 'undo', 'redo', 'removeFormat'];
 
 		//inicializando
 		this.each(function (){
+			if(!this.id){
+				JaSper.log('[JaSper::rtb] No se soportan elementos sin ID.', 1);
+				return false;
+			}
+	
 			var oOriginal = this; //referencia a conservar para eventos
 			var sOriginalTagName = oOriginal.tagName ? oOriginal.tagName.toLowerCase() : '', sOriginalType = oOriginal.type ? oOriginal.type.toLowerCase() : '';
 
@@ -131,10 +213,11 @@ JaSper.extend(JaSper.prototype, {
 				return false;
 			}
 			edit.style.height = (thisY - 18) + 'px';
-			edit.innerHTML = JaSper.rtb.decode_entities(this[sOriginalTipoCont]);
+			//edit.innerHTML = JaSper.rtb.decode_entities(this[sOriginalTipoCont]);
+			edit.innerHTML = this[sOriginalTipoCont];
 			edit.innerHTML = (edit.innerHTML == '' ? '<br />'  : edit.innerHTML); //si no, pinta un cursor que ocupa todo el alto a la izquierda
 			edit.spellcheck || false;
-			edit.styleWithCSS = false; //sin esto se crean estilos en linea
+			edit.styleWithCSS = false; //crea elementos para dar formato, en lugar de estilos en linea
 
 			var toolbar = JaSper.nodo.crear('div', { //barra herramientas
 				innerHTML: '',
@@ -147,7 +230,12 @@ JaSper.extend(JaSper.prototype, {
 
 				//si se hace en onclick se pierde el foco del elemento editable y no funciona; onmouseout debe devolver o anular el evento para que no se pierda el foco del elemento editable
 				var sTemp = '<div class="JaSper_rtb button ' + aBotonesLista[i] + '" title="' + oBoton.nombre + '" ';
-				sTemp += 'onmousedown="JaSper.rtb.command(\'' + edit.id + '\', \'' + oBoton.comando + '\', null);return false;">';
+				if(oBoton.comando.indexOf('f:') !== -1){
+					sTemp += 'onmousedown="JaSper.rtb.command(\'' + edit.id + '\', ' + oBoton.comando.substr(2) + ', null);return false;">';
+				}
+				else{
+					sTemp += 'onmousedown="JaSper.rtb.command(\'' + edit.id + '\', \'' + oBoton.comando + '\', null);return false;">';
+				}
 				sTemp += oBoton.tecla || '&nbsp;';
 				sTemp += '</div>';
 
@@ -160,8 +248,13 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.add(edit, 'blur', function (){
 				oOriginal[sOriginalTipoCont] = this.innerHTML;
 			});
+
+			JaSper.event.add(oOriginal, 'blur', function (){ //cuando se muestra el codigo tambien debe actualizarse la caja de edicion rtb (que estara oculta)
+				edit.innerHTML = oOriginal[sOriginalTipoCont];
+			});
 		
 			this.parentNode.insertBefore(cont, this.nextSibling);
+			cont.insertBefore(this, toolbar.nextSibling);
 		});
 
 	}
@@ -181,24 +274,183 @@ JaSper.extend(JaSper.rtb, {
 		//var oElem = document.getElementById(oElemId);
 		//oElem.focus();
 
-		try{
-			return document.execCommand(sCommand, false, sParamsCommand);
+		if(typeof sCommand === 'function'){
+			sCommand.call(document.getElementById(oElemId));
 		}
-		catch(ex){
-			JaSper.log('[JaSper::rtb.command] No se puede ejecutar el comando [' + sCommand + '] en el elemento [' + oElemId + '].', 1);
-			return false;
+		else{ //si es una cadena de texto es para execCommand
+			try{
+				return document.execCommand(sCommand, false, sParamsCommand);
+			}
+			catch(ex){
+				JaSper.log('[JaSper::rtb.command] No se puede ejecutar el comando [' + sCommand + '] en el elemento [' + oElemId + '].', 1);
+				return false;
+			}
 		}
 	},
 
 	/**
 	 * Convierte entidades (&[...];) en su correspondiente simbolo
 	 */
-	decode_entities: function (text){
-		var result = text
-						.replace(/&lt;/gi, '<')
-						.replace(/&gt;/gi, '>');
+	/*decode_entities: function (text){
+		var result = text.replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
 
 		return result;
+	},*/
+
+	/**
+	 * Si no se pasan parametros devuelve el texto o nodos actualmente seleccionados
+	 * Si se pasan parametros crea una seleccion a partir de lo que reciba, si fin es igual a inicio no hay seleccion sino simplemente la posicion del cursor
+	 *
+	 * @param {object} oNodoIni Nodo de inicio de seleccion
+	 * @param {object} oNodoFin Nodo de fin de seleccion
+	 * @param {object} oSelIni Nodo de fin de seleccion
+	 * @param {object} oSelFin Nodo de fin de seleccion
+	 * @return {object}
+	 */
+	seleccion: function (oNodoIni, oNodoFin, oSelIni, oSelFin){
+		var oSeleccion = window.getSelection();
+
+		if(!oNodoIni){ //devuelve lo actualmente seleccionado
+			var oNodoIni = oSeleccion.anchorNode, oNodoFin = oSeleccion.focusNode;
+			var oSelIni = oSeleccion.anchorOffset, oSelFin = oSeleccion.focusOffset;
+		}
+		else{ //intenta recrear la seleccion pasada
+			var oRango = document.createRange();
+			x = oNodoIni.compareDocumentPosition(oNodoFin);
+
+			if (x == 4 || (x == 0 && oSelIni < oSelFin)){
+				oRango.setStart(oNodoIni, oSelIni);
+				oRango.setEnd(oNodoFin, oSelFin);
+			}else{
+				 oRango.setStart(oNodoFin, oSelFin);
+				 oRango.setEnd(oNodoIni, oSelIni);
+			}
+
+			oSeleccion.removeAllRanges(); 
+			oSeleccion.addRange(oRango);
+		}
+
+		return {
+			nodoIni: oNodoIni,
+			nodoFin: oNodoFin,
+			selIni: oSelIni,
+			selFin: oSelFin
+		};
+	},
+
+	/**
+	 * Alterna entre ver la caja RTB o la caja original (text, textarea, ...)
+	 * Recibe como this la caja RTB
+	 * 
+	 * @since 2015-09-27
+	 * @todo ocultar botones cuando se esta en modo codigo
+	 */
+	verCodigo: function (){
+		var oOriginal = document.getElementById(this.id.substr(0, this.id.indexOf('_rtb_div'))); //id del objeto fuente
+		var oElemDisplay = oOriginal.style.display;
+
+		var sOriginalTagName = oOriginal.tagName ? oOriginal.tagName.toLowerCase() : '', sOriginalType = oOriginal.type ? oOriginal.type.toLowerCase() : '';
+		var sOriginalTipoCont = (sOriginalTagName == 'input' && sOriginalType == 'text') ? 'value' : ((sOriginalTagName == 'textarea' && sOriginalType == 'textarea') ? 'value' : false); //*codigo repetido*
+
+		if(oElemDisplay == 'none'){
+			oOriginal[sOriginalTipoCont] = this.innerHTML;
+
+			this.style.display = oOriginal.style.display;
+			oOriginal.style.display = 'block';
+		}
+		else{
+			this.innerHTML = oOriginal[sOriginalTipoCont];
+
+			oOriginal.style.display = this.style.display;
+			this.style.display = 'block';
+		}
 	}
 
 });
+
+/*
+This code is a IE8 (and below), polyfill for HTML5 Range object's startContainer,
+startOffset, endContainer and endOffset properties.
+https://gist.github.com/Munawwar
+
+function onBtnClick() {
+	var range=window.getSelection().getRangeAt(0);
+	if (range) {
+		console.log(range.startContainer.nodeValue.substr(range.startOffset));
+		console.log(range.startOffset);
+		console.log(range.endContainer.nodeValue.substr(0, range.endOffset));
+		console.log(range.endOffset);
+	}
+}*/
+(function () {
+	function findTextNode(node, text) {
+		//Iterate through all the child text nodes and check for matches
+		//As we go through each text node keep removing the text value (substring) from the beginning of the text variable.
+		do {
+			if(node.nodeType==3) {//Text node
+				var find = node.nodeValue;
+				if (text.length > 0 && text.indexOf(find) === 0 && text !== find) { //text==find is a special case
+					text = text.substring(find.length);
+				} else {
+					//cosole.log(node.nodeValue);
+					return {node: node, offset: text.length}; //nodeInfo
+				}
+			} else if (node.nodeType === 1) {
+				var range = document.body.createTextRange();
+				range.moveToElementText(node);
+				text = text.substring(range.text.length);
+			}
+		} while ((node=node.nextSibling));
+		return null;
+	}
+	/**
+	 * @param {Boolean} startOfSelection Set to true to find the startContainer and startOffset,
+	 * else set to false (to find endContainer and endOffset).
+	 */
+	function getSelectionInfo(range, startOfSelection) {
+		if(!range) return null;
+		var rangeCopy = range.duplicate(), //Create two copies
+			rangeObj = range.duplicate();
+		rangeCopy.collapse(startOfSelection); //If true, go to beginning of the selection else go to the end.
+		var parentElement = rangeCopy.parentElement();
+		//If user clicks the input button without selecting text, then moveToElementText throws an error.
+		if (parentElement instanceof HTMLInputElement) {
+			return null;
+		}
+		//console.log(parentElement.nodeName); //Should return the parent.
+		/* However IE8- cannot have the selection end at the zeroth index of
+		 * the parentElement's first text node.
+		 */
+		rangeObj.moveToElementText(parentElement); //Select all text of parentElement
+		rangeObj.setEndPoint('EndToEnd', rangeCopy); //Move end point to rangeCopy
+		//rangeCopy.text gives you text from parentElement's first character upto rangeCopy.
+		//Now traverse through sibling nodes to find the exact Node and the selection's offset.
+		return findTextNode(parentElement.firstChild, rangeObj.text);
+	}
+	function getIERange() {
+		var range=window.document.selection.createRange(), //Microsoft TextRange Object
+			start = getSelectionInfo(range, true),
+			end = getSelectionInfo(range, false);
+		if (start && end) {
+			return {
+				commonAncestorContainer: range.parentElement(),
+				startContainer: start.node,
+				startOffset: start.offset,
+				endContainer: end.node,
+				endOffset: end.offset
+			};
+		}
+		return null;
+	}
+	if (!window.getSelection && window.document.selection) { //IE8-
+		window.getSelection = function () { //Gets the first range object
+			var range = getIERange();
+			return {
+				rangeCount: range ? 1 : 0,
+				getRangeAt: function () {
+					return range;
+				}
+			};
+		};
+	}
+}());

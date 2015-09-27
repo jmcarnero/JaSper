@@ -1,34 +1,37 @@
 /*contenedores*/
 div.JaSper_rtb.contenedor {/*border:solid 1px red;*/}
-div.JaSper_rtb.toolbar {height:20px;margin:0 !important;border:outset 2px grey;}
+div.JaSper_rtb.toolbar {margin:0 !important;border:outset 2px grey;}
 div.JaSper_rtb.editable {margin:0 !important;border:inset 2px grey;resize:both;overflow:auto;}
 
 /*botones
 la posicion 0 del sprite de botones es un dibujo vacio y transparente*/
-div.JaSper_rtb.button {margin:0 !important;border:1px solid transparent;cursor:pointer;display:inline-block;width:18px;height:18px;background-image:url('../imgs/JaSper_rtb.png');background-repeat:no-repeat;}
+div.JaSper_rtb.button {margin:0 !important;border:1px solid transparent;cursor:pointer;display:inline-block;width:24px;height:24px;background-image:url('../imgs/JaSper_rtb.png');background-repeat:no-repeat;}
 div.JaSper_rtb.button:hover {border:1px dashed grey;}
-div.JaSper_rtb.button.bgcolor {color:transparent;background-position:-54px 0;} div.JaSper_rtb.button.bgcolor:hover {background-position:-54px -18px;} /*posicion 3*/
-div.JaSper_rtb.button.bold {color:transparent;background-position:-72px 0;} div.JaSper_rtb.button.bold:hover {background-position:-72px -18px;} /*posicion 4*/
-div.JaSper_rtb.button.center {color:transparent;background-position:-90px 0;} div.JaSper_rtb.button.center:hover {background-position:-90px -18px;} /*posicion 5*/
+div.JaSper_rtb.button.backColor {color:transparent;background-position:-720px 0;} div.JaSper_rtb.button.backColor:hover {background-position:-720px -24px;} /*p30*/
+div.JaSper_rtb.button.bold {color:transparent;background-position:-384px 0;} div.JaSper_rtb.button.bold:hover {background-position:-384px -24px;} /*p16*/
+div.JaSper_rtb.button.center {color:transparent;background-position:-744px 0;} div.JaSper_rtb.button.center:hover {background-position:-744px -24px;} /*p31*/
 div.JaSper_rtb.button.fontSize {} div.JaSper_rtb.button.fontSize:hover {}
 div.JaSper_rtb.button.fontFamily {} div.JaSper_rtb.button.fontFamily:hover {}
 div.JaSper_rtb.button.fontFormat {} div.JaSper_rtb.button.fontFormat:hover {}
-div.JaSper_rtb.button.forecolor {} div.JaSper_rtb.button.forecolor:hover {}
-div.JaSper_rtb.button.hr {} div.JaSper_rtb.button.hr:hover {}
-div.JaSper_rtb.button.html {color:transparent;background-position:-18 0;} div.JaSper_rtb.button.html:hover {background-position:-18 -18px;} /*posicion 1*/
-div.JaSper_rtb.button.image {color:transparent;background-position:-36px 0;} div.JaSper_rtb.button.image:hover {background-position:-36px -18px;} /*posicion 2*/
-div.JaSper_rtb.button.indent {color:transparent;background-position:-126px 0;} div.JaSper_rtb.button.indent:hover {background-position:-126px -18px;} /*posicion 7*/
-div.JaSper_rtb.button.italic {color:transparent;background-position:-144px 0;} div.JaSper_rtb.button.italic:hover {background-position:-144px -18px;} /*posicion 8*/
-div.JaSper_rtb.button.justify {color:transparent;background-position:-162px 0;} div.JaSper_rtb.button.justify:hover {background-position:-162px -18px;} /*posicion 9*/
-div.JaSper_rtb.button.left {color:transparent;background-position:-180px 0;} div.JaSper_rtb.button.left:hover {background-position:-180px -18px;} /*posicion 10*/
-div.JaSper_rtb.button.link {color:transparent;background-position:-396px 0;} div.JaSper_rtb.button.link:hover {background-position:-396px -18px;} /*posicion 22*/
-div.JaSper_rtb.button.ol {color:transparent;background-position:-198px 0;} div.JaSper_rtb.button.ol:hover {background-position:-198px -18px;} /*posicion 11*/
-div.JaSper_rtb.button.outdent {color:transparent;background-position:-216px 0;} div.JaSper_rtb.button.outdent:hover {background-position:-216px -18px;} /*posicion 12*/
-div.JaSper_rtb.button.removeformat {color:transparent;background-position:-432px 0;} div.JaSper_rtb.button.removeformat:hover {background-position:-432px -18px;} /*posicion 24*/
-div.JaSper_rtb.button.right {color:transparent;background-position:-252px 0;} div.JaSper_rtb.button.right:hover {background-position:-252px -18px;} /*posicion 14*/
-div.JaSper_rtb.button.strikethrough {color:transparent;background-position:-288px 0;} div.JaSper_rtb.button.strikethrough:hover {background-position:-288px -18px;} /*posicion 16*/
-div.JaSper_rtb.button.subscript {color:transparent;background-position:-486px 0;} div.JaSper_rtb.button.subscript:hover {background-position:-486px -18px;} /*posicion 27*/
-div.JaSper_rtb.button.superscript {color:transparent;background-position:-504px 0;} div.JaSper_rtb.button.superscript:hover {background-position:-504px -18px;} /*posicion 28*/
-div.JaSper_rtb.button.ul {color:transparent;background-position:-342px 0;} div.JaSper_rtb.button.ul:hover {background-position:-342px -18px;} /*posicion 19*/
-div.JaSper_rtb.button.underline {color:transparent;background-position:-360px 0;} div.JaSper_rtb.button.underline:hover {background-position:-360px -18px;} /*posicion 20*/
-div.JaSper_rtb.button.unlink {color:transparent;background-position:-414px 0;} div.JaSper_rtb.button.unlink:hover {background-position:-414px -18px;} /*posicion 23*/
+div.JaSper_rtb.button.foreColor {color:transparent;background-position:-720px 0;} div.JaSper_rtb.button.foreColor:hover {background-position:-720px -24px;} /*p30*/
+div.JaSper_rtb.button.hr {color:transparent;background-position:-576px 0;} div.JaSper_rtb.button.hr:hover {background-position:-576px -24px;} /*p24*/
+div.JaSper_rtb.button.image {color:transparent;background-position:-888px 0;} div.JaSper_rtb.button.image:hover {background-position:-888px -24px;} /*p37*/
+div.JaSper_rtb.button.indent {color:transparent;background-position:-672px 0;} div.JaSper_rtb.button.indent:hover {background-position:-672px -24px;} /*p28*/
+div.JaSper_rtb.button.italic {color:transparent;background-position:-408px 0;} div.JaSper_rtb.button.italic:hover {background-position:-408px -24px;} /*p17*/
+div.JaSper_rtb.button.justify {color:transparent;background-position:-768px 0;} div.JaSper_rtb.button.justify:hover {background-position:-768px -24px;} /*p32*/
+div.JaSper_rtb.button.left {color:transparent;background-position:-792px 0;} div.JaSper_rtb.button.left:hover {background-position:-792px -24px;} /*p33*/
+div.JaSper_rtb.button.link {color:transparent;background-position:-936px 0;} div.JaSper_rtb.button.link:hover {background-position:-936px -24px;} /*p39*/
+div.JaSper_rtb.button.ol {color:transparent;background-position:-624px 0;} div.JaSper_rtb.button.ol:hover {background-position:-624px -24px;} /*p26*/
+div.JaSper_rtb.button.outdent {color:transparent;background-position:-696px 0;} div.JaSper_rtb.button.outdent:hover {background-position:-696px -24px;} /*p29*/
+div.JaSper_rtb.button.redo {color:transparent;background-position:-96px 0;} div.JaSper_rtb.button.redo:hover {background-position:-96px -24px;} /*p4*/
+div.JaSper_rtb.button.removeFormat {color:transparent;background-position:-72px 0;} div.JaSper_rtb.button.removeFormat:hover {background-position:-72px -24px;} /*p3*/
+div.JaSper_rtb.button.right {color:transparent;background-position:-816px 0;} div.JaSper_rtb.button.right:hover {background-position:-816px -24px;} /*p34*/
+div.JaSper_rtb.button.strikeThrough {color:transparent;background-position:-456px 0;} div.JaSper_rtb.button.strikeThrough:hover {background-position:-456px -24px;} /*p19*/
+div.JaSper_rtb.button.subscript {color:transparent;background-position:-504px 0;} div.JaSper_rtb.button.subscript:hover {background-position:-504px -24px;} /*p21*/
+div.JaSper_rtb.button.superscript {color:transparent;background-position:-480px 0;} div.JaSper_rtb.button.superscript:hover {background-position:-480px -24px;} /*p20*/
+div.JaSper_rtb.button.ul {color:transparent;background-position:-648px 0;} div.JaSper_rtb.button.ul:hover {background-position:-648px -24px;} /*p27*/
+div.JaSper_rtb.button.underline {color:transparent;background-position:-432px 0;} div.JaSper_rtb.button.underline:hover {background-position:-432px -24px;} /*p18*/
+div.JaSper_rtb.button.undo {color:transparent;background-position:-120px 0;} div.JaSper_rtb.button.undo:hover {background-position:-120px -24px;} /*p5*/
+div.JaSper_rtb.button.unlink {color:transparent;background-position:-960px 0;} div.JaSper_rtb.button.unlink:hover {background-position:-960px -24px;} /*p40*/
+div.JaSper_rtb.button.verCodigo {color:transparent;background-position:-216px 0;} div.JaSper_rtb.button.unlink:hover {background-position:-216px -24px;} /*p8*/
+div.JaSper_rtb.button.xhtml {} div.JaSper_rtb.button.html:hover {} /*p*/

@@ -901,8 +901,8 @@ http://www.gnu.org/copyleft/gpl.html*/
 			return bWindow || bNode || bElement;
 		},
 
-		isArray: function (obj){
-			return Object.prototype.toString.call(obj) == '[object Array]';
+		isArray: function (aElems){
+			return Object.prototype.toString.call(aElems) == '[object Array]';
 		},
 
 		//objetos con propiedades tipo array (array/nodelist)
@@ -1426,18 +1426,23 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 
 		/**
 		 * Crea un elemento HTML (sTag) con las caracteristicas recibicas (oProps)
+		 * Se puede especificar su padre asi como sus hijos
 		 * 
 		 * @todo comprobar si se crea un elemento HTML valido
 		 * @param {string} Tag HTML
 		 * @param {Object} oProps Propiedades del elemento a crear (las claves seran los nombres de las propiedades del elemento)
 		 * @param {Object} oPadre Padre al que adjuntar el nuevo elemento, si no se recibe ninguno el elemento no se adjunta al arbol DOM
+		 * @param {Array} aHijos Uno o mas hijos para este elemento; deben ser elementos DOM, ya existentes (se puede pasar como parametro este mismo metodo construyendo un objeto nuevo)
 		 * @return {Object} El objeto creado
 		 */
-		crear: function (sTag, oProps, oPadre){
-			if(!sTag)
+		crear: function (sTag, oProps, oPadre, aHijos){
+			if(!sTag){
 				return null;
+			}
 
+			sTag = sTag.toLowerCase();
 			var oElem = document.createElement(sTag);
+			//oElem = document.createElementNS('http://www.w3.org/2000/svg', sTag);
 
 			function _tipo(sTipo){ //devuelve si es atributo (0) o propiedad (1) o nada (-1)
 				sTipo = sTipo || null;
@@ -1481,8 +1486,17 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 				}
 			}
 
-			if(oPadre) //si no se adjunta el elemento creado a algun elemento existente (document u otro) no es visible
+			if(oPadre){ //si no se adjunta el elemento creado a algun elemento existente (document u otro) no es visible
 				oPadre.appendChild(oElem);
+			}
+
+			if(aHijos){
+				aHijos = JaSper.funcs.isArray(aHijos) ? aHijos : [aHijos];
+				var iLen = aHijos.length || 0;
+				for(var i = 0; i < iLen; i++){
+					oElem.appendChild(aHijos[i]);
+				}
+			}
 
 			return oElem;
 		},
