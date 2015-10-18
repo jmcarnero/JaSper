@@ -76,35 +76,53 @@ JaSper.extend(JaSper.prototype, {
 		//barra de colores
 		var oSlide = JaSper.nodo.crear('div', {
 			class: 'JaSper slide wrapper',
-			innerHTML: '<div class="indicator"></div>'
+			innerHTML: '<div class="indicator">slide</div>'
 		});
 		//caja de seleccion
 		var oPicker = JaSper.nodo.crear('div', {
 			class: 'JaSper picker wrapper',
-			innerHTML: '<div class="indicator"></div>'
+			innerHTML: '<div class="indicator">picker</div>'
 		});
 
 		if(sTipo == 'SVG'){
-			if (!document.namespaces['svg']){
+			/*if(!document.namespaces['svg']){
 				document.namespaces.add('svg', 'urn:http://www.w3.org/2000/svg', '');
-			}
+			}*/
 
 			JaSper.nodo.crear('div', {}, oSlide, [
-				JaSper.nodo.crear('svg', {
-					xmlns: 'http://www.w3.org/2000/svg',
-					version: '1.1',
-					innerHTML: '<defs><linearGradient id="gradient-hsv" x1="0%" y1="100% x2="0%" y2="0%"><stop offset="0%" stop-color="#FF0000" stop-opacity="1" /><stop offset="13%" stop-color="#FF00FF" stop-opacity="1" /><stop offset="25%" stop-color="#8000FF" stop-opacity="1" /><stop offset="38%" stop-color="#0040FF" stop-opacity="1" /><stop offset="50%" stop-color="#00FFFF" stop-opacity="1" /><stop offset="63%" stop-color="#00FF40" stop-opacity="1" /><stop offset="75%" stop-color="#0BED00" stop-opacity="1" /><stop offset="88%" stop-color="#FFFF00" stop-opacity="1" /><stop offset="100%" stop-color="#FF0000" stop-opacity="1" /></linearGradient></defs><rect x="0" y="0" width="100%" height="100%" fill="url(#gradient-hsv)" />',
-					style: 'width:100%;height:100%'
-				})
+				JaSper.nodo.crear('svg', {xmlns: 'http://www.w3.org/2000/svg', version: '1.1', style: 'width:100%;height:100%;'}, null, [
+					JaSper.nodo.crear('defs', {}, null, [
+						JaSper.nodo.crear('linearGradient', {id: 'gradient-hsv', x1: '0%', y1: '100%', x2: '0%', y2: '0%'}, null, [
+							JaSper.nodo.crear('stop', {offset: '0%', 'stop-color': '#FF0000', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+							JaSper.nodo.crear('stop', {offset: '13%', 'stop-color': '#FF00FF', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+							JaSper.nodo.crear('stop', {offset: '25%', 'stop-color': '#8000FF', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+							JaSper.nodo.crear('stop', {offset: '38%', 'stop-color': '#0040FF', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+							JaSper.nodo.crear('stop', {offset: '50%', 'stop-color': '#00FFFF', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+							JaSper.nodo.crear('stop', {offset: '63%', 'stop-color': '#00FF40', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+							JaSper.nodo.crear('stop', {offset: '75%', 'stop-color': '#0BED00', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+							JaSper.nodo.crear('stop', {offset: '88%', 'stop-color': '#FFFF00', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+							JaSper.nodo.crear('stop', {offset: '100%', 'stop-color': '#FF0000', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+						], 'http://www.w3.org/2000/svg')
+					], 'http://www.w3.org/2000/svg'),
+					JaSper.nodo.crear('rect', {x: '0', y: '0', width: '100%', height: '100%', fill: 'url(#gradient-hsv)'}, null, [], 'http://www.w3.org/2000/svg')
+				], 'http://www.w3.org/2000/svg')
 			]);
 
 			JaSper.nodo.crear('div', {}, oPicker, [
-				JaSper.nodo.crear('svg', {
-					xmlns: 'http://www.w3.org/2000/svg',
-					version: '1.1',
-					innerHTML: '<defs><linearGradient id="gradient-black" x1="0%" y1="100% x2="100%" y2="100%"><stop offset="100%" stop-color="#000000" stop-opacity="1" /><stop offset="100%" stop-color="#CC9A81" stop-opacity="0" /></linearGradient><linearGradient id="gradient-white" x1="0%" y1="100% x2="100%" y2="100%"><stop offset="100%" stop-color="#FFFFFF" stop-opacity="1" /><stop offset="100%" stop-color="#CC9A81" stop-opacity="0" /></linearGradient></defs><rect x="0" y="0" width="100%" height="100%" fill="url(#gradient-white)" /><rect x="0" y="0" width="100%" height="100%" fill="url(#gradient-black)" />',
-					style: 'width:100%;height:100%'
-				})
+				JaSper.nodo.crear('svg', {xmlns: 'http://www.w3.org/2000/svg', version: '1.1', style: 'width:100%;height:100%;'}, null, [
+					JaSper.nodo.crear('defs', {}, null, [
+						JaSper.nodo.crear('linearGradient', {id: 'gradient-black', x1: '0%', y1: '100%', x2: '100%', y2: '100%'}, null, [
+							JaSper.nodo.crear('stop', {offset: '0%', 'stop-color': '#000000', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+							JaSper.nodo.crear('stop', {offset: '100%', 'stop-color': '#CC9A81', 'stop-opacity': '0'}, null, [], 'http://www.w3.org/2000/svg'),
+						], 'http://www.w3.org/2000/svg'),
+						JaSper.nodo.crear('linearGradient', {id: 'gradient-white', x1: '0%', y1: '100%', x2: '100%', y2: '100%'}, null, [
+							JaSper.nodo.crear('stop', {offset: '0%', 'stop-color': '#FFFFFF', 'stop-opacity': '1'}, null, [], 'http://www.w3.org/2000/svg'),
+							JaSper.nodo.crear('stop', {offset: '100%', 'stop-color': '#CC9A81', 'stop-opacity': '0'}, null, [], 'http://www.w3.org/2000/svg'),
+						], 'http://www.w3.org/2000/svg')
+					], 'http://www.w3.org/2000/svg'),
+					JaSper.nodo.crear('rect', {x: '0', y: '0', width: '100%', height: '100%', fill: 'url(#gradient-white)'}, null, [], 'http://www.w3.org/2000/svg'),
+					JaSper.nodo.crear('rect', {x: '0', y: '0', width: '100%', height: '100%', fill: 'url(#gradient-black)'}, null, [], 'http://www.w3.org/2000/svg')
+				], 'http://www.w3.org/2000/svg')
 			]);
 		}
 		else if(sTipo == 'VML'){
@@ -115,14 +133,14 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.nodo.crear('div', {}, oSlide, [
 				JaSper.nodo.crear('div', {
 					innerHTML: '<vml:rect style="position:absolute;top:0;left:0;width:100%;height:100%" stroked="f" filled="t"><vml:fill type="gradient" method="none" angle="0" color="red" color2="red" colors="8519f fuchsia;.25 #8000ff;24903f #0040ff;.5 aqua;41287f #00ff40;.75 #0bed00;57671f yellow"></vml:fill></vml:rect>',
-					style: 'position:relative;width:100%;height:100%'
+					style: 'position:relative;width:100%;height:100%;'
 				})
 			]);
 
 			JaSper.nodo.crear('div', {}, oPicker, [
 				JaSper.nodo.crear('div', {
 					innerHTML: '<vml:rect style="position:absolute;left:-1px;top:-1px;width:101%;height:101%" stroked="f" filled="t"><vml:fill type="gradient" method="none" angle="270" color="#FFFFFF" opacity="100%" color2="#CC9A81" o:opacity2="0%"></vml:fill></vml:rect><vml:rect style="position: absolute; left: 0px; top: 0px; width: 100%; height: 101%" stroked="f" filled="t"><vml:fill type="gradient" method="none" angle="0" color="#000000" opacity="100%" color2="#CC9A81" o:opacity2="0%"></vml:fill></vml:rect>',
-					style: 'position:relative;width:100%;height:100%'
+					style: 'position:relative;width:100%;height:100%;'
 				})
 			]);
 		}
@@ -130,6 +148,12 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.log('[JaSper::rtb.colorPicker] No se puede construir.', 1);
 			return false;
 		}
+
+		this.each(function (){
+			this.parentNode.appendChild(oSlide);
+			this.parentNode.appendChild(oPicker);
+		});
+
 	},
 
 	/**
@@ -173,7 +197,7 @@ JaSper.extend(JaSper.prototype, {
 			xhtml: {comando: false, css: null, nombre: JaSper._t('XHTML mode'), tags: [], tecla: ''}
 		};
 
-		var aBotonesLista = oPreferencias.botones || ['bold', 'italic', 'underline', 'left', 'center', 'right', 'justify', 'ol', 'ul', 'fontSize', 'fontFamily', 'fontFormat', 'indent', 'outdent', 'image', 'link', 'unlink', 'foreColor', 'backColor', 'undo', 'redo', 'removeFormat'];
+		var aBotonesLista = oPreferencias.botones || ['bold', 'italic', 'underline', 'left', 'center', 'right', 'justify', 'ol', 'ul', 'fontSize', 'fontFamily', 'fontFormat', 'indent', 'outdent', 'image', 'link', 'unlink', 'foreColor', 'backColor', 'undo', 'redo', 'removeFormat', 'verCodigo'];
 
 		//inicializando
 		this.each(function (){
