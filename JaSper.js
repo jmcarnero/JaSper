@@ -1433,16 +1433,21 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @param {Object} oProps Propiedades del elemento a crear (las claves seran los nombres de las propiedades del elemento)
 		 * @param {Object} oPadre Padre al que adjuntar el nuevo elemento, si no se recibe ninguno el elemento no se adjunta al arbol DOM
 		 * @param {Array} aHijos Uno o mas hijos para este elemento; deben ser elementos DOM, ya existentes (se puede pasar como parametro este mismo metodo construyendo un objeto nuevo)
+		 * @param {string} sNamespace Espacio de nombres bajo el que crear el elemento
 		 * @return {Object} El objeto creado
 		 */
-		crear: function (sTag, oProps, oPadre, aHijos){
+		crear: function (sTag, oProps, oPadre, aHijos, sNamespace){
 			if(!sTag){
 				return null;
 			}
 
 			sTag = sTag.toLowerCase();
-			var oElem = document.createElement(sTag);
-			//oElem = document.createElementNS('http://www.w3.org/2000/svg', sTag);
+
+			var oElem = null
+			if(sNamespace)
+				oElem = document.createElementNS('http://www.w3.org/2000/svg', sTag);
+			else
+				oElem = document.createElement(sTag);
 
 			function _tipo(sTipo){ //devuelve si es atributo (0) o propiedad (1) o nada (-1)
 				sTipo = sTipo || null;
@@ -2111,7 +2116,8 @@ JaSper.extend(JaSper.prototype, {
 	rating: function (){return(this.loadMethod('rating', arguments));},
 
 	/* Rich Text Box */
-	rtb: function (){return(this.loadMethod('rtb', arguments));},
+	rtb: function (){return(this.loadMethod('rtb', arguments, 'rtb'));},
+	colorPicker: function (){return(this.loadMethod('colorPicker', arguments, 'rtb'));},
 
 	/* Validacion de formularios */
 	validar: function (){return(this.loadMethod('validar', arguments));}
