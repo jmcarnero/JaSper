@@ -22,7 +22,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  *
  * @author José M. Carnero
  * @since 2015-07-07
- * @version 1.0
+ * @version 1.1b
  */
 JaSper.extend(JaSper.prototype, {
 
@@ -38,6 +38,9 @@ JaSper.extend(JaSper.prototype, {
 	lightbox: function (oOps){
 		oOps = oOps || {};
 		oOps.origen = oOps.origen || 'href'; //"href" de un <a> (por defecto)
+		oOps.pie = oOps.pie || 'alt'; //atributo a tomar como pie de la imagen
+		oOps.descripcion = oOps.descripcion || 'longdesc'; //atributo para descripcion larga
+		oOps.exif = oOps.exif || null; //callback que devuelve los datos EXIF
 
 		if(!oOps.contenedor){
 			oOps.contenedor = JaSper.nodo.crear('div' 
@@ -51,9 +54,34 @@ JaSper.extend(JaSper.prototype, {
 		var aImgsSrc = []; //src's de las imagenes, para poder hacer carrusel con ellas
 
 		//imagen dentro del contenedor, ira mostrando los distintos src
-		var oImgStyle = 'height:auto;margin-top:2.5%;max-height:90%;max-width:90%;width:auto;'; //estilos por defecto para las imagenes
-		var oImg = JaSper.nodo.crear('img', {className: 'JaSper_lightbox_img', alt: 'JaSper Lightbox image', src: '', style: oImgStyle});
+		var oImg = JaSper.nodo.crear('img', {
+			className: 'JaSper_lightbox_img', 
+			alt: 'JaSper Lightbox image', 
+			src: '', 
+			style: 'height:auto;margin-top:2.5%;max-height:90%;max-width:90%;width:auto;' //estilos por defecto para las imagenes
+		});
 		oOps.contenedor.appendChild(oImg);
+
+		//pie de imagen y descripcion
+		var oPie = JaSper.nodo.crear('p', {
+			className: 'JaSper_lightbox_img_p',
+			style: 'display:none;' //solo se mostrara si hay texto
+		});
+		oOps.contenedor.appendChild(oPie);
+		function fPie(oObj){ //actualiza la informacion del pie de foto con los atributos indicados
+			var sPie = oObj.getAttribute(oOps.pie), sDescripcion = oObj.getAttribute(oOps.descripcion);
+			if(sPie){
+				oPie.innerHTML = '<strong>' + sPie + '</strong>';
+				if(sDescripcion){
+					oPie.innerHTML += '<br /><span>' + sDescripcion + '</span>';
+				}
+				oPie.style.display = 'block';
+			}
+			else{
+				oPie.style.display = 'none';
+				oPie.innerHTML = '';
+			}
+		}
 
 		//click sobre el contenedor a la vista lo cierra
 		JaSper.event.add(oOps.contenedor, 'click', function (ev){
@@ -69,18 +97,25 @@ JaSper.extend(JaSper.prototype, {
 				iPos = 0;
 			}
 			this.src = aImgsSrc[iPos];
+
+			fPie(this); //FIXME no se muestran correctamente pie y descripcion, ya que este this no es el de la imagen original
 		});
 
 		this.eventAdd('click', function (ev){
-			JaSper.event.preventDefault(ev); //evita que se siga un a cuando las imagenes a mostrar son las de href
+			JaSper.event.preventDefault(ev); //evita que se siga un <a> cuando las imagenes a mostrar son las de href
 			oImg.src = this.getAttribute(oOps.origen);
+
+			fPie(this);
+
 			oOps.contenedor.style.display = 'block'; //TODO hacer con toggle?
 		}).each(function (){
-			if(this.getAttribute(oOps.origen)){
-				var sAttr = this.getAttribute(oOps.origen);
+			var sAttr = this.getAttribute(oOps.origen);
+			if(sAttr){
 				if(aImgsSrc.indexOf(sAttr) < 0){ //no se guardan repetidas
-					aImgsSrc[aImgsSrc.length] = sAttr;
+					oImg.src = sAttr; //si la ruta en codigo es relativa al asignarla al atributo src se convierte en absoluta, al hacer click en la imagen en lightbox no funciona la rotacion de imagenes al no coincidir "aImgsSrc.indexOf(sSrcAct)"
+					aImgsSrc[aImgsSrc.length] = oImg.src;
 				}
+				oImg.src = '';
 				/*var sSrc = this.getAttribute(oOps.origen); //se espera que sea una url de imagen valida
 				var oImg = JaSper.nodo.crear('img', {className: 'JaSper_lightbox_img', alt: 'JaSper Lightbox image', src: sSrc, style: oImgStyle});
 				oOps.contenedor.appendChild(oImg);*/
