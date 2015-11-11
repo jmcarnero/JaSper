@@ -15,8 +15,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
-'use strict';
-
 /**
  * Animaciones de elementos DOM 
  *
@@ -34,6 +32,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	fade: function (oTipo, iMiliSec){
+		'use strict';
+
 		this.each(function (){
 			return JaSper.anim.fade(this, oTipo, iMiliSec);
 		});
@@ -52,6 +52,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	slide: function (sTipo, iMiliSec){
+		'use strict';
+
 		this.each(function (){
 			return JaSper.anim.slide(this, sTipo, iMiliSec);
 		});
@@ -69,6 +71,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	slideToggle: function (iMiliSec){
+		'use strict';
+
 		this.each(function (){
 			//TODO deberia aceptar otros tipos de nodo?
 			if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
@@ -94,6 +98,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	toggle: function (fade){
+		'use strict';
+
 		fade = fade || 0;
 		if(fade) fade = parseInt(fade) || 200; //si no es entero el valor se toma 200 ms
 
@@ -127,6 +133,8 @@ JaSper.anim = {};
 JaSper.extend(JaSper.anim, {
 
 	fade: function (oDOMElem, sTipo, iMiliSec, iIntervalo){
+		'use strict';
+
 		if(oDOMElem.nodeType != 1) return false; //solo nodos tipo ELEMENT_NODE
 
 		iMiliSec = iMiliSec || 300;
@@ -171,6 +179,8 @@ JaSper.extend(JaSper.anim, {
 	 * @todo alternativa a transition (es CSS3)
 	 */
 	slide: function (oDOMElem, sTipo, iMiliSec){
+		'use strict';
+
 		if(oDOMElem.nodeType != 1) return false; //solo nodos tipo ELEMENT_NODE
 
 		iMiliSec = iMiliSec || 0.3;
@@ -200,6 +210,8 @@ JaSper.extend(JaSper.css, {
 	 * @return {bool}
 	 */
 	isValid: function (sProp){
+		'use strict';
+
 		var oStyle = (document.body || document.documentElement).style;
 
 		if(typeof oStyle[sProp] == 'string'){

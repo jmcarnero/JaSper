@@ -15,8 +15,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
-'use strict';
-
 /*traducciones*/
 JaSper.extend(JaSper.langs, {
 "en":{
@@ -75,6 +73,7 @@ cbFail: function (jsf, xhr){return;}, //function Callback a ejecutar cuando fall
 	 * @return {object}
 	 */
 	ajax: function (url, valores, metodo){
+		'use strict';
 
 		if(typeof url === 'object'){
 			var obj = url;
@@ -212,6 +211,8 @@ JaSper.extend(JaSper.ajax, { //IE cachea las respuestas con la misma url; se pue
 	 * @return {object}
 	 */
 	nuevo: function (){
+		'use strict';
+
 		var xmlhttp = false;
 		if(typeof XMLHttpRequest != 'undefined'){ //no IE
 			xmlhttp = new XMLHttpRequest();

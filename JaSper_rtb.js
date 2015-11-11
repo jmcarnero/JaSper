@@ -15,8 +15,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
-'use strict';
-
 /*traducciones*/
 JaSper.extend(JaSper.langs, {
 'es':{
@@ -70,6 +68,7 @@ JaSper.extend(JaSper.prototype, {
 	 * @since 2015-09-12
 	 */
 	colorPicker: function (){
+		'use strict';
 
 		var sTipo = (window.SVGAngle || document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1") ? "SVG" : "VML"), slide, picker;
 
@@ -164,6 +163,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {object}
 	 */
 	rtb: function (oPreferencias){
+		'use strict';
+
 		oPreferencias = oPreferencias || {};
 
 		var oBotones = {
@@ -293,6 +294,8 @@ JaSper.extend(JaSper.rtb, {
 	 * execCommand
 	 */
 	command: function (oElemId, sCommand, sParamsCommand){
+		'use strict';
+
 		sParamsCommand = sParamsCommand || null;
 
 		//var oElem = document.getElementById(oElemId);
@@ -316,6 +319,8 @@ JaSper.extend(JaSper.rtb, {
 	 * Convierte entidades (&[...];) en su correspondiente simbolo
 	 */
 	/*decode_entities: function (text){
+		'use strict';
+
 		var result = text.replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
 
 		return result;
@@ -332,6 +337,8 @@ JaSper.extend(JaSper.rtb, {
 	 * @return {object}
 	 */
 	seleccion: function (oNodoIni, oNodoFin, oSelIni, oSelFin){
+		'use strict';
+
 		var oSeleccion = window.getSelection();
 
 		if(!oNodoIni){ //devuelve lo actualmente seleccionado
@@ -370,6 +377,8 @@ JaSper.extend(JaSper.rtb, {
 	 * @todo ocultar botones cuando se esta en modo codigo
 	 */
 	verCodigo: function (){
+		'use strict';
+
 		var oOriginal = document.getElementById(this.id.substr(0, this.id.indexOf('_rtb_div'))); //id del objeto fuente
 		var oElemDisplay = oOriginal.style.display;
 

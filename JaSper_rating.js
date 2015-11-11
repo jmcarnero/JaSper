@@ -15,12 +15,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
-'use strict';
-
-/*************************************
- * Rating (valoracion por estrellas) *
- *************************************/
-
 /*traducciones*/
 JaSper.extend(JaSper.langs, {
 "en":{
@@ -32,7 +26,8 @@ JaSper.extend(JaSper.langs, {
 });
 
 /**
- * Funciones Rating para JaSper
+ * Funciones Rating (valoracion) para JaSper
+ *
  * Crea barras o estrellas en los elementos seleccionados
  * Requiere "rating_stars.png" y "rating_styles.css"
  *
@@ -51,6 +46,7 @@ JaSper.extend(JaSper.prototype, {
 	 * @param object props Propiedades que recibira
 	 */
 	rating: function (properties){
+		'use strict';
 
 		if(typeof properties !== 'object') var properties = {};
 
@@ -138,6 +134,8 @@ JaSper.extend(JaSper.prototype, {
 	 * 
 	 */
 	/*ratingBars: function (parent_id, id){
+		'use strict';
+
 		var output = '';
 		for(var i=0;i<=100;i++){
 			output += '<div class="w4g_rb_global w4g_rb_col' + i + '" id="w4g_rb_id' + id + i + '" style="margin-left:' + i * 2 + 'px;"';
@@ -153,6 +151,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @param int rating Ultimo div coloreado
 	 */
 	/*ratingBarsUpdate: function (rating, id){
+		'use strict';
+
 		var rating = rating || 50;
 
 		for(var i=0;i <= 100;i++){

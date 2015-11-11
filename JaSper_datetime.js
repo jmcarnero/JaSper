@@ -15,8 +15,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
-'use strict';
-
 /**
  * Funciones de fechas y de tiempo
  * Datepicker
@@ -39,6 +37,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @param {function} fCallback lanza esta funcion para cada parte de tiempo, ej.: para los segundos la lanzara 60 veces por minuto, pasandole como primer parametro el segundo actual (de 1 a 60) y segundo el divisor (en este caso 60, total de segundos); this dentro del callback sera el span correspondiente (en el ej. seria el de segundos)
 	 */
 	countdown: function (iPeriodo, fCallback){
+		'use strict';
+
 		iPeriodo = iPeriodo || Date.now() / 1000 + 100;
 
 		var oCallback = function (oObj, iTiempo, iTotal){
@@ -109,6 +109,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	datePicker: function (props){
+		'use strict';
+
 		props = props || {};
 		props.contenedor = props.contenedor || 'JaSperDatePicker'; //clase CSS del contenedor, tambien usado para data-
 		props.fechaMin = new Date(props.fechaMin || '1970-01-01'); //fecha minima a mostrar
@@ -268,6 +270,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	timePicker: function (props){
+		'use strict';
+
 		props = props || {};
 
 		this.each(function (){
@@ -295,6 +299,8 @@ JaSper.extend(JaSper.datetime, {
 	 * @return {number}
 	 */
 	diasEnMes: function (anio, mes){
+		'use strict';
+
 		if(JaSper.datetime.esFecha(anio)){
 			mes = anio.getMonth();
 			anio = anio.getFullYear();
@@ -314,14 +320,20 @@ JaSper.extend(JaSper.datetime, {
 	//ano bisiesto
 	//Matti Virkkunen: http://stackoverflow.com/a/4881951
 	esBisiesto: function (anio){
+		'use strict';
+
 		return anio % 4 === 0 && anio % 100 !== 0 || anio % 400 === 0;
 	},
 
 	esFecha: function (fecha){
+		'use strict';
+
 		return (/Date/).test(Object.prototype.toString.call(fecha)) && !isNaN(fecha.getTime());
 	},
 
 	esFinde: function (fecha){
+		'use strict';
+
 		var day = fecha.getDay();
 		return day === 0 || day === 6;
 	},

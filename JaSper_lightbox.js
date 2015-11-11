@@ -15,8 +15,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
-'use strict';
-
 /**
  * Muestra detalle de imagenes en pantalla completa
  *
@@ -36,6 +34,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	lightbox: function (oOps){
+		'use strict';
+
 		oOps = oOps || {};
 		oOps.origen = oOps.origen || 'href'; //"href" de un <a> (por defecto)
 		oOps.pie = oOps.pie || 'alt'; //atributo a tomar como pie de la imagen

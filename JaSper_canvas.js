@@ -15,8 +15,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
-'use strict';
-
 /**
  * Funciones para Canvas
  * 
@@ -33,6 +31,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @returns {object}
 	 */
 	canvas: function (){
+		'use strict';
+
 		var callFuncs = function (jasperObj, props){
 			jasperObj.each(function (){
 				if(!JaSper.canvas.valid(this))
@@ -83,6 +83,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @returns boolean
 	 */
 	animate: function (){
+		'use strict';
+
 		//devolver la posicion del raton cuando se hace click en el canvas
 		/*this.addEventListener('click',function(evt){
 			alert(evt.clientX + ',' + evt.clientY);
@@ -118,6 +120,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	add: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 
@@ -151,6 +155,8 @@ JaSper.extend(JaSper.canvas, {
 	//anima un canvas, llamando a esta misma funcion a intervalos regulares (cada frame se redibuja)
 	//TODO finalizar la animacion cuando no haya nada que animar (todos quietos o fuera y sin vuelta) //canvas.JaSperItems.flags.animable = false;
 	animate: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 
@@ -229,6 +235,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	background: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
@@ -256,6 +264,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	boundingBox: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas) || !props.boundingBox)
 			return false;
 		var context = canvas.getContext('2d');
@@ -318,6 +328,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	circle: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
@@ -379,6 +391,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	image: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
@@ -412,6 +426,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	mouseHit: function (oItem, iMouseX, iMouseY){
+		'use strict';
+
 		if(oItem.selected){ //comprobar si se pulsa sobre un ancla
 			var iRad = 5; //radio de anclas //TODO configurable por el usuario y por objeto?
 			var aRotacion = [Math.abs(oItem.boundingBox[4] - iMouseX), Math.abs(oItem.boundingBox[1] - iMouseY)];
@@ -448,6 +464,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	mouseDown: function (ev){
+		'use strict';
+
 		var canvas = JaSper.event.source(ev);
 		if(!JaSper.canvas.valid(canvas))
 			return false;
@@ -614,6 +632,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	move: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 
@@ -645,6 +665,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	path: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
@@ -662,6 +684,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	polygon: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
@@ -734,6 +758,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	redraw: function (canvas){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 
@@ -756,6 +782,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	rotate: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas) || !props)
 			return false;
 		var context = canvas.getContext('2d');
@@ -778,6 +806,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	scale: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas) || !props)
 			return false;
 		var context = canvas.getContext('2d');
@@ -802,6 +832,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	text: function (canvas, props){
+		'use strict';
+
 		if(!JaSper.canvas.valid(canvas))
 			return false;
 		var context = canvas.getContext('2d');
@@ -860,6 +892,8 @@ JaSper.extend(JaSper.canvas, {
 	 * @returns boolean
 	 */
 	valid: function (canvas){
+		'use strict';
+
 		if(typeof canvas !== 'object' || typeof canvas.getContext !== 'function'){
 			JaSper.log('-JaSper::canvas.valid- el objeto no es canvas', 1);
 			return false; //no hace nada para elementos que no sean canvas //TODO mejorar la comprobacion de soporte de canvas

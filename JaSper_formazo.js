@@ -15,12 +15,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
-'use strict';
-
-/*****************************************************
-* Funciones de validacion de formularios para JaSper *
-*****************************************************/
-
 /*traducciones*/
 JaSper.extend(JaSper.langs, {
 "en":{
@@ -69,6 +63,7 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	validar: function(props){
+		'use strict';
 
 		props = props || {};
 		props.clases = props.clases || {};
@@ -248,6 +243,7 @@ JaSper.extend(JaSper.prototype, {
 
 		return this;
 	}
+
 });
 
 JaSper.valida = {};
@@ -262,6 +258,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	bic: function(oBic){
+		'use strict';
+
 		var bRet = true;
 
 		oBic.value = oBic.value.toString().trim() || '';
@@ -284,6 +282,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {string}
 	 */
 	clave: function (oClave, oClave2){
+		'use strict';
+
 		if(!oClave2)
 			return false; //no se comprueba el campo de clave desde el de confirmacion
 
@@ -304,6 +304,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	email: function (oEmail){
+		'use strict';
+
 		var bRet = true, filtro = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
 		oEmail.value = oEmail.value.toString().trim() || '';
 
@@ -327,6 +329,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	fechas: function (oFecha, formato){
+		'use strict';
+
 		if(!formato)
 			formato = 'aaaa-mm-dd hh:mm:ss';
 
@@ -356,6 +360,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	fichero: function (oFichero, extensiones){
+		'use strict';
+
 		var bRet = true;
 
 		oFichero.value = oFichero.value.toString().trim() || '';
@@ -382,6 +388,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	iban: function(oIban){
+		'use strict';
+
 		var bRet = true;
 
 		oIban.value = oIban.value.toString().trim() || '';
@@ -460,6 +468,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	nif: function (oNif){
+		'use strict';
+
 		var bRet = true, mensaje = '';
 
 		oNif.value = (oNif.value.toString().trim() || '').toUpperCase();
@@ -501,6 +511,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	numeros: function (oNumero, menor, mayor){
+		'use strict';
+
 		var bRet = true;
 
 		oNumero.value = oNumero.value.toString().trim() || '';
@@ -530,6 +542,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	obligatorio: function (oCampo){
+		'use strict';
+
 		var bRet = true, text = '';
 
 		//evita problemas con elementos tipo file (por ejemplo), no se puede cambiar su valor
@@ -548,6 +562,8 @@ JaSper.extend(JaSper.valida, {
 
 	/*version para radio buttons*/
 	obligatorioRadio: function (oRadio){
+		'use strict';
+
 		var bRet = true;
 
 		var cnt = -1, objName = oRadio;
@@ -577,6 +593,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	teclasFechas: function (oCampo, ev){
+		'use strict';
+
 		var bRet = false;
 		ev = ev || window.event;
 
@@ -606,6 +624,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	teclasNumeros: function (oCampo, ev, decimal){
+		'use strict';
+
 		var bRet = false;
 		ev = ev || window.event;
 		decimal = typeof(decimal) != 'undefined' ? decimal : true;
@@ -641,6 +661,8 @@ JaSper.extend(JaSper.valida, {
 	 * @return {boolean}
 	 */
 	url: function (oUrl){
+		'use strict';
+
 		var bRet = true;
 		var filtro = /(((ht|f)tp(s?):\/\/)|(www\.[^ [\]()\n\r\t]+)|(([012]?[0-9]{1,2}\.){3}[012]?[0-9]{1,2})\/)([^ [\](),;"'<>\n\r\t]+)([^. [\](),;"'<>\n\r\t])|(([012]?[0-9]{1,2}\.){3}[012]?[0-9]{1,2})/;
 		//var filtro = /((ht|f)tp(s?):\/\/)([^ [\](),;"'<>\n\r\t]+)([^. [\](),;"'<>\n\r\t])/; //fuerza a que haya "http://" (o lo que corresponda) al principio

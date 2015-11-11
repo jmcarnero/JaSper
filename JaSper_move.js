@@ -15,8 +15,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
-'use strict';
-
 /**
  * Funciones de movimiento de objetos
  * (div, p, ...)
@@ -35,6 +33,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return object
 	 */
 	move: function (props){
+		'use strict';
+
 		props = props || {};
 		props.container = props.container || false; //limita el movimiento del objeto al contendedor en que se encuentra (true es parentNode), pasar como parametro el objeto contenedor (objeto DOM)
 		props.reset = props.reset == undefined ? true : props.reset; //posicion final del objeto: true (devuelve a la posicion de inicio), false (se queda donde se suelte, ocupa el lugar de la sombra si shadow esta puesto)
@@ -247,6 +247,8 @@ JaSper.extend(JaSper.move, {
 	//devuelve el elemento sobre el que se encuentra el raton cuando se llama
 	//utiliza un evento de raton que debe contener posicion x e y del raton
 	elementFromPoint: function (mouseEvent){
+		'use strict';
+
 		if(document.elementFromPoint){
 			var x = mouseEvent.clientX, y = mouseEvent.clientY, isRelative = true, iDesp = 0;
 			if((iDesp = JaSper.css.getStyle(document, 'scrollTop')) > 0){
@@ -287,6 +289,8 @@ JaSper.extend(JaSper.move, {
 
 	/* devuelve la posicion del elemento con respecto al documento (top, left, etc.) y su tamaño */
 	posObject: function (obj){
+		'use strict';
+
 		//TODO el tamaño de las cajas no se calcula igual en todos los navegadores
 
 		//http://www.quirksmode.org/js/findpos.html
@@ -315,6 +319,8 @@ JaSper.extend(JaSper.move, {
 	/* devuelve la posicion del puntero, (array=>["x"] - ["y"]) */
 	//TODO devolver tanto tactil como no tactil, para permitir movimiento con raton y dedo en dispositivos tactiles
 	posPuntero: function (event){
+		'use strict';
+
 		var pos = new Array();
 
 		if(JaSper.tactil){ //posicion en dispositivos tactiles

@@ -15,8 +15,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 http://www.gnu.org/copyleft/gpl.html*/
 
-'use strict';
-
 /**
  * Selector de elementos DOM, mediante id, clase, tag, etc. (ver detalles en constructor)
  * 
@@ -32,6 +30,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  * @see Al final del archivo estan las extensiones necesarias de prototipos de objetos del sistema (polyfills)
  */
 (function (window, undefined){
+	'use strict';
 
 	if(window.JaSper) //evita problemas si se carga la libreria varias veces
 		return;
@@ -255,7 +254,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 					}
 
 					if(window.eventTrigger){
-						var old_evt = oElem['on' + sEvento];
+						old_evt = oElem['on' + sEvento];
 						this['on' + sEvento] = function (){
 							if(old_evt) old_evt();
 							window.eventTrigger.call(oElem, sEvento);
@@ -569,7 +568,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 				oElem["e" + sEvento + oFuncion] = null;
 
 				if(window.eventTrigger){
-					var oFuncion = function (){window.eventTrigger.call(oElem, sEvento);};
+					oFuncion = function (){window.eventTrigger.call(oElem, sEvento);};
 					oElem.detachEvent('on' + sEvento, oElem[sEvento + oFuncion]);
 					oElem[sEvento + oFuncion] = null;
 					oElem["e" + sEvento + oFuncion] = null;
@@ -695,11 +694,20 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 			//two loops one for array like objects the other for hash objects
 			//la condicion evita que se usen objetos inexistentes (revisar cuando se añade evento para una id que no existe, y luego se dispara el mismo evento para una id existente, esta dispara ambos ya que el primero se asigna a window)
+			var x = 0, l = 0;
 			if(this.isArrayLike(list)){
 				if(args){
-					for(var x=0,l=list.length;x<l;x++) if(list[x]) callback.apply(list[x], args);
+					for(x = 0, l = list.length; x < l; x++){
+						if(list[x]){
+							callback.apply(list[x], args);
+						}
+					}
 				}else{
-					for(var x=0,l=list.length;x<l;x++) if(list[x]) callback.call(list[x]);
+					for(x = 0, l = list.length; x < l; x++){
+						if(list[x]){
+							callback.call(list[x]);
+						}
+					}
 				}
 			}else{
 				if(args){
@@ -739,16 +747,17 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 		//devuelve elementos filtrados por className, nodo y tag
 		getElementsByClassName: function (clsName, node, tag){
-			node = node || this.context || document,
-			tag = tag || '*';
+			node = node || this.context || document, tag = tag || '*';
+			var els = null;
+
 			//usa funcion nativa si existe, FF3 Safari Opera
 			if(document.getElementsByClassName){
 				if(tag == '*'){
-					var els = node.getElementsByClassName(clsName);
+					els = node.getElementsByClassName(clsName);
 					return els;
 				}else{
 					tag = tag.toUpperCase();
-					var cls = node.getElementsByClassName(clsName),
+					var cls = node.getElementsByClassName(clsName);
 					els = [];
 
 					for(var x=0,l = cls.length;x < l;x++){
@@ -758,9 +767,9 @@ http://www.gnu.org/copyleft/gpl.html*/
 				}
 			}else{ //para navegadores viejos e IE 8, a mano
 				//usa document.all si es posible
-				var retVal = [], 
-				els = (tag == '*' && node.all) ? node.all : node.getElementsByTagName(tag),
-						re = new RegExp("(^|\\s)" + clsName.replace(/\-/,"\\-") + "(\\s|$)");
+				var retVal = [], re = new RegExp("(^|\\s)" + clsName.replace(/\-/,"\\-") + "(\\s|$)");
+				els = (tag == '*' && node.all) ? node.all : node.getElementsByTagName(tag);
+
 				for(var i = 0 , j = els.length; i < j; i++){
 					if(re.test(els[i].className))
 						retVal.push(els[i]);
@@ -845,7 +854,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 						// match[3] = ID
 						// match[4] = class
 						// match[5] = attribute
-						var match = re_JaSper.exec(sel) || [];
+						match = re_JaSper.exec(sel) || [];
 
 						if(match[3]){ //id, con o sin # ej. #myid o myid
 							this.nodes[0] = document.getElementById(match[3]);
@@ -983,7 +992,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 						return;
 					}
 				}
-			}
+			};
 
 			/*try{ //insertar via DOM en Safari 2.0 falla, asi que aproximacion por fuerza bruta
 				document.write('<script type="text/javascript" src="' + scrPath + '"><\/script>');
@@ -1339,7 +1348,10 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			if(oObj && atributo){
 				var sData = atributo.indexOf('data-') == 0 ? atributo.substr(5).toLowerCase() : null; //atributos tipo custom data (HTML5), ej.: data-info="ejemplo de datos"; deben usarse con DOMobject.dataset.info
 
-				ret = sData ? oObj.dataset[sData] : oObj.getAttribute(atributo); //consulta, se devuelve el valor; el actual o antiguo (si a continuacion se pone nuevo)
+				if(sData){
+					ret = oObj.dataset[sData] | oObj.getAttribute(atributo); //IE no se entiende bien con dataset[]
+				}
+				ret = ret |  oObj.getAttribute(atributo); //consulta, se devuelve el valor; el actual o antiguo (si a continuacion se pone nuevo)
 
 				if(valor !== undefined){ 
 					if(valor){
@@ -1443,11 +1455,13 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 
 			sTag = sTag.toLowerCase();
 
-			var oElem = null
-			if(sNamespace)
+			var oElem = null;
+			if(sNamespace){
 				oElem = document.createElementNS('http://www.w3.org/2000/svg', sTag);
-			else
+			}
+			else{
 				oElem = document.createElement(sTag);
+			}
 
 			function _tipo(sTipo){ //devuelve si es atributo (0) o propiedad (1) o nada (-1)
 				sTipo = sTipo || null;
@@ -1574,9 +1588,9 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 	//guarda si se esta en un dispositivo con capacidades tactiles
 	//FIXME no es completamente fiable
 	JaSper.tactil = (function (){ //comprueba si estamos con la version minificada o la normal
-		var bTactil = 'ontouchstart' in window
-			|| ('onmsgesturechange' in window || navigator.maxTouchPoints) //ie10
-			|| false;
+		var bTactil = 'ontouchstart' in window ||
+			('onmsgesturechange' in window || navigator.maxTouchPoints) || //ie10
+			false;
 
 		return bTactil;
 	})();
@@ -1647,7 +1661,9 @@ JaSper.extend(JaSper.prototype, {
 		}
 		else if(JaSper.funcs.webkit){
 			var t = setInterval(function (){
-				if(/^(loaded|complete)$/.test(document.readyState)) clearInterval(t), JaSper.funcs.runReady();
+				if(/^(loaded|complete)$/.test(document.readyState)){
+					clearInterval(t), JaSper.funcs.runReady();
+				}
 			}, 0);
 		}
 	}
@@ -2084,7 +2100,7 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.funcs.loadScriptQueue.push({'fn':tempCall,'ctx':this});
 			//JaSper.funcs.loadScript('packer.php?scriptJs=' + library); //version con empaquetador/minificador "class.JavaScriptPacker.php"
 			JaSper.funcs.loadScript(library); //version sin empaquetador
-		};
+		}
 
 		return this;
 	},
@@ -2135,7 +2151,7 @@ if(!Array.prototype.indexOf){
 		}
 		return -1;
 	};
-};
+}
 
 if(!String.prototype.trim){
 	String.prototype.trim = function (){
@@ -2143,7 +2159,7 @@ if(!String.prototype.trim){
 		var rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
 		return this.replace(rtrim, '');
 	};
-};
+}
 
 //From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
 if(!Object.keys){

@@ -33,6 +33,11 @@
 		$('select').eventAdd('click,mouseover,lalal', function (ev){
 			alert(ev.toString());
 		}).eventRemove();
+
+		$('#data').eventAdd('click', function (ev){
+			var sData = $(this).attrib('data-id');
+			alert(sData);
+		});
 	});
 	//--></script>
 </head>
