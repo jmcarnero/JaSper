@@ -44,6 +44,124 @@ http://www.gnu.org/copyleft/gpl.html*/
 		return new JaSper.funcs.init(sel, context);
 	};
 
+	//metodos para tratamiento de cookies del navegador
+	JaSper.cookie = {
+
+		/**
+		 * Borra una cookie
+		 * Pone su fecha de caducidad en el pasado
+		 *
+		 * @param {string} sNombre Nombre de la cookie
+		 * @return {boolean}
+		 */
+		del: function (sNombre){
+			'use strict';
+
+			if(!JaSper.cookie.has){
+				JaSper.log('[JaSper::cookie.set] Cookies no disponibles.', 1);
+				return false;
+			}
+
+			return JaSper.cookie.set(sNombre, '', -1);
+		},
+
+		/**
+		 * Recupera informacion de una cookie
+		 *
+		 * @param {string} sNombre Nombre de la cookie
+		 * @return {string}
+		 */
+		get: function (sNombre){
+			'use strict';
+
+			if(!JaSper.cookie.has){
+				JaSper.log('[JaSper::cookie.set] Cookies no disponibles.', 1);
+				return null;
+			}
+
+			var sRet = '';
+			var sNombreEQ = encodeURIComponent(sNombre) + '=';
+			var aCookies = document.cookie.split(';');
+
+			for(var i = 0; i < aCookies.length; i++){
+				var sCookie = aCookies[i];
+				while(sCookie.charAt(0) == ' '){
+					sCookie = sCookie.substring(1, sCookie.length);
+				}
+				if(sCookie.indexOf(sNombreEQ) == 0){
+					sRet = sCookie.substring(sNombreEQ.length, sCookie.length);
+				}
+			}
+
+			return sRet;
+		},
+
+		/**
+		 * Devuelve si el navegador tiene o no disponibles cookies
+		 * El usuario puede haberlas deshabilitado
+		 *
+		 * @return {boolean}
+		 */
+		has: (function (){
+			'use strict';
+
+			var bCookieEnabled = navigator.cookieEnabled ? true : false;
+
+			//if not IE4+ nor NS6+
+			if(typeof navigator.cookieEnabled == undefined && !bCookieEnabled){
+				document.cookie = 'testCookie=1';
+				bCookieEnabled = document.cookie.indexOf('testCookie') != -1 ? true : false;
+
+				if(bCookieEnabled){
+					JaSper.cookie.set('testCookie', '', -1);
+				}
+			}
+
+			return bCookieEnabled;
+		})(),
+
+		/**
+		 * Crea o cambia una cookie
+		 *
+		 * document.cookie = 'key=value;path=path;domain=domain;max-age=max-age-in-seconds;expires=date-in-GMTString-format;secure';
+		 * 
+		 * @param {string} sNombre Nombre de la cookie
+		 * @param {string} sValor Valor de la cookie
+		 * @param {integer} iDuracion Duracion (en dias) de la cookie; por defecto 1 dia
+		 * @return {boolean}
+		 */
+		set: function (sNombre, sValor, iDuracion){
+			'use strict';
+
+			if(!JaSper.cookie.has){
+				JaSper.log('[JaSper::cookie.set] Cookies no disponibles.', 1);
+				return false;
+			}
+
+			if(!sNombre){
+				return false;
+			}
+			sNombre = encodeURIComponent(sNombre) || '';
+			sValor = encodeURIComponent(sValor) || '';
+			iDuracion = iDuracion || 1; //por defecto 1 dia
+
+			var sExpira = '';
+			var sPath = ';path=/'; //TODO de momento se asume el raiz del sitio (path=/) como ambito de la cookie
+			var sSoloSsl = ''; //';secure'; //solo se podra recuperar en conexiones SSL si esta esto
+
+			if(iDuracion){
+				var oFecha = new Date();
+				oFecha.setTime(oFecha.getTime() + (iDuracion * 24 * 60 * 60 * 1000));
+				sExpira = ';expires=' + oFecha.toGMTString();
+			}
+
+			document.cookie = sNombre + '=' + sValor + sExpira + sPath + sSoloSsl;
+
+			return true;
+		}
+
+	};
+
 	//funciones estaticas de estilos/CSS (espacio de nombres)
 	JaSper.css = {
 
@@ -55,7 +173,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 * @param {string} cName Nombre de la clase
 		 */
 		addClass: function (oElem, cName){
-			if(typeof cName === "string"){
+			if(typeof cName === 'string'){
 				if(oElem.className.indexOf(cName) == -1)
 					oElem.className += ' ' + cName; 
 			}
@@ -144,7 +262,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 			return false;
 		}
 
-	}; 
+	};
 
 	/**
 	 * funciones estaticas de eventos (espacio de nombres)
@@ -933,98 +1051,6 @@ http://www.gnu.org/copyleft/gpl.html*/
 			return (typeof obj == 'string');
 		},
 
-		/**
-		 * Carga scripts javascript que no se hayan cargado durante la carga de la pagina
-		 * @todo asegurarse de no estar cargando un script ya cargado (principalmente los cargados durante la carga de la pagina u otro que se se pueda identificar con el id automatico aqui asignado)
-		 *
-		 * @since 2011-05-10
-		 * @param {string} scrPath Ruta absoluta ("http://ruta/script.js") o relativa a donde se encuentre "JaSper.js" (como "ruta/script.js")
-		 * return {boolean}
-		 */
-		loadScript: function (scrPath){
-			var scrId = 'JaSper_script_' + scrPath.replace(/[^a-zA-Z\d_]+/, '');
-			if(document.getElementById(scrId)){
-				JaSper.log('-JaSper::loadScript- Script (id->' + scrId + ') ya cargado.', 0);
-				return; //ya cargado
-			}
-
-			var sMinified = JaSper.minificado ? '_min' : ''; //sufijo cuando se trabaja con la version minificada
-
-			//si se ha pasado una ruta no absoluta se le suma la misma ruta en que se encuentre "JaSper.js"
-			if(scrPath.indexOf('http://') === -1){
-				var temp_js = new RegExp("(^|(.*?\\/))(JaSper" + sMinified + "\.js)(\\?|$)");
-				var scripts = document.getElementsByTagName('script');
-				for(var i = 0, lon = scripts.length; i < lon ; i++){
-					var src = scripts[i].getAttribute('src');
-					if(src){
-						var srcMatch = src.match(temp_js);
-						if(srcMatch){
-							scrPath = srcMatch[1] + scrPath; //pone la misma ruta que "JaSper.js"
-							break;
-						}
-					}
-				}
-			}
-
-			//ejecuta las funciones que esten en cola
-			var loadQueue = function (scriptSrc, tipo){
-				tipo = tipo || false;
-
-				if(!JaSper.funcs.loadScriptQueue) //nada que hacer si no hay funciones
-					return;
-
-				var scriptQueue = JaSper.funcs.loadScriptQueue;
-				JaSper.funcs.loadScriptQueue = [];
-
-				if(tipo == 'ie') JaSper.log('-JaSper::loadScript- Script [' + scriptSrc + '] listo! ... en IE', 0);
-				else if(tipo == 'st') JaSper.log('-JaSper::loadScript- Script [' + scriptSrc + '] cargado!', 0);
-				else JaSper.log('-JaSper::loadScript- Script (id->' + scrId + ') leido con "document.write".');
-
-				for(var mt in scriptQueue){
-					try{
-						(function (cb, ctx){
-							return(cb.call(ctx));
-						})(scriptQueue[mt]['fn'], scriptQueue[mt]['ctx']);
-					}
-					catch(ex){
-						JaSper.log('-JaSper::loadScript- No se ha podido ejecutar el método: [' + ex + ']', 1);
-						JaSper.funcs.loadScriptQueue.push(mt);
-						return;
-					}
-				}
-			};
-
-			/*try{ //insertar via DOM en Safari 2.0 falla, asi que aproximacion por fuerza bruta
-				document.write('<script type="text/javascript" src="' + scrPath + '"><\/script>');
-				loadQueue(scrPath, 'sf');
-			}
-			catch(e){*/ //for xhtml+xml served content, fall back to DOM methods
-				var script = JaSper.nodo.crear('script', {id: scrId/*, charset: 'windows-1250'*/, type: 'text/javascript', src: scrPath}); //scrPath -> relativo o absoluto, ej: 'http://path.to.javascript/file.js'
-
-				if(script.readyState){ //IE
-					script.onreadystatechange = function (){
-						if(script.readyState == "loaded" || script.readyState == "complete"){
-							script.onreadystatechange = null;
-							loadQueue(script.src, 'ie');
-						}
-					};
-				}
-				else{
-					script.onload = function (){
-						loadQueue(script.src, 'st');
-					};
-				}
-
-				var h = document.getElementsByTagName("head").length ? document.getElementsByTagName("head")[0] : document.body;
-				h.appendChild(script);
-			//}
-
-			return true;
-		},
-
-		//cola de ejecucion de los metodos pedientes de la carga de algun script dinamico
-		loadScriptQueue: [],
-
 		makeArray: function (a){
 			var ret = [];
 			if(a != null){
@@ -1072,74 +1098,6 @@ JaSper.expr[":"] = JaSper.expr.filters;
 			}catch(ex){ //fuerza devolucion de array...
 				return [];
 			}
-		},
-
-		/**
-		 * Ejecucion periodica de funciones
-		 * basado en una idea de Ilya Kantor
-		 *
-		 * Las opciones deben ser:
-		 *  intervalo //cada cuantos ms se hace una ejecucion de accion()
-		 *  duracion //duracion total de ejecucion, en ms
-		 *  function delta //funcion de variacion del progreso
-		 *  function accion //que se hace en cada paso (frame); es el unico parametro obligatorio
-		 *
-		 * ej:
-	JaSper.funcs.setInterval({
-		intervalo: 10,
-		duracion: 1000, //1 s
-		delta: function (dt){return Math.pow(dt, 2);}, //si se omite toma este mismo valor
-		accion: function(delta){
-			domObj.style.left = 10 * delta + "px";
-		}
-	});
-		 *
-		 * @param {object} ops Objeto con opciones
-		 * @return {boolean}
-		 */
-		setInterval: function (oOps){
-			oOps = oOps || {};
-			oOps.intervalo = oOps.intervalo || 40; //25 fps por defecto
-			oOps.duracion = oOps.duracion || 300;
-			oOps.delta = oOps.delta || '';
-			if(typeof oOps.delta == 'string'){
-				switch(oOps.delta){
-					case 'cuadratica': //variacion cuadratica (cuanto mayor sea el exponente mayor la aceleracion)
-						oOps.delta = function (dt){return Math.pow(dt, 2);};
-						break;
-					case 'arco': //variacion "arco", primero a la inversa y despues directa acelear; en funcion de la intensidad (x)
-						oOps.delta = function (dt, x){x = x || 1.5;return Math.pow(dt, 2) * ((x + 1) * dt - x);};
-						break;
-					case 'bote': //variacion dando botes
-						oOps.delta = function (dt){for(var a = 0, b = 1; ; a += b, b /= 2){if(dt >= (7 - 4 * a) / 11){return -Math.pow((11 - 6 * a - 11 * dt) / 4, 2) + Math.pow(b, 2);}}};
-						//oOps.delta = oOps.delta || function (dt, x){return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);}; //variacion elastica, similar a dando botes (x define el rango inicial)
-						break;
-					case 'elastica': //variacion elastica, similar a dando botes (x define el rango inicial)
-						oOps.delta = function (dt, x){x = x || 1.5;return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);};
-						break;
-					case 'lineal':
-					default: //por defecto variacion lineal
-						oOps.delta = function (dt){return dt;};
-				}
-			}
-
-			if(!oOps.accion)
-				return false;
-
-			var oInicio = new Date();
-
-			var oInterval = setInterval(function (){
-				var fProgreso = (new Date() - oInicio) / oOps.duracion;
-
-				var fDelta = oOps.delta(fProgreso);
-				oOps.accion(fDelta);
-
-				if(fProgreso > 1){
-					clearInterval(oInterval);
-				}
-			}, oOps.intervalo);
-
-			return true; //animacion finalizada
 		},
 
 		/**
@@ -1236,7 +1194,105 @@ $('<body>').addEvent('mousewheel', function (ev){
 
 	};
 
-	JaSper.langs = {'en':{}, 'es':{}}; //traducciones en todos los lenguajes que sean necesarios, definidos por codigo iso 639
+	/**
+	 * Carga dinamica de scripts
+	 */
+	JaSper.load = {
+
+		/**
+		 * Carga scripts javascript que no se hayan cargado durante la carga de la pagina
+		 * @todo asegurarse de no estar cargando un script ya cargado (principalmente los cargados durante la carga de la pagina u otro que se se pueda identificar con el id automatico aqui asignado)
+		 *
+		 * @since 2011-05-10
+		 * @param {string} sRuta Ruta absoluta ("http://ruta/script.js") o relativa a donde se encuentre "JaSper.js" (como "ruta/script.js")
+		 * @param {boolean} bMinificar Si true intenta cargar la version minificada ('_min') si corresponde
+		 * @return {boolean}
+		 */
+		script: function (sRuta, bMinificar){
+			bMinificar = (bMinificar && typeof bMinificar !== 'boolean') ? false : bMinificar;
+
+			var sScriptId = 'JaSper_script_' + sRuta.replace(/[^a-zA-Z\d_]+/, '');
+			if(document.getElementById(sScriptId)){
+				JaSper.log('-JaSper::load.script- Script (id->' + sScriptId + ') ya cargado.', 0);
+				return; //ya cargado
+			}
+
+			var sMinificado = JaSper.minificado && bMinificar ? '_min' : ''; //sufijo cuando se trabaja con la version minificada
+
+			//si se ha pasado una ruta no absoluta se le suma la misma ruta en que se encuentre "JaSper.js"
+			if(sRuta.indexOf('http://') === -1){
+				var temp_js = new RegExp("(^|(.*?\\/))(JaSper" + sMinificado + "\.js)(\\?|$)");
+				var scripts = document.getElementsByTagName('script');
+				for(var i = 0, lon = scripts.length; i < lon ; i++){
+					var src = scripts[i].getAttribute('src');
+					if(src){
+						var srcMatch = src.match(temp_js);
+						if(srcMatch){
+							sRuta = srcMatch[1] + sRuta; //pone la misma ruta que "JaSper.js"
+							break;
+						}
+					}
+				}
+			}
+
+			//ejecuta las funciones que esten en cola
+			var loadQueue = function (sScriptSrc){
+				if(!JaSper.load.queue){ //nada que hacer si no hay funciones
+					return;
+				}
+
+				var oScriptQueue = JaSper.load.queue;
+				JaSper.load.queue = [];
+
+				for(var mt in oScriptQueue){
+					try{
+						(function (cb, ctx){
+							return(cb.call(ctx));
+						})(oScriptQueue[mt]['fn'], oScriptQueue[mt]['ctx']);
+					}
+					catch(ex){
+						JaSper.log('-JaSper::load.script- No se ha podido ejecutar el método: [' + ex + ']', 1);
+						JaSper.load.queue.push(mt);
+						return;
+					}
+				}
+			};
+
+			/*try{ //insertar via DOM en Safari 2.0 falla, asi que aproximacion por fuerza bruta
+				document.write('<script type="text/javascript" src="' + sRuta + '"><\/script>');
+				loadQueue(sRuta);
+			}
+			catch(e){*/ //for xhtml+xml served content, fall back to DOM methods
+				var oScript = JaSper.nodo.crear('script', {id: sScriptId/*, charset: 'windows-1250'*/, type: 'text/javascript', src: sRuta}); //scrPath -> relativo o absoluto, ej: 'http://path.to.javascript/file.js'
+
+				if(oScript.readyState){ //IE
+					oScript.onreadystatechange = function (){
+						if(oScript.readyState == "loaded" || oScript.readyState == "complete"){
+							oScript.onreadystatechange = null;
+							loadQueue(oScript.src);
+						}
+					};
+				}
+				else{
+					oScript.onload = function (){
+						loadQueue(oScript.src);
+					};
+				}
+
+				var h = document.getElementsByTagName("head").length ? document.getElementsByTagName("head")[0] : document.body;
+				h.appendChild(oScript);
+			//}
+
+			return true;
+		},
+
+		//cola de ejecucion de los metodos pedientes de la carga de algun script dinamico
+		queue: []
+
+	};
+
+	//traducciones en todos los lenguajes que sean necesarios, definidos por codigo iso 639
+	JaSper.langs = {'en':{}, 'es':{}};
 
 	/**
 	 * Muestra mensajes de debug, si "JaSper.debug" es true
@@ -1282,7 +1338,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		}
 
 		mens = mens || 'JaSper debug';
-		mens += '\n[' + aStack[1] + ']'; //hacer esta informacion opcional o solo mostrar fichero y linea de la llamada?
+		mens += '\n[' + (aStack[1] || aStack[0]) + ']'; //hacer esta informacion opcional o solo mostrar fichero y linea de la llamada?
 		lev = lev || 0;
 
 		if(typeof console != 'object'){
@@ -1595,6 +1651,124 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		return bTactil;
 	})();
 
+	/**
+	 * Metodos para ejecucion periodica de funciones
+	 */
+	JaSper.time = {
+
+		/**
+		 * Ejecuta la funcion pasada de forma periodica, indefinidamente o no
+		 *
+		 * @since 2010-12-16
+		 * @todo devolver los id para controlarlos fuera; this en la funcion pasada deben ser los nodos JaSper?
+		 * @param {Object} oFuncion Funcion a ejecutar; nombre de la funcion (string), referencia o anonima
+		 * @param {number} iIntervalo Cada cuanto se ejecuta la funcion, si 0 se ejecutara una sola vez cuando se cumpla lapso (si hay lapso)
+		 * @param {number} iLapso Tiempo tras el cual deja de ejecutarse (ambos en milisegundos, 1000ms = 1s)
+		 * @return {Object} JaSper
+		 */
+		call: function (oFuncion, iIntervalo, iLapso){
+			if(!!oFuncion){ //si no hay nada que ejecutar se sale
+
+				var oIdt = null;
+
+				if(!iIntervalo){ //ejecucion pasado un periodo
+					if(iLapso){
+						oIdt = setTimeout(oFuncion, iLapso);
+					}
+				}
+				else{ //ejecucion por intervalos
+					var oIdi = setInterval(oFuncion, iIntervalo);
+					if(iLapso){
+						oIdt = setTimeout('clearInterval(' + oIdi + ')', iLapso); //final de ejecucion
+					}
+				}
+			}
+
+			return this;
+		},
+
+		/**
+		 * Ejecucion periodica de funciones
+		 * basado en una idea de Ilya Kantor
+		 *
+		 * Las opciones deben ser:
+		 *  intervalo //cada cuantos ms se hace una ejecucion de accion()
+		 *  duracion //duracion total de ejecucion, en ms
+		 *  function delta //funcion de variacion del progreso
+		 *  function accion //que se hace en cada paso (frame); es el unico parametro obligatorio
+		 *
+		 * ej:
+	JaSper.time.interval({
+		intervalo: 10,
+		duracion: 1000, //1 s
+		delta: function (dt){return Math.pow(dt, 2);}, //si se omite toma este mismo valor
+		accion: function(delta){
+			domObj.style.left = 10 * delta + "px";
+		}
+	});
+		 *
+		 * @param {object} ops Objeto con opciones
+		 * @return {boolean}
+		 */
+		interval: function (oOps){
+			oOps = oOps || {};
+			oOps.intervalo = oOps.intervalo || 40; //25 fps por defecto
+			oOps.duracion = oOps.duracion || 300;
+			oOps.delta = oOps.delta || '';
+			if(typeof oOps.delta == 'string'){
+				switch(oOps.delta){
+					case 'cuadratica': //variacion cuadratica (cuanto mayor sea el exponente mayor la aceleracion)
+						oOps.delta = function (dt){return Math.pow(dt, 2);};
+						break;
+					case 'arco': //variacion "arco", primero a la inversa y despues directa acelear; en funcion de la intensidad (x)
+						oOps.delta = function (dt, x){x = x || 1.5;return Math.pow(dt, 2) * ((x + 1) * dt - x);};
+						break;
+					case 'bote': //variacion dando botes
+						oOps.delta = function (dt){for(var a = 0, b = 1; ; a += b, b /= 2){if(dt >= (7 - 4 * a) / 11){return -Math.pow((11 - 6 * a - 11 * dt) / 4, 2) + Math.pow(b, 2);}}};
+						//oOps.delta = oOps.delta || function (dt, x){return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);}; //variacion elastica, similar a dando botes (x define el rango inicial)
+						break;
+					case 'elastica': //variacion elastica, similar a dando botes (x define el rango inicial)
+						oOps.delta = function (dt, x){x = x || 1.5;return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);};
+						break;
+					case 'lineal':
+					default: //por defecto variacion lineal
+						oOps.delta = function (dt){return dt;};
+				}
+			}
+
+			if(!oOps.accion)
+				return false;
+
+			var oInicio = new Date();
+
+			var oInterval = setInterval(function (){
+				var fProgreso = (new Date() - oInicio) / oOps.duracion;
+
+				var fDelta = oOps.delta(fProgreso);
+				oOps.accion(fDelta);
+
+				if(fProgreso > 1){
+					clearInterval(oInterval);
+				}
+			}, oOps.intervalo);
+
+			return true; //animacion finalizada
+		},
+
+		/**
+		 * Pausa durante el tiempo especificado
+		 * 
+		 * @param {integer} iTiempo Tiempo a dormir en milisegundos
+		 * @return {boolean}
+		 */
+		wait: function (iTiempo){
+			var now = new Date().getTime();
+			while(new Date().getTime() < now + iTiempo){;} //no hace nada durante el tiempo indicado //TODO pasar un callback?
+
+			return true;
+		}
+
+	};
 
 	//esto convierte el constructor en prototipo, permitira extender JaSper() extendiendo JaSper.prototype
 	JaSper.funcs.init.prototype = JaSper.prototype;
@@ -1642,12 +1816,12 @@ JaSper.extend(JaSper.prototype, {
 	 * http://snipplr.com/view.php?codeview&id=6156
 	 *
 	 * @todo eliminar el evento cuando ya no sea necesario
-	 * @param {function} f Funcion a ejecutar
+	 * @param {function} oFunc Funcion a ejecutar
 	 */
-	ready: function (f){
-		//if(!JaSper.funcs.msie && !JaSper.funcs.webkit && document.addEventListener) return document.addEventListener('DOMContentLoaded', f, false);
-		if(document.addEventListener) return document.addEventListener('DOMContentLoaded', f, false);
-		if(JaSper.funcs.readyFuncs.push(f) > 1) return;
+	ready: function (oFunc){
+		//if(!JaSper.funcs.msie && !JaSper.funcs.webkit && document.addEventListener) return document.addEventListener('DOMContentLoaded', oFunc, false);
+		if(document.addEventListener) return document.addEventListener('DOMContentLoaded', oFunc, false);
+		if(JaSper.funcs.readyFuncs.push(oFunc) > 1) return;
 		if(JaSper.funcs.msie){
 			(function (){
 				var t = setInterval(function (){
@@ -1655,7 +1829,7 @@ JaSper.extend(JaSper.prototype, {
 					catch(err){/*aun no ready*/}
 				}, 5);
 				/*try{document.documentElement.doScroll('left'); JaSper.funcs.runReady();}
-				catch(err){setTimeout(f, 0);}
+				catch(err){setTimeout(oFunc, 0);}
 				//catch (err){setTimeout(arguments.callee, 0);}*/
 			})();
 		}
@@ -2000,39 +2174,6 @@ JaSper.extend(JaSper.prototype, {
 
 });
 
-/**************************************************
-** Metodos para ejecucion periodica de funciones **
-**************************************************/
-JaSper.extend(JaSper.prototype, {
-
-	/**
-	 * Ejecuta la funcion pasada de forma periodica, indefinidamente o no
-	 *
-	 * @since 2010-12-16
-	 * @todo devolver los id para controlarlos fuera; this en la funcion pasada deben ser los nodos JaSper?
-	 * @param {Object} func Funcion a ejecutar; nombre de la funcion (string), referencia o anonima
-	 * @param {number} intervalo Cada cuanto se ejecuta la funcion, si 0 se ejecutara una sola vez cuando se cumpla lapso (si hay lapso)
-	 * @param {number} lapso Tiempo tras el cual deja de ejecutarse (ambos en milisegundos, 1000ms = 1s)
-	 * @return {Object} JaSper
-	 */
-	callPeriodic: function (func, intervalo, lapso){
-		if(!!func){ //si no hay nada que ejecutar se sale
-
-			this.each(function (fn, it, lp){
-				if(!it){ //ejecucion pasado un periodo
-					if(lp) idt = setTimeout(fn, lp);
-				}
-				else{ //ejecucion por intervalos
-					var idi = setInterval(fn, it);
-					if(lp) idt = setTimeout('clearInterval(' + idi + ')', lp); //final de ejecucion
-				}
-			}, [func, intervalo, lapso]);
-		}
-
-		return this;
-	}
-
-});
 /******************************
 ** Carga dinamica de metodos **
 ******************************/
@@ -2056,35 +2197,23 @@ JaSper.extend(JaSper.prototype, {
 	loadMethod: function (method, args, library){
 		library = library || method;
 
-		var sMinified = JaSper.minificado ? '_min' : ''; //sufijo cuando se trabaja con la version minificada
+		var sMinificado = JaSper.minificado ? '_min' : ''; //sufijo cuando se trabaja con la version minificada
 
 		switch(library){
 			case 'ajax':
-				library = 'JaSper_ajax' + sMinified + '.js';
-				break;
 			case 'anim':
-				library = 'JaSper_anim' + sMinified + '.js';
-				break;
 			case 'canvas':
-				library = 'JaSper_canvas' + sMinified + '.js';
-				break;
 			case 'datetime':
-				library = 'JaSper_datetime' + sMinified + '.js';
-				break;
 			case 'lightbox':
-				library = 'JaSper_lightbox' + sMinified + '.js';
-				break;
 			case 'move':
-				library = 'JaSper_move' + sMinified + '.js';
-				break;
+			case 'pages':
 			case 'rating':
-				library = 'JaSper_rating' + sMinified + '.js';
-				break;
+			case 'rest':
 			case 'rtb':
-				library = 'JaSper_rtb' + sMinified + '.js';
+				library = 'JaSper_' + library + sMinificado + '.js';
 				break;
 			case 'validar':
-				library = 'JaSper_formazo' + sMinified + '.js';
+				library = 'JaSper_formazo' + sMinificado + '.js';
 				break;
 			default:
 				library = false;
@@ -2092,14 +2221,15 @@ JaSper.extend(JaSper.prototype, {
 		}
 
 		var tempCall = (function (obj, as){
-			return(function (){eval('obj.' + method + '.apply(obj, as);');});
+			//return(function (){eval('obj.' + method + '.apply(obj, as);');});
+			return(function (){obj[method].apply(obj, as);});
 		})(this, args);
 		//tempId = method + args.toString() + library;
 
 		if(library){
-			JaSper.funcs.loadScriptQueue.push({'fn':tempCall,'ctx':this});
-			//JaSper.funcs.loadScript('packer.php?scriptJs=' + library); //version con empaquetador/minificador "class.JavaScriptPacker.php"
-			JaSper.funcs.loadScript(library); //version sin empaquetador
+			JaSper.load.queue.push({'fn':tempCall,'ctx':this});
+			//JaSper.load.script('packer.php?scriptJs=' + library); //version con empaquetador/minificador "class.JavaScriptPacker.php"
+			JaSper.load.script(library, true); //version sin empaquetador
 		}
 
 		return this;
@@ -2117,6 +2247,9 @@ JaSper.extend(JaSper.prototype, {
 	/* Canvas */
 	animate: function (){return(this.loadMethod('animate', arguments, 'canvas'));},
 	canvas: function (){return(this.loadMethod('canvas', arguments, 'canvas'));},
+
+	/* Carga dinamica de elementos de pagina */
+	carga: function (){return(this.loadMethod('carga', arguments, 'pages'));},
 
 	/* Visor de imagenes en detalle */
 	lightbox: function (){return(this.loadMethod('lightbox', arguments));},
@@ -2136,7 +2269,10 @@ JaSper.extend(JaSper.prototype, {
 	colorPicker: function (){return(this.loadMethod('colorPicker', arguments, 'rtb'));},
 
 	/* Validacion de formularios */
-	validar: function (){return(this.loadMethod('validar', arguments));}
+	validar: function (){return(this.loadMethod('validar', arguments));},
+
+	/* Peticiones a servidor REST */
+	rest: function (){return(this.loadMethod('rest', arguments));}
 });
 
 /**************
