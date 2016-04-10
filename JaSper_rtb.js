@@ -286,9 +286,7 @@ JaSper.extend(JaSper.prototype, {
 
 });
 
-JaSper.rtb = {};
-
-JaSper.extend(JaSper.rtb, {
+JaSper.rtb = {
 
 	/**
 	 * execCommand
@@ -399,7 +397,7 @@ JaSper.extend(JaSper.rtb, {
 		}
 	}
 
-});
+};
 
 /*
 This code is a IE8 (and below), polyfill for HTML5 Range object's startContainer,
@@ -487,3 +485,4 @@ function onBtnClick() {
 		};
 	}
 }());
+

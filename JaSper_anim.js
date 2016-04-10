@@ -16,7 +16,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 http://www.gnu.org/copyleft/gpl.html*/
 
 /**
- * Animaciones de elementos DOM 
+ * Animaciones de elementos DOM
  *
  * @author José M. Carnero
  * @since 2015-05-15
@@ -128,9 +128,7 @@ JaSper.extend(JaSper.prototype, {
 
 });
 
-JaSper.anim = {};
-
-JaSper.extend(JaSper.anim, {
+JaSper.anim = {
 
 	fade: function (oDOMElem, sTipo, iMiliSec, iIntervalo){
 		'use strict';
@@ -153,7 +151,7 @@ JaSper.extend(JaSper.anim, {
 				oDOMElem.style.opacity = iOpacidad;
 		}
 
-		var bFin = JaSper.funcs.setInterval({
+		var bFin = JaSper.time.interval({
 			intervalo: iIntervalo,
 			duracion: iMiliSec,
 			accion: function(fDelta){
@@ -196,7 +194,7 @@ JaSper.extend(JaSper.anim, {
 		return true;
 	}
 
-});
+};
 
 JaSper.extend(JaSper.css, {
 
@@ -230,3 +228,4 @@ JaSper.extend(JaSper.css, {
 	}
 
 });
+

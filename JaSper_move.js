@@ -240,9 +240,7 @@ JaSper.extend(JaSper.prototype, {
 
 });
 
-JaSper.move = {};
-
-JaSper.extend(JaSper.move, {
+JaSper.move = {
 
 	//devuelve el elemento sobre el que se encuentra el raton cuando se llama
 	//utiliza un evento de raton que debe contener posicion x e y del raton
@@ -343,4 +341,5 @@ JaSper.extend(JaSper.move, {
 		return pos;
 	}
 
-});
+};
+

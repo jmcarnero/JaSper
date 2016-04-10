@@ -107,9 +107,7 @@ JaSper.extend(JaSper.prototype, {
 
 });
 
-JaSper.canvas = {};
-
-JaSper.extend(JaSper.canvas, {
+JaSper.canvas = {
 
 	/**
 	 * Suma un objeto al array de objetos del canvas
@@ -902,7 +900,7 @@ JaSper.extend(JaSper.canvas, {
 		return true;
 	}
 
-});
+};
 
 //devuelve un "animation loop" nativo de canvas, si existe, o un timeout a 60 fps; ambos usables para dibujar frames en una animacion
 //ver JaSper.canvas.animate()
@@ -946,3 +944,4 @@ MIT license*/
 			clearTimeout(id);
 		};
 }());
+

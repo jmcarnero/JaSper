@@ -246,10 +246,8 @@ JaSper.extend(JaSper.prototype, {
 
 });
 
-JaSper.valida = {};
-
 //validaciones
-JaSper.extend(JaSper.valida, {
+JaSper.valida = {
 
 	/**
 	 * validador BIC (Business Identifier Codes) o SWIFT
@@ -679,4 +677,5 @@ JaSper.extend(JaSper.valida, {
 		else return JaSper._t('valida/url');
 	}
 
-});
+};
+
