@@ -228,4 +228,3 @@ JaSper.extend(JaSper.css, {
 	}
 
 });
-

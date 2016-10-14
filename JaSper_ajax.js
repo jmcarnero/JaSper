@@ -322,4 +322,3 @@ if ( s.username ) oXhr.open( s.type, s.url, s.async, s.username, s.password );*/
 	}
 
 };
-

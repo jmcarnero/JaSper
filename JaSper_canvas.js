@@ -944,4 +944,3 @@ MIT license*/
 			clearTimeout(id);
 		};
 }());
-

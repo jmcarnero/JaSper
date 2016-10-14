@@ -283,9 +283,7 @@ JaSper.extend(JaSper.prototype, {
 
 });
 
-JaSper.datetime = {};
-
-JaSper.extend(JaSper.datetime, {
+JaSper.datetime = {
 
 	/*function firstDayInPreviousMonth(yourDate) {
 		return new Date(yourDate.getFullYear(), yourDate.getMonth() - 1, 1);
@@ -338,4 +336,4 @@ JaSper.extend(JaSper.datetime, {
 		return day === 0 || day === 6;
 	},
 
-});
+};

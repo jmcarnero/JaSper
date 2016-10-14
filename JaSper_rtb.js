@@ -70,7 +70,7 @@ JaSper.extend(JaSper.prototype, {
 	colorPicker: function (){
 		'use strict';
 
-		var sTipo = (window.SVGAngle || document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1") ? "SVG" : "VML"), slide, picker;
+		var sTipo = (window.SVGAngle || document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1") ? "SVG" : "VML");
 
 		//barra de colores
 		var oSlide = JaSper.nodo.crear('div', {
@@ -485,4 +485,3 @@ function onBtnClick() {
 		};
 	}
 }());
-

@@ -69,7 +69,8 @@ JaSper.extend(JaSper.prototype, {
 		});
 		oOps.contenedor.appendChild(oPie);
 		function fPie(oObj){ //actualiza la informacion del pie de foto con los atributos indicados
-			var sPie = oObj.getAttribute(oOps.pie), sDescripcion = oObj.getAttribute(oOps.descripcion);
+			var sPie = oObj.getAttribute(oOps.pie);
+			var sDescripcion = oObj.getAttribute(oOps.descripcion);
 			if(sPie){
 				oPie.innerHTML = '<strong>' + sPie + '</strong>';
 				if(sDescripcion){

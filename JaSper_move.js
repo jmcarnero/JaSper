@@ -123,7 +123,8 @@ JaSper.extend(JaSper.prototype, {
 
 			var pos = JaSper.move.posPuntero(event); //posicion del raton
 
-			var oTarget = null, iAntZindex = null;
+			var oTarget = null;
+			var iAntZindex = null;
 
 			if(props.shadow){
 				oSombra = oSombra.parentNode.removeChild(oSombra);
@@ -133,7 +134,8 @@ JaSper.extend(JaSper.prototype, {
 				oTarget = oTarget || JaSper.move.elementFromPoint(event);
 				obj.style.zIndex = iAntZindex;
 
-				var aTargetPos = JaSper.move.posObject(oTarget), iTargetHei = Math.round(aTargetPos['h'] / 2);
+				var aTargetPos = JaSper.move.posObject(oTarget);
+				var iTargetHei = Math.round(aTargetPos['h'] / 2);
 
 				if(pos['y'] < (aTargetPos['y'] + iTargetHei)){ //la sombra esta en el extremo superior del objetivo
 					oTarget.parentNode.insertBefore(oSombra, oTarget);
@@ -187,7 +189,9 @@ JaSper.extend(JaSper.prototype, {
 			var normalclick = 1;
 			if(event.which) normalclick = event.which;
 			else if(event.button) normalclick = event.button;
-			if(normalclick != 1) return false;
+			if(normalclick != 1){
+				return false;
+			}
 
 			if(typeof props.onMoveStart === 'function'){
 				var iAntZindex = obj.style.zIndex;
@@ -228,7 +232,8 @@ JaSper.extend(JaSper.prototype, {
 			obj.style.zIndex += 10;
 
 			//var funMov = function (e){moveObject(e, obj);}, funFin = function (e){moveEnd(e, obj, [funMov, arguments.callee]);}; //"arguments.calle es imprescindible para poder desregistrar el evento, problemas pasando la definicion de la funcion...
-			var funMov = function (e){moveObject(e, obj);}, funFin = function funFinCall(e){moveEnd(e, obj, [funMov, funFinCall]);};
+			var funMov = function (e){moveObject(e, obj);};
+			var funFin = function funFinCall(e){moveEnd(e, obj, [funMov, funFinCall]);};
 
 			JaSper.event.add(document, oEventos.mueve, funMov);
 			JaSper.event.add(document, oEventos.fin, funFin);
@@ -243,7 +248,7 @@ JaSper.extend(JaSper.prototype, {
 JaSper.move = {
 
 	//devuelve el elemento sobre el que se encuentra el raton cuando se llama
-	//utiliza un evento de raton que debe contener posicion x e y del raton
+	//utiliza un evento de raton que debe contener posicion X e Y del raton
 	elementFromPoint: function (mouseEvent){
 		'use strict';
 
@@ -342,4 +347,3 @@ JaSper.move = {
 	}
 
 };
-

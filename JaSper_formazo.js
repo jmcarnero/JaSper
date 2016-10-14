@@ -53,56 +53,70 @@ JaSper.extend(JaSper.langs, {
  * Funcionamiento estandar de select multiple alterado, evita que se desmarquen todas las opciones al dar click sin control
  *
  * @author José M. Carnero
- * @version 2.0
+ * @version 2.1
  */
 JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Valida formularios
+	 * 
+	 * Incluye callbacks en "inicio" de validacion, en "fin" correcto y si hay "fallo"; todos reciben el evento de submit como primer parametro, "fallo" recibe también un array con los errores de validacion; "fallo" debe anular el envio del formulario -oEvent.preventDefault()-
+	 * 
 	 * @param {Object} oProps Propiedades para las validaciones
 	 * @return {Object} JaSper
 	 */
-	validar: function(props){
+	validar: function(oProps){
 		'use strict';
 
-		props = props || {};
-		props.clases = props.clases || {};
+		oProps = oProps || {};
+		oProps.clases = oProps.clases || {};
 
-		props = { //opciones de configuracion del metodo
-			alert: props.alert === undefined ? true : props.alert, //se muestra un alert con los mensajes de error (true)
-			preview: props.preview === undefined ? false : props.preview, //muestra una prevista de imagenes cuando se preparan para subir en un input file; el input file ha de llevar un data-previewId="id_donde_mostrar_preview"
+		oProps = { //opciones de configuracion del metodo
+			preview: oProps.preview || false, //muestra una prevista de imagenes cuando se preparan para subir en un input file; el input file ha de llevar un data-previewId="id_donde_mostrar_preview"
 
 			clases: { //clases css e identificadores de filtros
-				error: props.clases.error || 'frmError', //clase de errores
-				obligatorio: props.clases.obligatorio || 'obligatorio',
-				clave: props.clases.clave || 'clave',
-				email: props.clases.email || 'email',
-				entero: props.clases.entero || 'entero',
-				fichero: props.clases.fichero || 'fichero',
-				fecha: props.clases.fecha || 'fecha',
-				nif: props.clases.nif || 'nif',
-				numerico: props.clases.numerico || 'numerico',
-				telefono: props.clases.telefono || 'telefono',
-				url: props.clases.url || 'url'
-			}
+				error: oProps.clases.error || 'frmError', //clase de errores
+				obligatorio: oProps.clases.obligatorio || 'obligatorio',
+				clave: oProps.clases.clave || 'clave',
+				email: oProps.clases.email || 'email',
+				entero: oProps.clases.entero || 'entero',
+				fichero: oProps.clases.fichero || 'fichero',
+				fecha: oProps.clases.fecha || 'fecha',
+				nif: oProps.clases.nif || 'nif',
+				numerico: oProps.clases.numerico || 'numerico',
+				telefono: oProps.clases.telefono || 'telefono',
+				url: oProps.clases.url || 'url'
+			},
+
+			//callbacks a ejecutar al principio de validacion, final de validacion o fallo de validacion
+			fallo: oProps.fallo || function (oEvent, aErrores){ //se ejecuta si ha habido algun error de validacion
+				JaSper.event.preventDefault(oEvent);
+				JaSper.event.stop(oEvent);
+
+				alert("Se han producido los siguientes errores:\n\n" + aErrores.join("\n"));
+
+				return false;
+			},
+			fin: oProps.fin || function (oEvent){return true;}, //se ejecuta si todo ha ido correcto, antes de submit
+			inicio: oProps.inicio || function (oEvent){return true;}, //se ejecuta al inicio de la validacion
 		};
 
 		var filters = {}; //validaciones
-		filters[props.clases.obligatorio] = function (el){return JaSper.valida.obligatorio(el);};
-		filters[props.clases.clave] = function (el){return JaSper.valida.clave(el, document.getElementById('objId2'));};
-		filters[props.clases.email] = function (el){return JaSper.valida.email(el);};
-		filters[props.clases.entero] = function (el){return JaSper.valida.numeros(el);}; //numerico de tipo entero, no permite decimales ni separadores de miles, solo numeros
-		filters[props.clases.fichero] = function (el){return JaSper.valida.fichero(el);};
-		filters[props.clases.fecha] = function (el){return JaSper.valida.fechas(el);};
-		filters[props.clases.nif] = function (el){return JaSper.valida.nif(el);};
-		filters[props.clases.numerico] = function (el){return JaSper.valida.numeros(el);}; //permite decimales, con "."
-		filters[props.clases.telefono] = function (el){return JaSper.valida.numeros(el);};
-		filters[props.clases.url] = function (el){return JaSper.valida.url(el);};
+		filters[oProps.clases.obligatorio] = function (el){return JaSper.valida.obligatorio(el);};
+		filters[oProps.clases.clave] = function (el){return JaSper.valida.clave(el, document.getElementById('objId2'));};
+		filters[oProps.clases.email] = function (el){return JaSper.valida.email(el);};
+		filters[oProps.clases.entero] = function (el){return JaSper.valida.numeros(el);}; //numerico de tipo entero, no permite decimales ni separadores de miles, solo numeros
+		filters[oProps.clases.fichero] = function (el){return JaSper.valida.fichero(el);};
+		filters[oProps.clases.fecha] = function (el){return JaSper.valida.fechas(el);};
+		filters[oProps.clases.nif] = function (el){return JaSper.valida.nif(el);};
+		filters[oProps.clases.numerico] = function (el){return JaSper.valida.numeros(el);}; //permite decimales, con "."
+		filters[oProps.clases.telefono] = function (el){return JaSper.valida.numeros(el);};
+		filters[oProps.clases.url] = function (el){return JaSper.valida.url(el);};
 
 		var filters_keys = {};
-		filters_keys[props.clases.entero] = function (ev, el){return JaSper.valida.teclasNumeros(el, ev, false);}; //numerico de tipo entero, no permite decimales ni separadores de miles, solo numeros
-		filters_keys[props.clases.fecha] = function (ev, el){return JaSper.valida.teclasFechas(el, ev);};
-		filters_keys[props.clases.numerico] = function(ev, el){return JaSper.valida.teclasNumeros(el, ev, true);}; //permite decimales, con "."
+		filters_keys[oProps.clases.entero] = function (ev, el){return JaSper.valida.teclasNumeros(el, ev, false);}; //numerico de tipo entero, no permite decimales ni separadores de miles, solo numeros
+		filters_keys[oProps.clases.fecha] = function (ev, el){return JaSper.valida.teclasFechas(el, ev);};
+		filters_keys[oProps.clases.numerico] = function(ev, el){return JaSper.valida.teclasNumeros(el, ev, true);}; //permite decimales, con "."
 
 		this.each(function (){
 			//bloqueos de teclas, se busca en cada formulario los elementos bloqueables
@@ -144,7 +158,7 @@ JaSper.extend(JaSper.prototype, {
 			});
 
 			//muestra vista previa de la imagen cargada en un input file
-			if(props.preview){
+			if(oProps.preview){
 				JaSper('input[type="file"]', this).each(function (){
 					var sPreviewId = (this.dataset.previewId || this.getAttribute('data-previewId')) || null;
 					if(!sPreviewId) //no hay id en la que hacer preview
@@ -199,8 +213,10 @@ JaSper.extend(JaSper.prototype, {
 		});
 
 		//validacion al envio
-		this.eventAdd('submit', function(ev){
-			window.errMens = [];
+		this.eventAdd('submit', function(oEvent){
+			oProps.inicio(oEvent); //callback al principio de validacion
+
+			JaSper.aFormErrMens = [];
 
 			if(typeof filters == 'undefined') return;
 			JaSper('<input>,<textarea>,<select>', this).each(function(x){
@@ -211,34 +227,39 @@ JaSper.extend(JaSper.prototype, {
 					for(var i = 0; i < csplit.length; i++){
 						if(JaSper.funcs.isFunction(filters[csplit[i]])){
 							var errTemp = filters[csplit[i]](el);
-							if(errTemp !== false)
+							if(errTemp !== false){
 								aErrTemp[aErrTemp.length] = filters[csplit[i]](el);
+							}
 						}
 					}
 
 					if(aErrTemp.length){
-						JaSper.css.addClass(el, props.clases.error);
-						window.errMens[window.errMens.length] = aErrTemp.join("\n");
+						JaSper.css.addClass(el, oProps.clases.error);
+						JaSper.aFormErrMens[JaSper.aFormErrMens.length] = aErrTemp.join("\n");
 					}
-					else
-						JaSper.css.removeClass(el, props.clases.error);
+					else{
+						JaSper.css.removeClass(el, oProps.clases.error);
+					}
 				}
 			});
 
-			if(JaSper('.' + props.clases.error, this).length > 0){
-				JaSper.event.preventDefault(ev);
-				JaSper.event.stop(ev);
+			var iNumErrores = JaSper('.' + oProps.clases.error, this).length;
 
-				/*JaSper('.' + props.clases.error).each( //marcar los errores
-							function(){alert(this.name + ' error');}
-						);*/
-				if(props.alert)
-					alert("Se han producido los siguientes errores:\n\n" + window.errMens.join("\n"));
+			if(iNumErrores > 0){ //errores de validacion
+				/*JaSper.event.preventDefault(oEvent);
+				JaSper.event.stop(oEvent);
 
-				return false;
+				//JaSper('.' + oProps.clases.error).each( //marcar los errores
+				//	function(){alert(this.name + ' error');}
+				//);
+				if(oProps.alert){
+					alert("Se han producido los siguientes errores:\n\n" + JaSper.aFormErrMens.join("\n"));
+				}*/
+
+				return oProps.fallo(oEvent, JaSper.aFormErrMens); //callback en fallo de validacion; debe devolver falso para cancelar el submit
 			}
 
-			return true;
+			return oProps.fin(oEvent); //callback en final de validacion; debe devolver cierto para concluir validacion
 		});
 
 		return this;
@@ -678,4 +699,3 @@ JaSper.valida = {
 	}
 
 };
-

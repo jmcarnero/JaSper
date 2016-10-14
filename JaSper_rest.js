@@ -148,8 +148,7 @@ JaSper.rest = {
 		if(!JaSper.ajax){
 			JaSper.load.queue.push({fn: oAjaxSend, ctx: null});
 
-			var sMinificado = JaSper.minificado ? '_min' : ''; //sufijo cuando se trabaja con la version minificada
-			JaSper.load.script('JaSper_ajax' + sMinificado + '.js');
+			JaSper.load.script('JaSper_ajax' + JaSper.trait.minificado + '.js');
 		}
 		else{
 			oAjaxSend.call(null);
@@ -202,8 +201,7 @@ JaSper.rest = {
 		if(!JaSper.ajax){
 			JaSper.load.queue.push({fn: oAjaxSend, ctx: null});
 
-			var sMinificado = JaSper.minificado ? '_min' : ''; //sufijo cuando se trabaja con la version minificada
-			JaSper.load.script('JaSper_ajax' + sMinificado + '.js');
+			JaSper.load.script('JaSper_ajax' + JaSper.trait.minificado + '.js');
 		}
 		else{
 			oAjaxSend.call(null);
@@ -246,4 +244,3 @@ JaSper.rest = {
 	}
 
 };
-
