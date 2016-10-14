@@ -34,10 +34,16 @@
 			alert(ev.toString());
 		}).eventRemove();
 
+		$('body').eventAdd('customEvent', function (ev){
+			alert(ev.toString() + ' -- ' + ev.target);
+		});
+
 		$('#data').eventAdd('click', function (ev){
 			var sData = $(this).attrib('data-id');
 			alert(sData);
 		});
+
+		$('body').eventFire('customEvent');
 	});
 	//--></script>
 </head>
@@ -72,5 +78,6 @@
 			<li><input id="butsubmit" name="butsubmit" type="submit" value="botón de enviar" /></li>
 		</ul>
 	</form>
+	<p id="data" data-id="5">click me, show data attribute</p>
 </body>
 </html>
