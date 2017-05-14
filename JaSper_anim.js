@@ -42,56 +42,6 @@ JaSper.extend(JaSper.prototype, {
 	},
 
 	/**
-	 * Alterna la propiedad height entre '0' y alto inicial
-	 * Poniendo la velocidad con transition css
-	 * 
-	 * @autor Alin Moraru
-	 * @since 2015-06-23
-	 * @param {string} sTipo Tipo de slide: down (de arriba hacia abajo), up (de abajo hacia arriba)
-	 * @param {number} iMiliSec velocidad animacion en milisegundos para transition
-	 * @return {Object} JaSper
-	 */
-	slide: function (sTipo, iMiliSec){
-		'use strict';
-
-		this.each(function (){
-			return JaSper.anim.slide(this, sTipo, iMiliSec);
-		});
-
-		return this;
-	},
-
-	/**
-	 * Alterna la propiedad height entre '0' y alto inicial
-	 * Poniendo la velocidad con transition css
-	 * 
-	 * @autor Alin Moraru
-	 * @since 2015-06-23
-	 * @param {number} iMiliSec velocidad animacion en milisegundos para transition
-	 * @return {Object} JaSper
-	 */
-	slideToggle: function (iMiliSec){
-		'use strict';
-
-		this.each(function (){
-			//TODO deberia aceptar otros tipos de nodo?
-			if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
-
-			var sActHeight = JaSper.css.getStyle(this, 'height');
-			sActHeight = sActHeight.replace('px', '');
-
-			if(sActHeight == '0'){
-				JaSper.anim.slide(this, 'down', iMiliSec);
-			}
-			else{
-				JaSper.anim.slide(this, 'up', iMiliSec);
-			}
-		});
-
-		return this;
-	},
-
-	/**
 	 * Alterna la propiedad display entre 'none' y visible
 	 * 
 	 * @param {number} fade Tiempo en milisegundos del fade, si se pasa 0 no hace este efecto
@@ -101,7 +51,9 @@ JaSper.extend(JaSper.prototype, {
 		'use strict';
 
 		fade = fade || 0;
-		if(fade) fade = parseInt(fade) || 200; //si no es entero el valor se toma 200 ms
+		if(fade){
+			fade = parseInt(fade) || 200; //si no es entero el valor se toma 200 ms
+		}
 
 		this.each(function (){
 			//TODO deberia aceptar otros tipos de nodo?
@@ -176,7 +128,7 @@ JaSper.anim = {
 	 * @todo resto de direcciones y punto de inicio
 	 * @todo alternativa a transition (es CSS3)
 	 */
-	slide: function (oDOMElem, sTipo, iMiliSec){
+	/*slide: function (oDOMElem, sTipo, iMiliSec){
 		'use strict';
 
 		if(oDOMElem.nodeType != 1) return false; //solo nodos tipo ELEMENT_NODE
@@ -192,7 +144,7 @@ JaSper.anim = {
 			oDOMElem.style.height = '0';
 
 		return true;
-	}
+	}*/
 
 };
 
