@@ -17,11 +17,10 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 /**
  * Funciones para Canvas
- * 
+ *
  * @author José M. Carnero
  * @version 1.0
  */
-
 JaSper.extend(JaSper.prototype, {
 
 	/**
@@ -111,7 +110,7 @@ JaSper.canvas = {
 
 	/**
 	 * Suma un objeto al array de objetos del canvas
-	 * 
+	 *
 	 * @since 2015-02-17
 	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades del objeto
@@ -226,7 +225,7 @@ JaSper.canvas = {
 
 	/**
 	 * Fondo; color, degradado, imagen, ...
-	 * 
+	 *
 	 * @since 2015-01-07
 	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades del objeto
@@ -278,7 +277,7 @@ JaSper.canvas = {
 
 			context.save();
 			context.beginPath();
-	
+
 			context.rect(iBBx, iBBy, iBBw, iBBh); //pone la caja
 			/*context.fillStyle = 'yellow';
 			context.fill();*/
@@ -382,7 +381,7 @@ JaSper.canvas = {
 
 	/**
 	 * Dibuja una imagen
-	 * 
+	 *
 	 * @since 2014-12-27
 	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
@@ -414,7 +413,7 @@ JaSper.canvas = {
 	 *
 	 * Sobre una idea original de Dan Gries
 	 * http://rectangleworld.com/blog/archives/15
-	 * 
+	 *
 	 * @todo mejorar con http://en.wikipedia.org/wiki/Point_in_polygon
 	 * @todo convertir en detector de colisiones, ademas de deteccion de clicks
 	 * @since 2015-01-11
@@ -453,10 +452,10 @@ JaSper.canvas = {
 
 	/**
 	 * Se presiona el raton sobre un objeto dentro de canvas
-	 * 
+	 *
 	 * Sobre una idea original de Dan Gries
 	 * http://rectangleworld.com/blog/archives/15
-	 * 
+	 *
 	 * @since 2015-01-11
 	 * @param ev
 	 * @returns boolean
@@ -623,7 +622,7 @@ JaSper.canvas = {
 
 	/**
 	 * Mueve objetos en el canvas
-	 * 
+	 *
 	 * @since 2015-01-06
 	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
@@ -656,7 +655,7 @@ JaSper.canvas = {
 
 	/**
 	 * Dibuja una forma a partir de una serie (array) de puntos
-	 * 
+	 *
 	 * @since 2014-12-30
 	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
@@ -675,7 +674,7 @@ JaSper.canvas = {
 	/**
 	 * Dibuja un poligono cerrado de N lados
 	 * centrado en x, y
-	 * 
+	 *
 	 * @since 2014-12-19
 	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
@@ -750,7 +749,7 @@ JaSper.canvas = {
 
 	/**
 	 * Redibujado de canvas (de todos los objetos definidos como tal)
-	 * 
+	 *
 	 * @since 2015-01-05
 	 * @param object canvas Objeto canvas a redibujar
 	 * @returns boolean
@@ -773,7 +772,7 @@ JaSper.canvas = {
 
 	/**
 	 * Gira objetos en el canvas
-	 * 
+	 *
 	 * @since 2015-01-27
 	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
@@ -797,7 +796,7 @@ JaSper.canvas = {
 
 	/**
 	 * Escala (cambia tamano) objetos
-	 * 
+	 *
 	 * @since 2015-01-07
 	 * @param object canvas Canvas object
 	 * @param object props Propiedades
@@ -823,7 +822,7 @@ JaSper.canvas = {
 
 	/**
 	 * Dibuja texto
-	 * 
+	 *
 	 * @since 2014-12-27
 	 * @param object canvas Objeto canvas
 	 * @param object props Propiedades
