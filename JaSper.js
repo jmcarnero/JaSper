@@ -180,20 +180,29 @@ http://www.gnu.org/copyleft/gpl.html*/
 		},
 
 		/**
-		 * recupera una regla css de document o del elemento pasado
+		 * Recupera una regla css de document o del elemento pasado
+		 * 
+		 * @todo comprobar el orden/jerarquia de aplicacion (inline pisa a todos)
+		 * @param {object} oElem Elemento en el que buscar
+		 * @param {string} sRegla Regla CSS de la que devolver su valor
+		 * @return {string}
 		 */
-		getStyle: function (elem, cssRule){
-			elem = (!elem)?document.defaultView:elem;
+		getStyle: function (oElem, sRegla){
+			oElem = oElem || document.defaultView;
 			var sRet = '';
-			if(elem.nodeType == 1){
+
+			if(oElem.nodeType == 1){
 				if(document.defaultView && document.defaultView.getComputedStyle){ //Firefox
-					sRet = document.defaultView.getComputedStyle(elem, "")[cssRule];
-				}else if(elem.currentStyle){ //IE
-					sRet = elem.currentStyle[cssRule];
-				}else{ //try and get inline style
-					sRet = elem.style[cssRule];
+					sRet = document.defaultView.getComputedStyle(oElem, "")[sRegla];
+				}
+				else if(elem.currentStyle){ //IE
+					sRet = oElem.currentStyle[sRegla];
+				}
+				else{ //intenta devolver estilo inline
+					sRet = oElem.style[sRegla];
 				}
 			}
+
 			return sRet;
 		},
 
@@ -215,23 +224,23 @@ http://www.gnu.org/copyleft/gpl.html*/
 			oExtend.css.original = oExtend.css.original || {};
 
 			if(!oExtend.css.original[sProp]){
-				var sActValue = JaSper.css.getStyle(oDOMElem, sProp);
+				var sActValue = JaSper.css.getStyle(oDOMElem, sProp) || oDOMElem.style.display;
 
 				switch(sProp){
 					case 'display':
-						if(oDOMElem.style.display == 'none' || !oDOMElem.style.display){
+						if(sActValue == 'none' || !sActValue){
 							var oElem = document.createElement(oDOMElem.nodeName);
 							JaSper(document.body).append(oElem);
 
-							oExtend.css.original[sProp] = JaSper.css.getStyle(oElem, sProp);
+							sActValue = JaSper.css.getStyle(oElem, sProp);
 
 							JaSper(document.body).remove(oElem);
 						}
-						oExtend.css.original[sProp] = oExtend.css.original[sProp] || (sActValue != 'none' ? sActValue : '');
 						break;
 					default:
-						oExtend.css.original[sProp] = sActValue;
 				}
+
+				oExtend.css.original[sProp] = sActValue;
 			}
 
 			JaSper.nodo.extend(oDOMElem, oExtend);
@@ -629,7 +638,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 			return -1; //evento incoherente
 		},
 
-		mouseEnter: function (func){
+		mouseEnter: function (oFunc){
 			var isAChildOf = function (_parent, _child){
 				if(_parent === _child){
 					return false;
@@ -640,22 +649,24 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 				return _child === _parent;
 			};
 
-			return function (ev){
-				var rel = ev.relatedTarget;
-				if(this === rel || isAChildOf(this, rel)) return;
-				func.call(this, ev);
+			return function (oEv){
+				var oRel = oEv.relatedTarget;
+				if(this === oRel || isAChildOf(this, oRel)){
+					return;
+				}
+				oFunc.call(this, oEv);
 			};
 		},
 
-		mouseWheel: function (func){
-			if(typeof func === 'undefined'){
-				func = function (e){
-					e.wheelDelta = -(e.detail);
-					func.call(this, e);
-					e.wheelDelta = null;
+		mouseWheel: function (oFunc){
+			if(typeof oFunc === 'undefined'){
+				oFunc = function (oEv){
+					oEv.wheelDelta = -(oEv.detail);
+					oFunc.call(this, oEv);
+					oEv.wheelDelta = null;
 				};
 			}
-			return func;
+			return oFunc;
 		},
 
 		/**
@@ -666,12 +677,12 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * @param {event} ev Evento
 		 * @return {event} Evento
 		 */
-		name: function (ev){
+		name: function (oEv){
 			/*this.nombreEvento = window.nombreEvento = evento.toLowerCase(); //se guarda el nombre del ultimo evento disparado para cada objeto JaSper; y el ultimo de todos en window.nombreEvento
 			evento = this.nombreEvento;*/
 
-			ev = ev || window.event;
-			return ev;
+			oEv = oEv || window.event;
+			return oEv;
 		},
 
 		/**
@@ -985,6 +996,16 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 			}
 
 			return aRet;
+		},
+
+		/**
+		 * Convierte los caracteres especiales HTML (&<>) de una cadena en entidades
+		 *
+		 * @param {string} sHtml Texto HTML
+		 * @return {tring}
+		 */
+		htmlEntities: function (sHtml){
+			return String(sHtml).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 		},
 
 		/**
@@ -2432,11 +2453,11 @@ JaSper.extend(JaSper.prototype, {
 				JaSper.log('-JaSper::loadMethod- Intenta cargar dinamicamente una librería desconocida para el metodo: ' + sMethod, 1);
 		}
 
-		var tempCall = (function (oObj, aAs){
-			return(function (){oObj[sMethod].apply(oObj, aAs);});
-		})(this, aArgs);
-
 		if(library){
+			var tempCall = (function (oObj, aAs){
+				return(function (){oObj[sMethod].apply(oObj, aAs);});
+			})(this, aArgs);
+
 			JaSper.load.queue.push({'fn': tempCall, 'ctx': this});
 			//JaSper.load.script('packer.php?scriptJs=' + library); //version con empaquetador/minificador "class.JavaScriptPacker.php"
 			JaSper.load.script(library, true); //version sin empaquetador
