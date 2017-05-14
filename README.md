@@ -1,9 +1,9 @@
 # JaSper v3.4 [José M. Carnero](http://sargazos.net)
 ===
 
-## JavaScript framework.
+## Librería multi propósito JavaScript.
 
-- Selector XPath y CSS.
+- Selector DOM XPath y CSS.
 - Extremadamente ligero.
 - Fácil de extender y modularizar.
 - Carga dinámica (en demanda) de componentes (normal y minificado).
@@ -46,9 +46,9 @@ _También funciona en Chrome e IE_.
 ====
 **In English:**
 
-## JavaScript framework.
+## JavaScript library.
 
-- XPath selector and CSS selector.
+- DOM XPath selector and CSS selector.
 - Extremely lightweight.
 - Easy to extend and modularize.
 - Dynamic loading (on demand) of components (normal and minified).
