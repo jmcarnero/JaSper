@@ -157,8 +157,14 @@ JaSper.extend(JaSper.prototype, {
 				});
 			});
 
+			var bFileReader = true;
+			if(typeof FileReader !== 'function'){ //No para navegadores antiguos
+				JaSper.log('Vista previa no disponible', 0);
+				bFileReader = false;
+			}
+
 			//muestra vista previa de la imagen cargada en un input file
-			if(oProps.preview){
+			if(oProps.preview && bFileReader){
 				JaSper('input[type="file"]', this).each(function (){
 					var sPreviewId = (this.dataset.previewId || this.getAttribute('data-previewId')) || null;
 					if(!sPreviewId) //no hay id en la que hacer preview
@@ -167,11 +173,6 @@ JaSper.extend(JaSper.prototype, {
 						sPreviewId = '#' + sPreviewId;
 
 					JaSper(this).eventAdd('change', function (){
-						if(typeof FileReader !== "function"){ //No para navegadores antiguos
-							JaSper.log('Vista previa no disponible', 0);
-							return false;
-						}
-
 						var obtenerTipoMIME = function obtenerTipoMIME(cabecera){ //lee el tipo MIME de la cabecera de la imagen
 							return cabecera.replace(/data:([^;]+).*/, '\$1');
 						};
@@ -699,3 +700,41 @@ JaSper.valida = {
 	}
 
 };
+
+JaSper.extend(JaSper.trait, {
+
+	//disponibles (true) o no (false) las validaciones HTML5 de formularios
+	//TODO resto de tipos y propiedades
+	html5Form: (function (){
+		var oInputTest =  document.createElement('input');
+
+		var oTestType = function (sType){
+			oInputTest.setAttribute('type', sType);
+			return (oInputTest.type !== 'text');
+		};
+
+		return {
+			autofocus: 'autofocus' in oInputTest,
+			date: oTestType('date'),
+			email: oTestType('email'),
+			placeholder: 'placeholder' in oInputTest,
+			required: 'required' in oInputTest
+		};
+
+		//return typeof document.createElement('input').checkValidity === 'function';
+		//navegadores Webkit (como safari) no llaman a ".checkValidity" cuando el usuario envia el formulario;
+		//si es necesario se debe forzar la llamada a "checkValidity()" del propio formulario en "submit",
+		//si esta disponible funcionara despues de aplicar la clase ".invalid", ej.:
+		/*$('#formulario').submit(function (oEv){
+			if(!this.checkValidity()){
+				oEv.preventDefault();
+				$(this).addClass('invalid');
+				$('#status').html('invalid');
+			}else{
+				$(this).removeClass('invalid');
+				$('#status').html('submitted');
+			}
+		});*/
+	})()
+
+});
