@@ -1,4 +1,4 @@
-# JaSper v3.4 [José M. Carnero](http://sargazos.net)
+# JaSper v3.5 [José M. Carnero](http://sargazos.net)
 ===
 
 ## Librería multi propósito JavaScript.
@@ -17,6 +17,7 @@ Módulos incluidos:
 
 - [AJAX](JaSper_ajax.js) con callbacks para inicio, fin y fallo de peticion.
 - [Animaciones CSS](JaSper_anim.js).
+- [Beautifier](JaSper_beautify.js) en un estado muy primitivo, aún.
 - [Canvas](JaSper_canvas.js) (en desarrollo).
 - [Fechas](JaSper_datetime.js) con cuenta atrás y selector de fechas.
 - [Validación de formularios](JaSper_formazo.js) con previsualizacion de imágenes a subir y callbacks de inicio, fin y fallo de validación.
@@ -61,6 +62,7 @@ _También funciona en Chrome e IE_.
 Modules included:
 
 - [AJAX](JaSper_ajax.js) with start callback, end callback and fail callback.
+- [Beautifier](JaSper_beautify.js) in a very early stage yet.
 - [CSS animations](JaSper_anim.js).
 - [Canvas](JaSper_canvas.js) (draft version).
 - [Dates](JaSper_datetime.js) with countdown and date picker.

@@ -2435,6 +2435,7 @@ JaSper.extend(JaSper.prototype, {
 		switch(library){
 			case 'ajax':
 			case 'anim':
+			case 'beautify':
 			case 'canvas':
 			case 'datetime':
 			case 'lightbox':
@@ -2474,6 +2475,9 @@ JaSper.extend(JaSper.prototype, {
 
 	/* AJAX */
 	ajax: function (){return(this.loadMethod('ajax', arguments));},
+
+	/* Beautifier */
+	beautify: function (){return(this.loadMethod('beautify', arguments));},
 
 	/* Canvas */
 	animate: function (){return(this.loadMethod('animate', arguments, 'canvas'));},
