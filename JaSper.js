@@ -953,7 +953,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 				sGid += sChars.substr(fRnum, 1 );
 			}
 
-			return sGidFijo . sGid;
+			return sGidFijo + sGid;
 		},
 
 		/**
@@ -1589,7 +1589,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @param {Object} oObj Objeto DOM del que calcular su caja
 		 * @return {Object} left, top, width y height de la caja del elemento
 		 */
-		boundingRect: function (oObj){
+		boundingBox: function (oObj){
 			if(!oObj)
 				return;
 
