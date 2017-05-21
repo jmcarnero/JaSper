@@ -20,7 +20,7 @@ http://www.gnu.org/copyleft/gpl.html*/
  *
  * @author José M. Carnero
  * @since 2015-05-15
- * @version 1.0
+ * @version 1.1
  */
 JaSper.extend(JaSper.prototype, {
 
@@ -42,17 +42,44 @@ JaSper.extend(JaSper.prototype, {
 	},
 
 	/**
-	 * Alterna la propiedad display entre 'none' y visible
-	 * 
-	 * @param {number} fade Tiempo en milisegundos del fade, si se pasa 0 no hace este efecto
+	 * Pone la propiedad display a 'none'
+	 *
+	 * @since 2017-05-21
+	 * @param {number} iFade Tiempo en milisegundos del fade, si se pasa 0 no hace este efecto
 	 * @return {Object} JaSper
 	 */
-	toggle: function (fade){
+	hide: function (iFade){
 		'use strict';
 
-		fade = fade || 0;
-		if(fade){
-			fade = parseInt(fade) || 200; //si no es entero el valor se toma 200 ms
+		return this.toggle(iFade, 'hide');
+	},
+
+	/**
+	 * Pone la propiedad display a visible
+	 *
+	 * @since 2017-05-21
+	 * @param {number} iFade Tiempo en milisegundos del fade, si se pasa 0 no hace este efecto
+	 * @return {Object} JaSper
+	 */
+	show: function (iFade){
+		'use strict';
+
+		return this.toggle(iFade, 'show');
+	},
+
+	/**
+	 * Alterna la propiedad display entre 'none' y visible
+	 * 
+	 * @param {number} iFade Tiempo en milisegundos del fade, si se pasa 0 no hace este efecto
+	 * @param {string} sTipo "hide" para ocultar, "show" para mostrar
+	 * @return {Object} JaSper
+	 */
+	toggle: function (iFade, sTipo){
+		'use strict';
+
+		iFade = iFade || 0;
+		if(iFade){
+			iFade = parseInt(iFade) || 200; //si no es entero el valor se toma 200 ms
 		}
 
 		this.each(function (){
@@ -61,15 +88,22 @@ JaSper.extend(JaSper.prototype, {
 
 			var sActDisplay = JaSper.css.getStyle(this, 'display');
 
-			if(fade){
-				var sTipoFade = sActDisplay == 'none' ? 'in' : 'out';
-				return JaSper.anim.fade(this, sTipoFade, fade);
+			if(iFade){
+				var sTipoFade = sTipo || sActDisplay == 'none' ? 'show' : 'hide';
+				return JaSper.anim.fade(this, sTipoFade, iFade);
 			}
 			else{
 				JaSper.css.original(this, 'display');
 
-				if(sActDisplay != 'none' ) sActDisplay = 'none';
-				else sActDisplay = JaSper.nodo.extend(this).css.original.display;
+				if(sTipo){ //si se pide "hide" o "show" se pone sActDisplay al inverso para que toggle haga el efecto deseado
+					sActDisplay = sTipo == 'hide' ? 'none' : JaSper.nodo.extend(this).css.original.display;
+				}
+				else if(sActDisplay != 'none'){
+					sActDisplay = 'none';
+				}
+				else{
+					sActDisplay = JaSper.nodo.extend(this).css.original.display;
+				}
 
 				JaSper.css.setStyle(this, 'display', sActDisplay);
 			}
@@ -82,6 +116,15 @@ JaSper.extend(JaSper.prototype, {
 
 JaSper.anim = {
 
+	/**
+	 * Muestra u oculto un elemento gradualmente
+	 * 
+	 * @param {Object} oDOMElem Elemento que se mostrara u ocultara
+	 * @param {Object} sTipo "hide" oculta, "show" muestra
+	 * @param {Object} iMiliSec Tiempo que tardara en ocultar o mostrar
+	 * @param {Object} iIntervalo Realiza la animacion de forma incremental con este intervalo de tiempo
+	 * @return {boolean}
+	 */
 	fade: function (oDOMElem, sTipo, iMiliSec, iIntervalo){
 		'use strict';
 
@@ -89,7 +132,7 @@ JaSper.anim = {
 
 		iMiliSec = iMiliSec || 300;
 		iIntervalo = iIntervalo || 50;
-		var bIn = (sTipo || 'in') === 'in', iOpacidad = bIn ? 0 : 1/*, iSalto = iIntervalo / iMiliSec*/;
+		var bIn = (sTipo || 'show') === 'show', iOpacidad = bIn ? 0 : 1/*, iSalto = iIntervalo / iMiliSec*/;
 
 		JaSper.css.original(oDOMElem, 'display');
 		//JaSper.css.original(oDOMElem, 'fontSize');

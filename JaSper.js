@@ -1316,16 +1316,20 @@ $('<body>').addEvent('mousewheel', function (ev){
 //pero comprobar que navegadores lo soportan
 		 * </code>
 		 * @todo probar en mas navegadores
-		 * @todo devolver posicion de elementos en lugar de la ventana?
+		 * @fixme no calcula bien la posicion de oNodo, debería ser la posicion de oNodo con respecto al documento o ventana?
+		 * @param {Object} oNodo Objeto del que devolver su posicion, por defecto "document"
 		 * @return {string} Que bordes del documento estan visibles respecto a la ventana visible (center si no esta en alguno de los bordes)
 		 */
-		windowPosition: function (){
+		windowPosition: function (oNodo){
+			var oNodoDocument = oNodo || document.documentElement;
+			var oNodoBody = oNodo || document.body;
+
 			var aRet = [];
 
-			var iScrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
-			var iScrollLeft = (document.documentElement && document.documentElement.scrollLeft) || document.body.scrollLeft;
-			var iScrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
-			var iScrollWidth = (document.documentElement && document.documentElement.scrollWidth) || document.body.scrollWidth;
+			var iScrollTop = (oNodoDocument && oNodoDocument.scrollTop) || oNodoBody.scrollTop;
+			var iScrollLeft = (oNodoDocument && oNodoDocument.scrollLeft) || oNodoBody.scrollLeft;
+			var iScrollHeight = (oNodoDocument && oNodoDocument.scrollHeight) || oNodoBody.scrollHeight;
+			var iScrollWidth = (oNodoDocument && oNodoDocument.scrollWidth) || oNodoBody.scrollWidth;
 
 			(iScrollTop == 0) && (aRet[aRet.length] = 'top');
 			(iScrollLeft == 0) && (aRet[aRet.length] = 'left');
@@ -1658,7 +1662,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @param {string} Tag HTML
 		 * @param {Object} oProps Propiedades del elemento a crear (las claves seran los nombres de las propiedades del elemento)
 		 * @param {Object} oPadre Padre al que adjuntar el nuevo elemento, si no se recibe ninguno el elemento no se adjunta al arbol DOM
-		 * @param {Array} aHijos Uno o mas hijos para este elemento; deben ser elementos DOM, ya existentes (se puede pasar como parametro este mismo metodo construyendo un objeto nuevo)
+		 * @param {Array} aHijos Cadena HTML o Uno o mas hijos para este elemento; deben ser elementos DOM, ya existentes (se puede pasar como parametro este mismo metodo construyendo un objeto nuevo)
 		 * @param {string} sNamespace Espacio de nombres bajo el que crear el elemento
 		 * @return {Object} El objeto creado
 		 */
@@ -1722,10 +1726,15 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			}
 
 			if(aHijos){
-				aHijos = JaSper.funcs.isArray(aHijos) ? aHijos : [aHijos];
-				var iLen = aHijos.length || 0;
-				for(var i = 0; i < iLen; i++){
-					oElem.appendChild(aHijos[i]);
+				if(typeof aHijos == 'string'){ //si es una cadena se supone que sera HTML
+					oElem.innerHTML = aHijos;
+				}
+				else{
+					aHijos = JaSper.funcs.isArray(aHijos) ? aHijos : [aHijos];
+					var iLen = aHijos.length || 0;
+					for(var i = 0; i < iLen; i++){
+						oElem.appendChild(aHijos[i]);
+					}
 				}
 			}
 
@@ -2168,8 +2177,9 @@ JaSper.extend(JaSper.prototype, {
 	 */
 	eventRemove: function (evento, funcion, capt){
 		//TODO eliminar todos los eventos del elemento si no se pasan parametros
-		if(typeof funcion == 'string')
+		if(typeof funcion == 'string'){
 			funcion = window[funcion]; //TODO try para distinguir nombre_de_funcion de nombre_de_funcion(params) (evaluar esta ultima)
+		}
 
 		capt = capt || false;
 
@@ -2193,7 +2203,7 @@ JaSper.extend(JaSper.prototype, {
 	 * @todo debe funcionar con each (para toda la lista de nodos que se le pase)
 	 * @todo si "nodo" es un objeto JaSper debe moverlo en lugar de añadir
 	 * @since 2010-12-14
-	 * @param {Object} nodo Elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
+	 * @param {Object} nodo Cadena HTML o elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
 	 * @param {Object} ancla Elemento al que se añadira nodo; si va vacio se usa this (los nodos de JaSper)
 	 * @return {Object} JaSper
 	 */
@@ -2203,20 +2213,51 @@ JaSper.extend(JaSper.prototype, {
 		var elem = null;
 		if(JaSper.funcs.isArray(nodo)){
 			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[1], id: nodo[1]}); //TODO id -> no repetir
-		}else{
+		}
+		else if(typeof nodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+			var oTempElem = JaSper.nodo.crear('div', null, null, nodo);
+			elem = oTempElem.childNodes;
+		}
+		else{
 			elem = nodo;
 		}
 
 		if(!ancla){
 			this.each(function (el){
-				if(this.nodeType == 1) this.appendChild(el);
+				if(this.nodeType == 1){
+					if(JaSper.funcs.isArray(el)){
+						for(var iCont in el){ //si se ha pasado una cadena HTML puede ser un array de elementos
+							this.appendChild(el[iCont]);
+						}
+					}
+					if(JaSper.funcs.isArrayLike(el)){
+						while(el.length){ //si se ha pasado una cadena HTML puede ser un array de elementos
+							this.appendChild(el[0]); //apppendChild hace que en cada ejecucion el elemento desaparezca al pasar a otro nodo padre
+						}
+					}
+					else{
+						this.appendChild(el);
+					}
+				}
 			}, [elem]);
 		}else{
 			if(typeof ancla == 'string'){ //se ha pasado el id y no el objeto
 				ancla = document.getElementById(ancla);
 			}
 			if(ancla.nodeType == 1){
-				ancla.appendChild(elem);
+				if(JaSper.funcs.isArray(el)){
+					for(var iCont in el){ //si se ha pasado una cadena HTML puede ser un array de elementos
+						ancla.appendChild(el[iCont]);
+					}
+				}
+				if(JaSper.funcs.isArrayLike(el)){
+					while(el.length){ //si se ha pasado una cadena HTML puede ser un array de elementos
+						ancla.appendChild(el[0]); //apppendChild hace que en cada ejecucion el elemento desaparezca al pasar a otro nodo padre
+					}
+				}
+				else{
+					ancla.appendChild(el);
+				}
 			}
 		}
 
@@ -2227,14 +2268,16 @@ JaSper.extend(JaSper.prototype, {
 	 * Cambia o consulta atributos de elementos
 	 * No confundir con consulta/asignacion de estilos CSS
 	 *
+	 * NO permite encadenado de metodos
+	 *
 	 * @todo si se intenta cambiar una propiedad (como value) deberia cambiarse directamente (elem.value = 'valor'); bien controlando los casos o enviando a metodos especificos
 	 * @since 2015-06-11
 	 * @param {string} atributo Atributo a cambiar/consultar
 	 * @param {string} valor Nuevo valor para el atributo, si no se pasa nada se devuelve el valor actual
-	 * @return {Object} JaSper
+	 * @return {string} Valor del atributo del primer elemento
 	 */
 	attrib: function (atributo, valor){
-		var ret = this;
+		var ret = valor;
 
 		this.each(function (atr, val){
 			if(val === undefined){ //no se ha pasado valor, solo consulta, se devuelve el valor del primer nodo
@@ -2282,7 +2325,7 @@ JaSper.extend(JaSper.prototype, {
 	 *
 	 * @todo debe funcionar con each (para toda la lista de nodos que se le pase)
 	 * @since 2010-12-09
-	 * @param {Object} nodo Elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
+	 * @param {Object} nodo Cadena HTML, elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
 	 * @return {Object} JaSper
 	 */
 	insertAfter: function (nodo){
@@ -2290,11 +2333,33 @@ JaSper.extend(JaSper.prototype, {
 		if(JaSper.funcs.isArray(nodo)){
 			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[1], id: nodo[1]}); //TODO id -> no repetir
 		}
+		else if(typeof nodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+			var oTempElem = JaSper.nodo.crear('div', null, null, nodo);
+			elem = oTempElem.childNodes;
+		}
+		else{
+			elem = nodo;
+		}
 
 		this.each(function (el){
 			/*if (tn.lastChild) tn.insertBefore(e, tn.lastChild);
 			else tn.appendChild(e);*/
-			this.parentNode.insertBefore(el, this.nextSibling);
+
+			if(this.nodeType == 1){
+				if(JaSper.funcs.isArray(el)){
+					for(var iCont in el){
+						this.parentNode.insertBefore(el[iCont], this.nextSibling)
+					}
+				}
+				if(JaSper.funcs.isArrayLike(el)){
+					while(el.length){
+						this.parentNode.insertBefore(el[0], this.nextSibling)
+					}
+				}
+				else{
+					this.parentNode.insertBefore(el, this.nextSibling)
+				}
+			}
 		}, [elem]);
 
 		return this;
@@ -2305,18 +2370,38 @@ JaSper.extend(JaSper.prototype, {
 	 *
 	 * @todo debe funcionar con each (para toda la lista de nodos que se le pase)
 	 * @since 2010-12-09
-	 * @param {Object} nodo Elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
+	 * @param {Object} nodo Cadena HTML, elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
 	 * @return {Object} JaSper
 	 */
 	insertBefore: function (nodo){
 		if(JaSper.funcs.isArray(nodo)){
 			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[2], id: nodo[3]}); //TODO id -> no repetir
-		}else{
+		}
+		else if(typeof nodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+			var oTempElem = JaSper.nodo.crear('div', null, null, nodo);
+			elem = oTempElem.childNodes;
+		}
+		else{
 			elem = nodo;
 		}
 
 		this.each(function (el){
-			this.parentNode.insertBefore(el, this);
+			if(this.nodeType == 1){
+				if(JaSper.funcs.isArray(el)){
+					for(var iCont in el){
+						this.parentNode.insertBefore(el[iCont], this);
+					}
+				}
+				if(JaSper.funcs.isArrayLike(el)){
+					while(el.length){
+						this.parentNode.insertBefore(el[0], this);
+					}
+				}
+				else{
+					this.parentNode.insertBefore(el, this);
+				}
+			}
+
 		}, [elem]);
 
 		return this;
@@ -2328,7 +2413,7 @@ JaSper.extend(JaSper.prototype, {
 	 * @todo debe funcionar con each (para toda la lista de nodos que se le pase)
 	 * @todo si "nodo" es un objeto JaSper debe moverlo en lugar de añadir
 	 * @since 2010-12-16
-	 * @param {Object} nodo Elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
+	 * @param {Object} nodo Cadena HTML, elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
 	 * @param {Object} ancla Elemento al que se añadira nodo; si va vacio se usa this (los nodos de JaSper)
 	 * @return {Object} JaSper
 	 */
@@ -2337,14 +2422,31 @@ JaSper.extend(JaSper.prototype, {
 
 		if(JaSper.funcs.isArray(nodo)){
 			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[1], id: nodo[1]}); //TODO id -> no repetir
-		}else{
+		}
+		else if(typeof nodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+			var oTempElem = JaSper.nodo.crear('div', null, null, nodo);
+			elem = oTempElem.childNodes;
+		}
+		else{
 			elem = nodo;
 		}
 
 		if(!ancla){
 			this.each(function (el){
 				if(this.nodeType == 1){
-					this.insertBefore(el, this.firstChild);
+					if(JaSper.funcs.isArray(el)){
+						for(var iCont in el){
+							this.insertBefore(el[iCont], this.firstChild);
+						}
+					}
+					if(JaSper.funcs.isArrayLike(el)){
+						while(el.length){
+							this.insertBefore(el[0], this.firstChild);
+						}
+					}
+					else{
+						this.insertBefore(el, this.firstChild);
+					}
 				}
 			}, [elem]);
 		}
@@ -2353,7 +2455,19 @@ JaSper.extend(JaSper.prototype, {
 				ancla = document.getElementById(ancla);
 			}
 			if(ancla.nodeType == 1){
-				ancla.insertBefore(el, ancla.firstChild);
+				if(JaSper.funcs.isArray(el)){
+					for(var iCont in el){
+						ancla.insertBefore(el[iCont], ancla.firstChild);
+					}
+				}
+				if(JaSper.funcs.isArrayLike(el)){
+					while(el.length){
+						ancla.insertBefore(el[0], ancla.firstChild);
+					}
+				}
+				else{
+					ancla.insertBefore(el, ancla.firstChild);
+				}
 			}
 		}
 
@@ -2469,8 +2583,8 @@ JaSper.extend(JaSper.prototype, {
 
 	/* Animaciones de elementos DOM mediante propiedades CSS */
 	fade: function (){return(this.loadMethod('fade', arguments, 'anim'));},
-	slide: function (){return(this.loadMethod('slide', arguments, 'anim'));},
-	slideToggle: function (){return(this.loadMethod('slideToggle', arguments, 'anim'));},
+	hide: function (){return(this.loadMethod('hide', arguments, 'anim'));},
+	show: function (){return(this.loadMethod('show', arguments, 'anim'));},
 	toggle: function (){return(this.loadMethod('toggle', arguments, 'anim'));},
 
 	/* AJAX */

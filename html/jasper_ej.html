@@ -6,17 +6,18 @@
 	<script type="text/javascript" src="../JaSper.js"></script>
 	<script type="text/javascript"><!--
 	$().debug().ready(function(){
+		$('<body>').append('<h1>prueba h1</h1><h2>prueba h2</h2><h2>prueba h2 2</h2><h3>prueba h3</h3><h4>prueba h4</h4>');
+
 		$('<body>').eventAdd('click', function(ev){
 			$('#butsubmit').toggle(500);
-		}).eventAdd('mousewheel', function(ev){
-			ev.wheelDelta = ev.wheelDelta || -(ev.detail);
-			if(JaSper.funcs.windowPosition().indexOf('bottom') > -1 && ev.wheelDelta == -3){
+		}).eventAdd('mousewheel', function(oEv){
+			oEv.wheelDelta = oEv.wheelDelta || -(oEv.detail);
+			if(JaSper.funcs.windowPosition().indexOf('bottom') > -1 && oEv.wheelDelta == -3){
 				alert('fin de pagina');
 			}
-			if(JaSper.funcs.windowPosition().indexOf('top') > -1 && ev.wheelDelta == 3){
+			if(JaSper.funcs.windowPosition().indexOf('top') > -1 && oEv.wheelDelta == 3){
 				$('body').eventFire('customEvent');
 			}
-
 		});
 
 		$(".formb * li").eventAdd("mouseenter", function (){
