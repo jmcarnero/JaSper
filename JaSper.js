@@ -2203,60 +2203,51 @@ JaSper.extend(JaSper.prototype, {
 	 * @todo debe funcionar con each (para toda la lista de nodos que se le pase)
 	 * @todo si "nodo" es un objeto JaSper debe moverlo en lugar de añadir
 	 * @since 2010-12-14
-	 * @param {Object} nodo Cadena HTML o elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
-	 * @param {Object} ancla Elemento al que se añadira nodo; si va vacio se usa this (los nodos de JaSper)
+	 * @param {Object} oNodo Cadena HTML o elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
+	 * @param {Object} oAncla Elemento al que se añadira nodo; si va vacio se usa this (los nodos de JaSper)
 	 * @return {Object} JaSper
 	 */
-	append: function (nodo, ancla){
-		nodo = nodo || this; //se usa el objeto JaSper actual si no se pasa ninguno (o si se pasa null); util para clonar, por ej.
+	append: function (oNodo, oAncla){
+		oNodo = oNodo || this; //se usa el objeto JaSper actual si no se pasa ninguno (o si se pasa null); util para clonar, por ej.
 
-		var elem = null;
-		if(JaSper.funcs.isArray(nodo)){
-			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[1], id: nodo[1]}); //TODO id -> no repetir
+		var aNodos = [oNodo];
+		if(JaSper.funcs.isArray(oNodo)){
+			aNodos = JaSper.nodo.crear(oNodo[0], {innerHTML: oNodo[1], className: oNodo[1], id: oNodo[1]}); //TODO id -> no repetir
 		}
-		else if(typeof nodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
-			var oTempElem = JaSper.nodo.crear('div', null, null, nodo);
-			elem = oTempElem.childNodes;
-		}
-		else{
-			elem = nodo;
+		else if(typeof oNodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+			//TODO deben clonarse los nodos resultantes de esta operacion?, de no ser asi los recibira solo el primer nodo en this.each y no podran adjuntase a mas this.each
+			//TODO tal vez deberian insertarse en la primera pasada y en las siguiente clonarse los de la primera
+			var oTempElem = JaSper.nodo.crear('div', null, null, oNodo);
+			aNodos = oTempElem.childNodes;
 		}
 
-		if(!ancla){
-			this.each(function (el){
+		if(!oAncla){
+			this.each(function (aElems){
 				if(this.nodeType == 1){
-					if(JaSper.funcs.isArray(el)){
-						for(var iCont in el){ //si se ha pasado una cadena HTML puede ser un array de elementos
-							this.appendChild(el[iCont]);
+					var aElemsLength = aElems.length;
+					var iCont = 0;
+					var oNodoNuevo = null;
+					while(iCont < aElems.length){
+						oNodoNuevo = this.appendChild(aElems[iCont]);
+						if(aElemsLength == aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+							iCont++;
 						}
-					}
-					if(JaSper.funcs.isArrayLike(el)){
-						while(el.length){ //si se ha pasado una cadena HTML puede ser un array de elementos
-							this.appendChild(el[0]); //apppendChild hace que en cada ejecucion el elemento desaparezca al pasar a otro nodo padre
-						}
-					}
-					else{
-						this.appendChild(el);
+						//var dupNode = node.cloneNode(deep);
 					}
 				}
-			}, [elem]);
+			}, [aNodos]);
 		}else{
-			if(typeof ancla == 'string'){ //se ha pasado el id y no el objeto
-				ancla = document.getElementById(ancla);
+			if(typeof oAncla == 'string'){ //se ha pasado el id y no el objeto
+				oAncla = document.getElementById(oAncla);
 			}
-			if(ancla.nodeType == 1){
-				if(JaSper.funcs.isArray(el)){
-					for(var iCont in el){ //si se ha pasado una cadena HTML puede ser un array de elementos
-						ancla.appendChild(el[iCont]);
+			if(oAncla.nodeType == 1){
+				var aElemsLength = aNodos.length;
+				var iCont = 0;
+				while(iCont < aNodos.length){
+					oAncla.appendChild(aNodos[iCont]);
+					if(aElemsLength == aNodos.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+						iCont++;
 					}
-				}
-				if(JaSper.funcs.isArrayLike(el)){
-					while(el.length){ //si se ha pasado una cadena HTML puede ser un array de elementos
-						ancla.appendChild(el[0]); //apppendChild hace que en cada ejecucion el elemento desaparezca al pasar a otro nodo padre
-					}
-				}
-				else{
-					ancla.appendChild(el);
 				}
 			}
 		}
@@ -2325,42 +2316,35 @@ JaSper.extend(JaSper.prototype, {
 	 *
 	 * @todo debe funcionar con each (para toda la lista de nodos que se le pase)
 	 * @since 2010-12-09
-	 * @param {Object} nodo Cadena HTML, elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
+	 * @param {Object} oNodo Cadena HTML, elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
 	 * @return {Object} JaSper
 	 */
-	insertAfter: function (nodo){
-		var elem = nodo;
-		if(JaSper.funcs.isArray(nodo)){
-			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[1], id: nodo[1]}); //TODO id -> no repetir
+	insertAfter: function (oNodo){
+		var aNodos = [oNodo];
+
+		if(JaSper.funcs.isArray(oNodo)){
+			aNodos = JaSper.nodo.crear(oNodo[0], {innerHTML: oNodo[1], className: oNodo[1], id: oNodo[1]}); //TODO id -> no repetir
 		}
-		else if(typeof nodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
-			var oTempElem = JaSper.nodo.crear('div', null, null, nodo);
-			elem = oTempElem.childNodes;
-		}
-		else{
-			elem = nodo;
+		else if(typeof oNodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+			var oTempElem = JaSper.nodo.crear('div', null, null, oNodo);
+			aNodos = oTempElem.childNodes;
 		}
 
-		this.each(function (el){
+		this.each(function (aElems){
 			/*if (tn.lastChild) tn.insertBefore(e, tn.lastChild);
 			else tn.appendChild(e);*/
 
 			if(this.nodeType == 1){
-				if(JaSper.funcs.isArray(el)){
-					for(var iCont in el){
-						this.parentNode.insertBefore(el[iCont], this.nextSibling)
+				var aElemsLength = aElems.length;
+				var iCont = 0;
+				while(iCont < aElems.length){
+					this.parentNode.insertBefore(aElems[iCont], this.nextSibling)
+					if(aElemsLength == aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+						iCont++;
 					}
-				}
-				if(JaSper.funcs.isArrayLike(el)){
-					while(el.length){
-						this.parentNode.insertBefore(el[0], this.nextSibling)
-					}
-				}
-				else{
-					this.parentNode.insertBefore(el, this.nextSibling)
 				}
 			}
-		}, [elem]);
+		}, [aNodos]);
 
 		return this;
 	},
@@ -2370,39 +2354,33 @@ JaSper.extend(JaSper.prototype, {
 	 *
 	 * @todo debe funcionar con each (para toda la lista de nodos que se le pase)
 	 * @since 2010-12-09
-	 * @param {Object} nodo Cadena HTML, elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
+	 * @param {Object} oNodo Cadena HTML, elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
 	 * @return {Object} JaSper
 	 */
-	insertBefore: function (nodo){
-		if(JaSper.funcs.isArray(nodo)){
-			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[2], id: nodo[3]}); //TODO id -> no repetir
+	insertBefore: function (oNodo){
+		var aNodos = [oNodo];
+
+		if(JaSper.funcs.isArray(oNodo)){
+			aNodos = JaSper.nodo.crear(oNodo[0], {innerHTML: oNodo[1], className: oNodo[2], id: oNodo[3]}); //TODO id -> no repetir
 		}
-		else if(typeof nodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
-			var oTempElem = JaSper.nodo.crear('div', null, null, nodo);
-			elem = oTempElem.childNodes;
-		}
-		else{
-			elem = nodo;
+		else if(typeof oNodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+			var oTempElem = JaSper.nodo.crear('div', null, null, oNodo);
+			aNodos = oTempElem.childNodes;
 		}
 
-		this.each(function (el){
+		this.each(function (aElems){
 			if(this.nodeType == 1){
-				if(JaSper.funcs.isArray(el)){
-					for(var iCont in el){
-						this.parentNode.insertBefore(el[iCont], this);
+				var aElemsLength = aElems.length;
+				var iCont = 0;
+				while(iCont < aElems.length){
+					this.parentNode.insertBefore(aElems[iCont], this);
+					if(aElemsLength == aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+						iCont++;
 					}
-				}
-				if(JaSper.funcs.isArrayLike(el)){
-					while(el.length){
-						this.parentNode.insertBefore(el[0], this);
-					}
-				}
-				else{
-					this.parentNode.insertBefore(el, this);
 				}
 			}
 
-		}, [elem]);
+		}, [aNodos]);
 
 		return this;
 	},
@@ -2413,60 +2391,48 @@ JaSper.extend(JaSper.prototype, {
 	 * @todo debe funcionar con each (para toda la lista de nodos que se le pase)
 	 * @todo si "nodo" es un objeto JaSper debe moverlo en lugar de añadir
 	 * @since 2010-12-16
-	 * @param {Object} nodo Cadena HTML, elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
-	 * @param {Object} ancla Elemento al que se añadira nodo; si va vacio se usa this (los nodos de JaSper)
+	 * @param {Object} oNodo Cadena HTML, elemento a insertar o matriz con sus caracteristicas (en este orden: tag (sin llaves angulares), [texto|NULL], [clase css|NULL], [id|NULL])
+	 * @param {Object} oAncla Elemento al que se añadira nodo; si va vacio se usa this (los nodos de JaSper)
 	 * @return {Object} JaSper
 	 */
-	prepend: function (nodo, ancla){
-		nodo = nodo || this; //se usa el objeto JaSper actual si no se pasa ninguno; util para clonar, por ej.
+	prepend: function (oNodo, oAncla){
+		oNodo = oNodo || this; //se usa el objeto JaSper actual si no se pasa ninguno; util para clonar, por ej.
 
-		if(JaSper.funcs.isArray(nodo)){
-			elem = JaSper.nodo.crear(nodo[0], {innerHTML: nodo[1], className: nodo[1], id: nodo[1]}); //TODO id -> no repetir
+		var aNodos = [oNodo];
+		if(JaSper.funcs.isArray(oNodo)){
+			aNodos = JaSper.nodo.crear(oNodo[0], {innerHTML: oNodo[1], className: oNodo[1], id: oNodo[1]}); //TODO id -> no repetir
 		}
-		else if(typeof nodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
-			var oTempElem = JaSper.nodo.crear('div', null, null, nodo);
-			elem = oTempElem.childNodes;
-		}
-		else{
-			elem = nodo;
+		else if(typeof oNodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+			var oTempElem = JaSper.nodo.crear('div', null, null, oNodo);
+			aNodos = oTempElem.childNodes;
 		}
 
-		if(!ancla){
-			this.each(function (el){
+		if(!oAncla){
+			this.each(function (aElems){
 				if(this.nodeType == 1){
-					if(JaSper.funcs.isArray(el)){
-						for(var iCont in el){
-							this.insertBefore(el[iCont], this.firstChild);
+					var aElemsLength = aElems.length;
+					var iCont = 0;
+					while(iCont < aElems.length){
+						this.insertBefore(aElems[iCont], this.firstChild);
+						if(aElemsLength == aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+							iCont++;
 						}
-					}
-					if(JaSper.funcs.isArrayLike(el)){
-						while(el.length){
-							this.insertBefore(el[0], this.firstChild);
-						}
-					}
-					else{
-						this.insertBefore(el, this.firstChild);
 					}
 				}
-			}, [elem]);
+			}, [aNodos]);
 		}
 		else{
-			if(typeof ancla == 'string'){ //se ha pasado el id y no el objeto
-				ancla = document.getElementById(ancla);
+			if(typeof oAncla == 'string'){ //se ha pasado el id y no el objeto
+				oAncla = document.getElementById(oAncla);
 			}
-			if(ancla.nodeType == 1){
-				if(JaSper.funcs.isArray(el)){
-					for(var iCont in el){
-						ancla.insertBefore(el[iCont], ancla.firstChild);
+			if(oAncla.nodeType == 1){
+				var aElemsLength = aNodos.length;
+				var iCont = 0;
+				while(iCont < aNodos.length){
+					oAncla.insertBefore(aNodos[iCont], oAncla.firstChild);
+					if(aElemsLength == aNodos.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+						iCont++;
 					}
-				}
-				if(JaSper.funcs.isArrayLike(el)){
-					while(el.length){
-						ancla.insertBefore(el[0], ancla.firstChild);
-					}
-				}
-				else{
-					ancla.insertBefore(el, ancla.firstChild);
 				}
 			}
 		}
@@ -2475,17 +2441,17 @@ JaSper.extend(JaSper.prototype, {
 	},
 
 	/**
-	 * Elimina un elemento
+	 * Elimina un nodo
 	 *
 	 * @todo eliminar eventos asociados y cualquier otra informacion
-	 * @param {Object} elem Elemento a eliminar
+	 * @param {Object} oNodo Elemento a eliminar
 	 * @return {Object} JaSper
 	 */
-	remove: function (elem) {
-		//var el = this.get(el);
-		this.each(function (el){
-			el.parentNode.removeChild(el);
-		}, [elem]);
+	remove: function (oNodo) {
+		//var el = this.get(oEl);
+		this.each(function (oEl){
+			oEl.parentNode.removeChild(oEl);
+		}, [oNodo]);
 
 		return this;
 	},
@@ -2496,29 +2462,29 @@ JaSper.extend(JaSper.prototype, {
 	 *
 	 * NO permite encadenado de metodos
 	 *
-	 * @param {string} text Texto que sustituira el de los nodos
-	 * @param {string} separador Cadena para separar cuando se devuelven varios fragmentos de texto
+	 * @param {string} sText Texto que sustituira el de los nodos
+	 * @param {string} sSeparador Cadena para separar cuando se devuelven varios fragmentos de texto
 	 * @return {string} Texto encontrado
 	 */
-	text: function (text, separador){
+	text: function (sText, sSeparador){
 		var ret = [];
-		text = text || '';
-		separador = separador || '';
+		sText = sText || '';
+		separador = sSeparador || '';
 
 		//TODO comprobar cross browser
 		//TODO devolver value para elementos de formulario?
-		this.each(function (t){
+		this.each(function (sT){
 			if(!!this.textContent){ //si el nodo no tiene la propiedad text no se hace nada
 				//TODO separar las cadenas encontradas para un posterior split?
 				ret[ret.length] = this.textContent || this.nodeValue; //guarda el texto actual del nodo
 
-				if(t){ //sustituye con el texto pasado por parametro
-					this.textContent = t;
+				if(sT){ //sustituye con el texto pasado por parametro
+					this.textContent = sT;
 				}
 			}
-		}, [text]);
+		}, [sText]);
 
-		return ret.join(separador);
+		return ret.join(sSeparador);
 	}
 
 });
