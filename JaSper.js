@@ -1322,14 +1322,14 @@ $('<body>').addEvent('mousewheel', function (ev){
 		 */
 		windowPosition: function (oNodo){
 			var oNodoDocument = oNodo || document.documentElement;
-			var oNodoBody = oNodo || document.body;
+			oNodo = oNodo || document.body;
 
 			var aRet = [];
 
-			var iScrollTop = (oNodoDocument && oNodoDocument.scrollTop) || oNodoBody.scrollTop;
-			var iScrollLeft = (oNodoDocument && oNodoDocument.scrollLeft) || oNodoBody.scrollLeft;
-			var iScrollHeight = (oNodoDocument && oNodoDocument.scrollHeight) || oNodoBody.scrollHeight;
-			var iScrollWidth = (oNodoDocument && oNodoDocument.scrollWidth) || oNodoBody.scrollWidth;
+			var iScrollTop = (oNodoDocument && oNodoDocument.scrollTop) || oNodo.scrollTop;
+			var iScrollLeft = (oNodoDocument && oNodoDocument.scrollLeft) || oNodo.scrollLeft;
+			var iScrollHeight = (oNodoDocument && oNodoDocument.scrollHeight) || oNodo.scrollHeight;
+			var iScrollWidth = (oNodoDocument && oNodoDocument.scrollWidth) || oNodo.scrollWidth;
 
 			(iScrollTop == 0) && (aRet[aRet.length] = 'top');
 			(iScrollLeft == 0) && (aRet[aRet.length] = 'left');

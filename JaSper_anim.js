@@ -89,7 +89,7 @@ JaSper.extend(JaSper.prototype, {
 			var sActDisplay = JaSper.css.getStyle(this, 'display');
 
 			if(iFade){
-				var sTipoFade = sTipo || sActDisplay == 'none' ? 'show' : 'hide';
+				var sTipoFade = sTipo || (sActDisplay == 'none' ? 'show' : 'hide');
 				return JaSper.anim.fade(this, sTipoFade, iFade);
 			}
 			else{
@@ -117,8 +117,8 @@ JaSper.extend(JaSper.prototype, {
 JaSper.anim = {
 
 	/**
-	 * Muestra u oculto un elemento gradualmente
-	 * 
+	 * Muestra u oculta un elemento gradualmente
+	 *
 	 * @param {Object} oDOMElem Elemento que se mostrara u ocultara
 	 * @param {Object} sTipo "hide" oculta, "show" muestra
 	 * @param {Object} iMiliSec Tiempo que tardara en ocultar o mostrar
