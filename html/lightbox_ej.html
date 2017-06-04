@@ -7,8 +7,14 @@
 	<script type="text/javascript">
 	<!--
 		$().ready(function(){
-			$('.lightbox').debug().lightbox({
+			/*$('.lightbox').debug().lightbox({
 				origen: 'src'
+			});*/
+
+			$('.lightbox').debug().lightbox({
+				descripcion: function (){return this.title || $('img', this).attrib('title');},
+				origen: function (){return this.src || this.href;},
+				pie: function (){return this.alt || $('img', this).attrib('alt');}
 			});
 		});
 	-->
@@ -16,10 +22,19 @@
 </head>
 <body>
 	<h1>pruebas Lightbox</h1>
-	<img class="lightbox" src="../imgs/ajax-loader.gif" title="ajax-loader.gif" alt="ajax-loader" />
-	<br /><br />
-	<img class="lightbox" src="../imgs/JaSper_rating_stars.png" title="JaSper_rating_stars.png" alt="JaSper_rating_stars" />
-	<br /><br />
-	<img class="lightbox" src="../imgs/JaSper_rtb.png" title="JaSper_rtb.png" alt="JaSper_rtb" longdesc="descripcion larga" />
+	<div>
+		<img class="lightbox" src="../imgs/ajax-loader.gif" alt="ajax-loader" />
+	</div>
+	<div>
+		<img class="lightbox" src="../imgs/JaSper_rating_stars.png" alt="JaSper_rating_stars" />
+	</div>
+	<div>
+		<img class="lightbox" src="../imgs/JaSper_rtb.png" alt="JaSper_rtb" title="descripcion larga" />
+	</div>
+	<div>
+		<a class="lightbox" href="https://sargazos.net/imgs/logo.png">
+			<img src="https://sargazos.net/imgs/logo.png" alt="Sargazos-logo" title="Sargazos logo" />
+		</a>
+	</div>
 </body>
 </html>
