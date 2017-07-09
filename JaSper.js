@@ -1866,6 +1866,11 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 */
 		interval: function (oOps){
 			oOps = oOps || {};
+
+			if(!oOps.accion){
+				return false;
+			}
+
 			oOps.intervalo = oOps.intervalo || 40; //25 fps por defecto
 			oOps.duracion = oOps.duracion || 300;
 			oOps.delta = oOps.delta || '';
@@ -1890,11 +1895,9 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 				}
 			}
 
-			if(!oOps.accion)
-				return false;
-
 			var oInicio = new Date();
 
+			//TODO ver como sustituir setInterval por window.requestAnimationFrame
 			var oInterval = setInterval(function (){
 				var fProgreso = (new Date() - oInicio) / oOps.duracion;
 
@@ -2661,3 +2664,15 @@ if(!Object.keys){
 	sRet = (sPadChar + sStr).slice(-iPadLen);
 	return sRet;
 }*/
+
+
+if(!window.requestAnimationFrame){
+	window.requestAnimationFrame = (function(callback){
+		return window.webkitRequestAnimationFrame 
+			|| window.mozRequestAnimationFrame 
+			|| window.oRequestAnimationFrame 
+			|| window.msRequestAnimationFrame 
+			|| function(callback){window.setTimeout(callback, 1000 / 60);return new Date().getTime();}; //TODO callback has one single argument, a DOMHighResTimeStamp, which indicates the current time (the time returned from "performance.now()") for when requestAnimationFrame starts to fire callbacks
+	})();
+}
+
