@@ -2,6 +2,7 @@
 div.JaSper_rtb.contenedor {/*border:solid 1px red;*/}
 div.JaSper_rtb.toolbar {margin:0 !important;border:outset 2px grey;}
 div.JaSper_rtb.editable {margin:0 !important;border:inset 2px grey;resize:both;overflow:auto;}
+div.JaSper_rtb.noSoporte {border:inset 2px orange !important;}
 
 /*botones
 la posicion 0 del sprite de botones es un dibujo vacio y transparente*/
@@ -10,6 +11,8 @@ div.JaSper_rtb.button:hover {border:1px dashed grey;}
 div.JaSper_rtb.button.backColor {color:transparent;background-position:-720px 0;} div.JaSper_rtb.button.backColor:hover {background-position:-720px -24px;} /*p30*/
 div.JaSper_rtb.button.bold {color:transparent;background-position:-384px 0;} div.JaSper_rtb.button.bold:hover {background-position:-384px -24px;} /*p16*/
 div.JaSper_rtb.button.center {color:transparent;background-position:-744px 0;} div.JaSper_rtb.button.center:hover {background-position:-744px -24px;} /*p31*/
+div.JaSper_rtb.button.copy {color:transparent;background-position:-1008px 0;} div.JaSper_rtb.button.copy:hover {background-position:-1008px -24px;} /*p42*/
+div.JaSper_rtb.button.cut {color:transparent;background-position:-1032px 0;} div.JaSper_rtb.button.cut:hover {background-position:-1032px -24px;} /*p43*/
 div.JaSper_rtb.button.fontSize {} div.JaSper_rtb.button.fontSize:hover {}
 div.JaSper_rtb.button.fontFamily {} div.JaSper_rtb.button.fontFamily:hover {}
 div.JaSper_rtb.button.fontFormat {} div.JaSper_rtb.button.fontFormat:hover {}
@@ -23,6 +26,7 @@ div.JaSper_rtb.button.left {color:transparent;background-position:-792px 0;} div
 div.JaSper_rtb.button.link {color:transparent;background-position:-936px 0;} div.JaSper_rtb.button.link:hover {background-position:-936px -24px;} /*p39*/
 div.JaSper_rtb.button.ol {color:transparent;background-position:-624px 0;} div.JaSper_rtb.button.ol:hover {background-position:-624px -24px;} /*p26*/
 div.JaSper_rtb.button.outdent {color:transparent;background-position:-696px 0;} div.JaSper_rtb.button.outdent:hover {background-position:-696px -24px;} /*p29*/
+div.JaSper_rtb.button.paste {color:transparent;background-position:-1056px 0;} div.JaSper_rtb.button.paste:hover {background-position:-1056px -24px;} /*p44*/
 div.JaSper_rtb.button.redo {color:transparent;background-position:-96px 0;} div.JaSper_rtb.button.redo:hover {background-position:-96px -24px;} /*p4*/
 div.JaSper_rtb.button.removeFormat {color:transparent;background-position:-72px 0;} div.JaSper_rtb.button.removeFormat:hover {background-position:-72px -24px;} /*p3*/
 div.JaSper_rtb.button.right {color:transparent;background-position:-816px 0;} div.JaSper_rtb.button.right:hover {background-position:-816px -24px;} /*p34*/

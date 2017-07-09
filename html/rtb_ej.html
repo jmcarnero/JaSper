@@ -5,16 +5,17 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="stylesheet" type="text/css" media="screen,projection" href="../css/JaSper_rtb.css" />
 	<script type="text/javascript" src="../JaSper.js"></script>
-	<script type="text/javascript">
-	<!--
+	<script type="text/javascript"><!--
 		$().ready(function(){
 			$('input[type="checkbox"]').debug().colorPicker();
 			$('.rtb').debug().rtb({
-				botones: ['bold', 'italic', 'underline', 'indent', 'outdent', 'undo', 'redo', 'removeFormat', 'verCodigo']
+				botones: ['copy', 'cut', 'paste', 'bold', 'italic', 'underline', 'indent', 'outdent', 'undo', 'redo', 'removeFormat', 'verCodigo', 'testCustom'],
+				custom: {
+					testCustom: {comando: 'f:alert(\'Hola RTB!\');return false;', css: null, nombre: 'Test Custom', tags: [], tecla: ''}
+				},
 			});
 		});
-	-->
-	</script>
+	--></script>
 	<style type="text/css">
 		input[type='text'], textarea {width:240px;height:240px;}
 	</style>

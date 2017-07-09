@@ -21,6 +21,8 @@ JaSper.extend(JaSper.langs, {
 	'Background Color': 'Color de fondo',
 	'Bold': 'Negrita',
 	'Center Align': 'Centrado',
+	'Copy': 'Copiar',
+	'Cut': 'Cortar',
 	'Font Size': 'Tamaño de fuente',
 	'Font Family': 'Fuente',
 	'Font Format': 'Formato de fuente',
@@ -28,11 +30,12 @@ JaSper.extend(JaSper.langs, {
 	'Horizontal Rule': 'Línea horizontal',
 	'Image': 'Imagen',
 	'Indent Text': 'Indentar',
+	'Insert Ordered List': 'Insertar lista numerada',
 	'Italic': 'Cursiva',
 	'Justify Align': 'Justificar',
 	'Left Align': 'Alinear izquierda',
 	'Link': 'Enlace',
-	'Insert Ordered List': 'Insertar lista numerada',
+	'Paste': 'Pegar',
 	'Redo': 'Rehacer',
 	'Remove Indent': 'Quitar indentación',
 	'Remove Formatting': 'Quitar formato',
@@ -54,7 +57,7 @@ JaSper.extend(JaSper.langs, {
  *
  * @author José M. Carnero
  * @since 2012-05-15
- * @version 1.2
+ * @version 1.3
  */
 
 JaSper.extend(JaSper.prototype, {
@@ -156,10 +159,12 @@ JaSper.extend(JaSper.prototype, {
 	},
 
 	/**
-	 * editor Rich Text Box
+	 * Editor Rich Text Box
+	 * 
+	 * El comando de un boton personalizado puede ser un fragmento de codigo en la forma: f:codigo_javascript_valido; el texto "rtbId" se sustituira por el id del objeto RTB correspondiente
 	 * 
 	 * @since 2011-05-31
-	 * @param {object} oPreferencias Preferencias: botones -> array de botones que se mostraran
+	 * @param {object} oPreferencias Preferencias: botones -> array de botones que se mostraran (permite botones personalizados de usuario), custom -> propiedades del los botones personalizados
 	 * @return {object}
 	 */
 	rtb: function (oPreferencias){
@@ -194,11 +199,24 @@ JaSper.extend(JaSper.prototype, {
 			underline: {comando: 'Underline', css: {'text-decoration' : 'underline'}, nombre: JaSper._t('Underline'), tags: ['U'], tecla: 'u'},
 			undo: {comando: 'Undo', css: null, nombre: JaSper._t('Undo'), tags: [], tecla: ''}, //Undoes the last executed command
 			unlink: {comando: false, css: null, nombre: JaSper._t('Unlink'), tags: [], tecla: ''},
-			verCodigo: {comando: 'f:JaSper.rtb.verCodigo', css: null, nombre: JaSper._t('See code'), tags: [], tecla: ''}, //TODO mejorar llamadas a funciones
+			verCodigo: {comando: 'f:JaSper.rtb.verCodigo(\'rtbId\');return false;', css: null, nombre: JaSper._t('See code'), tags: [], tecla: ''}, //TODO mejorar llamadas a funciones
+
+			copy: {comando: 'copy', css: null, nombre: JaSper._t('Copy'), tags: [], tecla: ''},
+			cut: {comando: 'cut', css: null, nombre: JaSper._t('Cut'), tags: [], tecla: ''},
+			paste: {comando: 'paste', css: null, nombre: JaSper._t('Paste'), tags: [], tecla: ''},
+
 			xhtml: {comando: false, css: null, nombre: JaSper._t('XHTML mode'), tags: [], tecla: ''}
 		};
 
-		var aBotonesLista = oPreferencias.botones || ['bold', 'italic', 'underline', 'left', 'center', 'right', 'justify', 'ol', 'ul', 'fontSize', 'fontFamily', 'fontFormat', 'indent', 'outdent', 'image', 'link', 'unlink', 'foreColor', 'backColor', 'undo', 'redo', 'removeFormat', 'verCodigo'];
+		var aBotonesLista = oPreferencias.botones || ['bold', 'italic', 'underline', 'left', 'center', 'right', 'justify', 'ol', 'ul', 'fontSize', 'fontFamily', 'fontFormat', 'indent', 'outdent', 'image', 'link', 'unlink', 'foreColor', 'backColor', 'undo', 'redo', 'removeFormat', 'copy', 'cut', 'paste', 'verCodigo'];
+
+		//botones personalizados
+		//TODO falta icono
+		if(oPreferencias.custom){
+			for(var oBoton in oPreferencias.custom){
+				oBotones[oBoton] = oPreferencias.custom[oBoton];
+			}
+		}
 
 		//inicializando
 		this.each(function (){
@@ -222,64 +240,71 @@ JaSper.extend(JaSper.prototype, {
 			this.style.display = 'none';
 
 			//poner el sustituto
-			var cont = JaSper.nodo.crear('div', {
+			var oContenedor = JaSper.nodo.crear('div', {
 				id: this.id + '_rtb',
 				className: 'JaSper_rtb contenedor'
 			}); //contenedor
-			cont.style.width = thisX + 'px';
-			cont.style.minHeight = thisY + 'px';
+			oContenedor.style.width = thisX + 'px';
+			oContenedor.style.minHeight = thisY + 'px';
 
-			var edit = JaSper.nodo.crear('div', {
+			var oEditable = JaSper.nodo.crear('div', {
 				id: this.id + '_rtb_div',
 				className: 'JaSper_rtb editable'
 			}); //div editable
-			if(!((edit.contentEditable = 'true') || (window.document.designMode = 'on'))){ //window.document.designMode Firefox < 3
-				JaSper.log('[JaSper::rtb] No se puede poner el elemento [' + edit.id + '] en modo editable.', 1);
+			if(!((oEditable.contentEditable = 'true') || (window.document.designMode = 'on'))){ //window.document.designMode Firefox < 3
+				JaSper.log('[JaSper::rtb] No se puede poner el elemento [' + oEditable.id + '] en modo editable.', 1);
 				return false;
 			}
-			edit.style.height = (thisY - 18) + 'px';
-			//edit.innerHTML = JaSper.rtb.decode_entities(this[sOriginalTipoCont]);
-			edit.innerHTML = this[sOriginalTipoCont];
-			edit.innerHTML = (edit.innerHTML == '' ? '<br />'  : edit.innerHTML); //si no, pinta un cursor que ocupa todo el alto a la izquierda
-			edit.spellcheck || false;
-			edit.styleWithCSS = false; //crea elementos para dar formato, en lugar de estilos en linea
+			oEditable.style.height = (thisY - 18) + 'px';
+			//oEditable.innerHTML = JaSper.rtb.decode_entities(this[sOriginalTipoCont]);
+			oEditable.innerHTML = (this[sOriginalTipoCont] == '' ? '<br />'  : this[sOriginalTipoCont]); //si no, pinta un cursor que ocupa todo el alto a la izquierda
+			oEditable.spellcheck || false;
+			oEditable.styleWithCSS = false; //false - crea elementos para dar formato, true - estilos en linea
 
-			var toolbar = JaSper.nodo.crear('div', { //barra herramientas
+			var oToolbar = JaSper.nodo.crear('div', { //barra herramientas
 				innerHTML: '',
 				className: 'JaSper_rtb toolbar'
 			});
 			for(var i = 0; i < aBotonesLista.length; i++){
 				var oBoton = oBotones[aBotonesLista[i]];
-				if(!oBoton.comando)
+				if(!oBoton.comando){
 					continue;
+				}
 
-				//si se hace en onclick se pierde el foco del elemento editable y no funciona; onmouseout debe devolver o anular el evento para que no se pierda el foco del elemento editable
-				var sTemp = '<div class="JaSper_rtb button ' + aBotonesLista[i] + '" title="' + oBoton.nombre + '" ';
-				if(oBoton.comando.indexOf('f:') !== -1){
-					sTemp += 'onmousedown="JaSper.rtb.command(\'' + edit.id + '\', ' + oBoton.comando.substr(2) + ', null);return false;">';
+				var sNoSoporte = '';
+				var sComando = '';
+				if(oBoton.comando.indexOf('f:') !== -1){ //FIXME esto permite pasar codigo en la lista de botones como "f:nombreFuncion"
+					sComando = oBoton.comando.substr(2);
+					sComando = sComando.replace('rtbId', oEditable.id);
 				}
 				else{
-					sTemp += 'onmousedown="JaSper.rtb.command(\'' + edit.id + '\', \'' + oBoton.comando + '\', null);return false;">';
+					sComando = 'JaSper.rtb.command(\'' + oEditable.id + '\', \'' + oBoton.comando + '\', null);return false;';
+					if(!JaSper.rtb.commandSupport(oBoton.comando)){
+						sNoSoporte = ' noSoporte';
+					}
 				}
+
+				var sTemp = '<div class="JaSper_rtb button ' + aBotonesLista[i] + sNoSoporte + '" title="' + oBoton.nombre + '" ';
+				sTemp += 'onmousedown="' + sComando + '">'; //si se hace en onclick se pierde el foco del elemento editable y no funciona; onmouseout debe devolver o anular el evento para que no se pierda el foco del elemento editable
 				sTemp += oBoton.tecla || '&nbsp;';
 				sTemp += '</div>';
 
-				toolbar.innerHTML += sTemp;
+				oToolbar.innerHTML += sTemp;
 			}
 
-			cont.appendChild(toolbar);
-			cont.appendChild(edit);
+			oContenedor.appendChild(oToolbar);
+			oContenedor.appendChild(oEditable);
 
-			JaSper.event.add(edit, 'blur', function (){
+			JaSper.event.add(oEditable, 'blur', function (){
 				oOriginal[sOriginalTipoCont] = this.innerHTML;
 			});
 
 			JaSper.event.add(oOriginal, 'blur', function (){ //cuando se muestra el codigo tambien debe actualizarse la caja de edicion rtb (que estara oculta)
-				edit.innerHTML = oOriginal[sOriginalTipoCont];
+				oEditable.innerHTML = oOriginal[sOriginalTipoCont];
 			});
 		
-			this.parentNode.insertBefore(cont, this.nextSibling);
-			cont.insertBefore(this, toolbar.nextSibling);
+			this.parentNode.insertBefore(oContenedor, this.nextSibling);
+			oContenedor.insertBefore(this, oToolbar.nextSibling);
 		});
 
 	}
@@ -289,28 +314,50 @@ JaSper.extend(JaSper.prototype, {
 JaSper.rtb = {
 
 	/**
-	 * execCommand
+	 * Wrapper execCommand
+	 *
+	 * @param {Object} oElemId Objeto sobre el que aplicar el comando si es una funcion
+	 * @param {string} sCommand Comando a comprobar o funcion
+	 * @param {string} sParamsCommand Parametros para el comando
+	 * @return {boolean}
 	 */
 	command: function (oElemId, sCommand, sParamsCommand){
 		'use strict';
+
+		if(!JaSper.rtb.commandSupport(sCommand)){
+			JaSper.log('[JaSper::rtb.command] Comando [' + sCommand + '] no soportado por el navegador.', 1);
+			return false;
+		}
 
 		sParamsCommand = sParamsCommand || null;
 
 		//var oElem = document.getElementById(oElemId);
 		//oElem.focus();
 
-		if(typeof sCommand === 'function'){
-			sCommand.call(document.getElementById(oElemId));
-		}
-		else{ //si es una cadena de texto es para execCommand
-			try{
+		try{
+			if(JaSper.funcs.isFunction(sCommand)){
+				return sCommand.call(document.getElementById(oElemId));
+			}
+			else{ //si es una cadena de texto es para execCommand
 				return document.execCommand(sCommand, false, sParamsCommand);
 			}
-			catch(ex){
-				JaSper.log('[JaSper::rtb.command] No se puede ejecutar el comando [' + sCommand + '] en el elemento [' + oElemId + '].', 1);
-				return false;
-			}
 		}
+		catch(ex){
+			JaSper.log('[JaSper::rtb.command] No se puede ejecutar el comando [' + sCommand + '] en el elemento [' + oElemId + '].', 1);
+			return false;
+		}
+	},
+
+	/**
+	 * Devuelve si un comando esta soportado por document.execCommand en el navegador
+	 *
+	 * @param {string} sCommand Comando a comprobar
+	 * @return {boolean}
+	 */
+	commandSupport: function (sCommand){
+		'use strict';
+
+		return !!document.queryCommandSupported(sCommand);
 	},
 
 	/**
@@ -325,6 +372,30 @@ JaSper.rtb = {
 	},*/
 
 	/**
+	 * Devuelve el texto seleccionado en la pagina, tambien en input o textarea
+	 *
+	 * @author Tim Down [https://stackoverflow.com/users/96100/tim-down]
+	 * @return {string}
+	 */
+	getSeleccion: function (){
+		var sText = "";
+		var activeEl = document.activeElement;
+		var activeElTagName = activeEl ? activeEl.tagName.toLowerCase() : null;
+
+		if((activeElTagName == 'textarea') || (activeElTagName == 'input' && /^(?:text|search|password|tel|url)$/i.test(activeEl.type)) && (typeof activeEl.selectionStart == 'number')){
+			sText = activeEl.value.slice(activeEl.selectionStart, activeEl.selectionEnd);
+		}
+		else if(window.getSelection){
+			sText = window.getSelection().toString();
+		}
+		else if(window.selection){ //IE
+			sText = document.selection.createRange().htmlText;
+		}
+
+		return sText;
+	},
+
+	/**
 	 * Si no se pasan parametros devuelve el texto o nodos actualmente seleccionados
 	 * Si se pasan parametros crea una seleccion a partir de lo que reciba, si fin es igual a inicio no hay seleccion sino simplemente la posicion del cursor
 	 *
@@ -337,7 +408,7 @@ JaSper.rtb = {
 	seleccion: function (oNodoIni, oNodoFin, oSelIni, oSelFin){
 		'use strict';
 
-		var oSeleccion = window.getSelection();
+		var oSeleccion = window.getSelection() || document.selection.createRange(); //segunda version para IE
 
 		if(!oNodoIni){ //devuelve lo actualmente seleccionado
 			var oNodoIni = oSeleccion.anchorNode, oNodoFin = oSeleccion.focusNode;
@@ -373,27 +444,29 @@ JaSper.rtb = {
 	 * 
 	 * @since 2015-09-27
 	 * @todo ocultar botones cuando se esta en modo codigo
+	 * @param {string} sId Id de la objeto RTB
 	 */
-	verCodigo: function (){
+	verCodigo: function (sId){
 		'use strict';
 
-		var oOriginal = document.getElementById(this.id.substr(0, this.id.indexOf('_rtb_div'))); //id del objeto fuente
+		var oRtb = document.getElementById(sId);
+		var oOriginal = document.getElementById(sId.substr(0, sId.indexOf('_rtb_div'))); //objeto fuente
 		var oElemDisplay = oOriginal.style.display;
 
 		var sOriginalTagName = oOriginal.tagName ? oOriginal.tagName.toLowerCase() : '', sOriginalType = oOriginal.type ? oOriginal.type.toLowerCase() : '';
 		var sOriginalTipoCont = (sOriginalTagName == 'input' && sOriginalType == 'text') ? 'value' : ((sOriginalTagName == 'textarea' && sOriginalType == 'textarea') ? 'value' : false); //*codigo repetido*
 
 		if(oElemDisplay == 'none'){
-			oOriginal[sOriginalTipoCont] = this.innerHTML;
+			oOriginal[sOriginalTipoCont] = oRtb.innerHTML;
 
-			this.style.display = oOriginal.style.display;
+			oRtb.style.display = oOriginal.style.display;
 			oOriginal.style.display = 'block';
 		}
 		else{
-			this.innerHTML = oOriginal[sOriginalTipoCont];
+			oRtb.innerHTML = oOriginal[sOriginalTipoCont];
 
-			oOriginal.style.display = this.style.display;
-			this.style.display = 'block';
+			oOriginal.style.display = oRtb.style.display;
+			oRtb.style.display = 'block';
 		}
 	}
 
