@@ -34,22 +34,26 @@ JaSper.extend(JaSper.prototype, {
 
 		var callFuncs = function (jasperObj, props){
 			jasperObj.each(function (){
-				if(!JaSper.canvas.valid(this))
+				if(!JaSper.canvas.valid(this)){
 					return false;
+				}
 
 				this.JaSperItemSelected = undefined; //elemento actualmente seleccionado
 
 				//'animable' bandera que indica si se esta animando este canvas
 				//'draggable' bandera que indica si este elemento tiene elementos arrastrables
-				if(this.JaSperItems === undefined)
+				if(this.JaSperItems === undefined){
 					this.JaSperItems = [];
+				}
 				this.JaSperItems.flags = this.JaSperItems.flags || {};
 				this.JaSperItems.flags.animable = this.JaSperItems.flags.animable || false; //bandera que indica si se esta animando este canvas
 				this.JaSperItems.flags.draggable = this.JaSperItems.flags.draggable || false; //bandera que indica si este elemento tiene elementos arrastrables
 
 				//cada elemento de este array debe guardar todo lo necesario para volver a pintarlo si fuera necesario
 				//this.JaSperItems[props.id] = props; //cada elemento tiene como nombre su id, y sus propiedades como un objeto
-				if(!JaSper.canvas.add(this, props)) return false;
+				if(!JaSper.canvas.add(this, props)){
+					return false;
+				}
 
 				return false;
 			}, props);
@@ -60,7 +64,7 @@ JaSper.extend(JaSper.prototype, {
 			try{
 				id = Object.keys(arguments[arg])[0];
 			}
-			catch(ex){}
+			catch(oEx){/*;*/}
 
 			if(id !== false){
 				callFuncs(this, arguments[arg][id]);
@@ -78,8 +82,8 @@ JaSper.extend(JaSper.prototype, {
 	 * Animaciones
 	 *
 	 * @since 2014-11-28
-	 * @param object props Propiedades del circulo {"id": "id_circulo", "centroX": nn, "centroY": nn, "radio": nn, "fondo": "color_fondo"}
-	 * @returns boolean
+	 * @param {object} props Propiedades del circulo {"id": "id_circulo", "centroX": nn, "centroY": nn, "radio": nn, "fondo": "color_fondo"}
+	 * @return {boolean}
 	 */
 	animate: function (){
 		'use strict';
@@ -112,15 +116,16 @@ JaSper.canvas = {
 	 * Suma un objeto al array de objetos del canvas
 	 *
 	 * @since 2015-02-17
-	 * @param object canvas Objeto canvas
-	 * @param object props Propiedades del objeto
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @param {object} props Propiedades del objeto
+	 * @return {boolean}
 	 */
 	add: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 
 		props.id = props.id || JaSper.funcs.genId();
 
@@ -131,9 +136,9 @@ JaSper.canvas = {
 			JaSper.log('-JaSper::canvas.add- metodo desconocido', 2);
 			return false;
 		}
-		else{
-			if(validFuncs[props.func] !== undefined)
-				props.func = validFuncs[props.func]; //se pone el nombre correcto de la funcion si se ha llamado a la abreviada
+
+		if(validFuncs[props.func] !== undefined){
+			props.func = validFuncs[props.func]; //se pone el nombre correcto de la funcion si se ha llamado a la abreviada
 		}
 		canvas.JaSperItems[props.id] = props;
 
@@ -154,17 +159,19 @@ JaSper.canvas = {
 	animate: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 
-		window.requestAnimationFrame(function(){
+		window.requestAnimationFrame(function (){
 			JaSper.canvas.animate(canvas, props);
 		});
 
 		var callFuncs = function (canvasObj, callProps){
 			var JaSperFunc = JaSper.canvas[callProps.func];
-			if(typeof JaSperFunc === 'function')
+			if(typeof JaSperFunc === 'function'){
 				return JaSperFunc.call(null, canvasObj, callProps);
+			}
 
 			return false;
 		};
@@ -177,11 +184,12 @@ JaSper.canvas = {
 			try{
 				func = Object.keys(props[pr])[0];
 			}
-			catch(ex){;}
+			catch(oEx){/*;*/}
 
 			//si hay limite de frames para este objeto y se ha alcanzado se salta
-			if(props[pr][func].frames !== undefined && props[pr][func].frames-- < 1)
+			if(props[pr][func].frames !== undefined && props[pr][func].frames-- < 1){
 				continue;
+			}
 
 			var callProps = props[pr][func];
 			if(func !== false && validFuncs[func] !== undefined){
@@ -192,17 +200,23 @@ JaSper.canvas = {
 				else{
 					switch(func){
 						case 'scale': //TODO callbacks?
-							if(!callProps.id || !canvas.JaSperItems[callProps.id])
+							if(!callProps.id || !canvas.JaSperItems[callProps.id]){
 								return false;
-							if(canvas.JaSperItems[callProps.id].scaleX === undefined) canvas.JaSperItems[callProps.id].scaleX = 0;
-							if(canvas.JaSperItems[callProps.id].scaleY === undefined) canvas.JaSperItems[callProps.id].scaleY = 0;
+							}
+							if(canvas.JaSperItems[callProps.id].scaleX === undefined){
+								canvas.JaSperItems[callProps.id].scaleX = 0;
+							}
+							if(canvas.JaSperItems[callProps.id].scaleY === undefined){
+								canvas.JaSperItems[callProps.id].scaleY = 0;
+							}
 
 							var scaleX = callProps.scaleX || 0;
 							var scaleY = callProps.scaleY || 0;
 
 							var speed = callProps.speed || 1; //velocidad, en pixels, del movimiento
-							if(typeof callProps.speed === 'function')
+							if(typeof callProps.speed === 'function'){
 								speed = callProps.speed.call(null); //callback
+							}
 
 							canvas.JaSperItems[callProps.id].scaleX += (scaleX * speed);
 							canvas.JaSperItems[callProps.id].scaleY += (scaleY * speed);
@@ -227,23 +241,28 @@ JaSper.canvas = {
 	 * Fondo; color, degradado, imagen, ...
 	 *
 	 * @since 2015-01-07
-	 * @param object canvas Objeto canvas
-	 * @param object props Propiedades del objeto
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @param {object} props Propiedades del objeto
+	 * @return {boolean}
 	 */
 	background: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 		var context = canvas.getContext('2d');
 
 		props.fillStyle = props.fillStyle || '#fff'; //color de fondo //TODO degradados, imagenes de fondo
 		props.width = props.width || canvas.style.width || false; //ancho del canvas
 		props.height = props.height || canvas.style.height || false; //alto del canvas
 
-		if(props.width) canvas.width = props.width;
-		if(props.height) canvas.height = props.height;
+		if(props.width){
+			canvas.width = props.width;
+		}
+		if(props.height){
+			canvas.height = props.height;
+		}
 
 		context.fillStyle = props.fillStyle; //limpia el canvas antes de redibujarlo; si no se limpia los objetos en movimiento dejan estela (no se borran las posiciones anteriores)
 		context.fillRect(0, 0, canvas.width, canvas.height);
@@ -256,15 +275,16 @@ JaSper.canvas = {
 	 *
 	 * @todo personalizar la apariencia de la caja
 	 * @since 2015-01-15
-	 * @param object canvas Objeto canvas
-	 * @param object props Propiedades del objeto
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @param {object} props Propiedades del objeto
+	 * @return {boolean}
 	 */
 	boundingBox: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas) || !props.boundingBox)
+		if(!JaSper.canvas.valid(canvas) || !props.boundingBox){
 			return false;
+		}
 		var context = canvas.getContext('2d');
 
 		var iMargin = 2; //separacion entre la caja y el objeto
@@ -320,15 +340,16 @@ JaSper.canvas = {
 	 * Dibuja un circulo
 	 *
 	 * @since 2014-11-27
-	 * @param object canvas Objeto canvas
-	 * @param object props Propiedades del circulo
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @param {object} props Propiedades del circulo
+	 * @return {boolean}
 	 */
 	circle: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 		var context = canvas.getContext('2d');
 
 		props.r = props.r || 50; //radio de la circunferencia
@@ -340,7 +361,8 @@ JaSper.canvas = {
 		props.fill = props.fill || '#ccc';
 		props.borderWidth = props.borderWidth || 1;
 		props.border = props.border || '#3ab';
-		var x = props.x, y = props.y;
+		var x = props.x;
+		var y = props.y;
 
 		context.save();
 
@@ -350,15 +372,19 @@ JaSper.canvas = {
 			x = 0; //props.r;
 			y = 0; //props.r;
 
-			if(props.scaleX !== undefined || props.scaleY !== undefined)
+			if(props.scaleX !== undefined || props.scaleY !== undefined){
 				JaSper.canvas.scale(canvas, props);
-			if(props.rotation !== undefined)
+			}
+			if(props.rotation !== undefined){
 				JaSper.canvas.rotate(canvas, props);
+			}
 		}
 
 		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
 		props.boundingBox = [x - props.r, y - props.r, props.r * 2, props.r * 2, x + props.r, y + props.r]; //[left, top, width, height, right, bottom]
-		if(props.selected != undefined && props.selected) JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
+		if(props.selected != undefined && props.selected){
+			JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
+		}
 
 		context.beginPath();
 		//context.arc(x, y, r, (Math.PI / 180) * grados_inicio_de_arco, (Math.PI / 180) * grados_fin_de_arco, counterclockwise);
@@ -383,15 +409,16 @@ JaSper.canvas = {
 	 * Dibuja una imagen
 	 *
 	 * @since 2014-12-27
-	 * @param object canvas Objeto canvas
-	 * @param object props Propiedades
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @param {object} props Propiedades
+	 * @return {boolean}
 	 */
 	image: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 		var context = canvas.getContext('2d');
 
 		props.x = props.x || 100; //centro, coordenada x
@@ -399,7 +426,7 @@ JaSper.canvas = {
 		props.src = props.src || 'http://sargazos.net/imgs/logo.png'; //origen de la imagen
 
 		var oImg = new Image();
-		oImg.onload = function() {
+		oImg.onload = function (){
 			//syntax : drawImage(img, x, y);
 			context.drawImage(oImg, props.x, props.y);
 		};
@@ -417,10 +444,10 @@ JaSper.canvas = {
 	 * @todo mejorar con http://en.wikipedia.org/wiki/Point_in_polygon
 	 * @todo convertir en detector de colisiones, ademas de deteccion de clicks
 	 * @since 2015-01-11
-	 * @param objeto oItem Objeto a comprobar
-	 * @param integer iMouseX Coordenada X del raton
-	 * @param integer fMouseY Coordenada Y del raton
-	 * @returns boolean
+	 * @param {objeto} oItem Objeto a comprobar
+	 * @param {integer} iMouseX Coordenada X del raton
+	 * @param {integer} iMouseY Coordenada Y del raton
+	 * @return {boolean}
 	 */
 	mouseHit: function (oItem, iMouseX, iMouseY){
 		'use strict';
@@ -431,9 +458,15 @@ JaSper.canvas = {
 			var aNW = [Math.abs(oItem.boundingBox[0] - iMouseX), Math.abs(oItem.boundingBox[1] - iMouseY)];
 			var aSE = [Math.abs(oItem.boundingBox[4] - iMouseX), Math.abs(oItem.boundingBox[5] - iMouseY)];
 
-			if(aRotacion[0] < iRad && aRotacion[1] < iRad) return 'r'; //rotacion
-			else if(aNW[0] < iRad && aNW[1] < iRad) return 'nw'; //superior izquierda
-			else if(aSE[0] < iRad && aSE[1] < iRad) return 'se'; //inferior derecha
+			if(aRotacion[0] < iRad && aRotacion[1] < iRad){
+				return 'r'; //rotacion
+			}
+			else if(aNW[0] < iRad && aNW[1] < iRad){
+				return 'nw'; //superior izquierda
+			}
+			else if(aSE[0] < iRad && aSE[1] < iRad){
+				return 'se'; //inferior derecha
+			}
 		}
 
 		if(oItem.r){
@@ -457,15 +490,16 @@ JaSper.canvas = {
 	 * http://rectangleworld.com/blog/archives/15
 	 *
 	 * @since 2015-01-11
-	 * @param ev
-	 * @returns boolean
+	 * @param {object} ev Evento
+	 * @return {boolean}
 	 */
 	mouseDown: function (ev){
 		'use strict';
 
 		var canvas = JaSper.event.source(ev);
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 
 		JaSper.event.remove(canvas, 'mousedown', JaSper.canvas.mouseDown);
 
@@ -479,11 +513,13 @@ JaSper.canvas = {
 		 * Se mueve el raton dentro de canvas
 		 *
 		 * @todo guardar la posicion del objeto donde se hace click para "sujetarlo" por esa posicion (no por el centro) al arrastrarlo
-		 * @param ev
-		 * @returns boolean
+		 * @param {object} ev Evento
+		 * @returns {boolean}
 		 */
 		var mouseMove = function (ev){
-			if(!oItemSelected) return false; //ningun elemento seleccionado
+			if(!oItemSelected){
+				return false; //ningun elemento seleccionado
+			}
 
 			var iMouseX = (ev.clientX - bRect.left) * (canvas.width / bRect.width);
 			var iMouseY = (ev.clientY - bRect.top) * (canvas.height / bRect.height);
@@ -500,7 +536,9 @@ JaSper.canvas = {
 					oItemSelected.y = iMouseY - iDyClick;
 				}
 
-				if(!canvas.JaSperItems.flags.animable) JaSper.canvas.redraw(canvas); //TODO borrar bounding box cuando no hay fondo
+				if(!canvas.JaSperItems.flags.animable){
+					JaSper.canvas.redraw(canvas); //TODO borrar bounding box cuando no hay fondo
+				}
 			}
 			else if(oItemSelected.selected !== undefined && oItemSelected.selected){ //TODO simplificar calculos de deteccion
 				if(oItemSelected.boundingBox){ //[x, y, width, height]
@@ -514,12 +552,13 @@ JaSper.canvas = {
 
 					if(oItemSelected.rotation){ //caja girada
 						//calcula la posicion de un punto 'p[x, y]' girado 'angle' radianes, respecto a un centro origen 'o[x, y]'
-						var puntoGirado = function(p, o, angle){
-							var sin = Math.sin(angle), cos = Math.cos(angle);
+						var puntoGirado = function (p, o, angle){
+							var sin = Math.sin(angle);
+							var cos = Math.cos(angle);
 							p[0] -= o[0];
 							p[1] -= o[1];
-							var rx = p[0] * cos - p[1] * sin,
-								ry = p[0] * sin + p[1] * cos;
+							var rx = p[0] * cos - p[1] * sin;
+							var ry = p[0] * sin + p[1] * cos;
 							return [parseInt(rx + o[0]), parseInt(ry + o[1])];
 						};
 
@@ -532,9 +571,11 @@ JaSper.canvas = {
 						iMouseYr = aPoint[1];
 
 						var aPointCaja = puntoGirado([aCaja[0], aCaja[1]], [iCenterX, iCenterY], fAngle);
-						aCaja[0] = aPointCaja[0];aCaja[1] = aPointCaja[1];
+						aCaja[0] = aPointCaja[0];
+						aCaja[1] = aPointCaja[1];
 						aPointCaja = puntoGirado([aCaja[2], aCaja[3]], [iCenterX, iCenterY], fAngle);
-						aCaja[2] = aPointCaja[0];aCaja[3] = aPointCaja[1];
+						aCaja[2] = aPointCaja[0];
+						aCaja[3] = aPointCaja[1];
 					}
 
 					var aRotacion = [Math.abs(aCaja[2] - iMouseXr), Math.abs(aCaja[1] - iMouseYr)];
@@ -542,15 +583,23 @@ JaSper.canvas = {
 					var aSE = [Math.abs(aCaja[2] - iMouseXr), Math.abs(aCaja[3] - iMouseYr)];
 
 					//cursor: url(images/cursor.png) x y, auto;
-					if(aRotacion[0] < iRad && aRotacion[1] < iRad) canvas.style.cursor = 'crosshair'; //rotacion
-					else if(aNW[0] < iRad && aNW[1] < iRad) canvas.style.cursor = 'NW-resize'; //superior izquierda
-					else if(aSE[0] < iRad && aSE[1] < iRad) canvas.style.cursor = 'SE-resize'; //inferior derecha
+					if(aRotacion[0] < iRad && aRotacion[1] < iRad){
+						canvas.style.cursor = 'crosshair'; //rotacion
+					}
+					else if(aNW[0] < iRad && aNW[1] < iRad){
+						canvas.style.cursor = 'NW-resize'; //superior izquierda
+					}
+					else if(aSE[0] < iRad && aSE[1] < iRad){
+						canvas.style.cursor = 'SE-resize'; //inferior derecha
+					}
 					else{
 						var bHitx = (aCaja[0] < iMouseXr) && (iMouseXr < aCaja[2]);
 						var bHity = (aCaja[1] < iMouseYr) && (iMouseYr < aCaja[3]);
 
-						if(bHitx && bHity) canvas.style.cursor = 'pointer'; //bounding box
-						else canvas.style.cursor = 'default';
+						canvas.style.cursor = 'default';
+						if(bHitx && bHity){
+							canvas.style.cursor = 'pointer'; //bounding box
+						}
 					}
 				}
 			}
@@ -561,8 +610,8 @@ JaSper.canvas = {
 		/**
 		 * Se suelta el raton
 		 *
-		 * @param ev
-		 * @return boolean
+		 * @param {object} ev Evento
+		 * @return {boolean}
 		 */
 		var mouseUp = function (ev){
 			JaSper.event.remove(window, 'mouseup', mouseUp);
@@ -574,7 +623,9 @@ JaSper.canvas = {
 				}
 			}
 
-			if(!canvas.JaSperItems.flags.animable) JaSper.canvas.redraw(canvas);
+			if(!canvas.JaSperItems.flags.animable){
+				JaSper.canvas.redraw(canvas);
+			}
 			JaSper.event.add(canvas, 'mousedown', JaSper.canvas.mouseDown);
 			canvas.style.cursor = 'default';
 			return true;
@@ -624,28 +675,32 @@ JaSper.canvas = {
 	 * Mueve objetos en el canvas
 	 *
 	 * @since 2015-01-06
-	 * @param object canvas Objeto canvas
-	 * @param object props Propiedades
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @param {object} props Propiedades
+	 * @return {boolean}
 	 */
 	move: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 
-		if(!props.id || !canvas.JaSperItems[props.id])
+		if(!props.id || !canvas.JaSperItems[props.id]){
 			return false;
+		}
 
 		var angle = props.angle || 0; //angulo del movimiento
-		if(typeof props.angle === 'function')
+		if(typeof props.angle === 'function'){
 			angle = props.angle.call(null); //callback
+		}
 
 		var fRadianes = angle * Math.PI / 180;
 
 		var speed = props.speed || 1; //velocidad, en pixels, del movimiento
-		if(typeof props.speed === 'function')
+		if(typeof props.speed === 'function'){
 			speed = props.speed.call(null); //callback
+		}
 
 		canvas.JaSperItems[props.id].x += (Math.cos(fRadianes) * speed);
 		canvas.JaSperItems[props.id].y += (Math.sin(fRadianes) * speed);
@@ -657,15 +712,16 @@ JaSper.canvas = {
 	 * Dibuja una forma a partir de una serie (array) de puntos
 	 *
 	 * @since 2014-12-30
-	 * @param object canvas Objeto canvas
-	 * @param object props Propiedades
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @param {object} props Propiedades
+	 * @return {boolean}
 	 */
 	path: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 		var context = canvas.getContext('2d');
 
 		return true;
@@ -676,15 +732,16 @@ JaSper.canvas = {
 	 * centrado en x, y
 	 *
 	 * @since 2014-12-19
-	 * @param object canvas Objeto canvas
-	 * @param object props Propiedades
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @param {object} props Propiedades
+	 * @return {boolean}
 	 */
 	polygon: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 		var context = canvas.getContext('2d');
 
 		props.sides = props.sides || 3; //numero de lados //TODO 0 -> circulo
@@ -696,7 +753,8 @@ JaSper.canvas = {
 		props.fill = props.fill || '#ccc';
 		props.borderWidth = props.borderWidth || 1;
 		props.border = props.border || '#3ab';
-		var x = props.x, y = props.y;
+		var x = props.x;
+		var y = props.y;
 		var fRadianes = props.angle * Math.PI / 180;
 
 		context.save();
@@ -707,15 +765,19 @@ JaSper.canvas = {
 			x = 0;
 			y = 0;
 
-			if(props.scaleX !== undefined || props.scaleY !== undefined)
+			if(props.scaleX !== undefined || props.scaleY !== undefined){
 				JaSper.canvas.scale(canvas, props);
-			if(props.rotation !== undefined)
+			}
+			if(props.rotation !== undefined){
 				JaSper.canvas.rotate(canvas, props);
+			}
 		}
 
 		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
 		props.boundingBox = [x - props.r, y - props.r, props.r * 2, props.r * 2, x + props.r, y + props.r]; //[left, top, width, height, right, bottom]
-		if(props.selected != undefined && props.selected) JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
+		if(props.selected != undefined && props.selected){
+			JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
+		}
 
 		context.beginPath(); //inicia el poligono
 
@@ -751,20 +813,23 @@ JaSper.canvas = {
 	 * Redibujado de canvas (de todos los objetos definidos como tal)
 	 *
 	 * @since 2015-01-05
-	 * @param object canvas Objeto canvas a redibujar
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas a redibujar
+	 * @return {boolean}
 	 */
 	redraw: function (canvas){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 
-		var items = canvas.JaSperItems, item = false;
+		var items = canvas.JaSperItems;
+		var item = false;
 		for(item in items){
 			var JaSperFunc = JaSper.canvas[items[item].func];
-			if(typeof JaSperFunc === 'function')
+			if(typeof JaSperFunc === 'function'){
 				JaSperFunc.call(null, canvas, items[item]); //TODO decidir que hacer con el retorno de la funcion
+			}
 		}
 
 		return true;
@@ -774,15 +839,16 @@ JaSper.canvas = {
 	 * Gira objetos en el canvas
 	 *
 	 * @since 2015-01-27
-	 * @param object canvas Objeto canvas
-	 * @param object props Propiedades
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @param {object} props Propiedades
+	 * @return {boolean}
 	 */
 	rotate: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas) || !props)
+		if(!JaSper.canvas.valid(canvas) || !props){
 			return false;
+		}
 		var context = canvas.getContext('2d');
 
 		var angle = props.rotation || 0; //angulo del giro
@@ -798,15 +864,16 @@ JaSper.canvas = {
 	 * Escala (cambia tamano) objetos
 	 *
 	 * @since 2015-01-07
-	 * @param object canvas Canvas object
-	 * @param object props Propiedades
-	 * @returns boolean
+	 * @param {object} canvas Canvas object
+	 * @param {object} props Propiedades
+	 * @return {boolean}
 	 */
 	scale: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas) || !props)
+		if(!JaSper.canvas.valid(canvas) || !props){
 			return false;
+		}
 		var context = canvas.getContext('2d');
 
 		/*if(!props.id || !context.canvas.JaSperItems[props.id])
@@ -824,15 +891,16 @@ JaSper.canvas = {
 	 * Dibuja texto
 	 *
 	 * @since 2014-12-27
-	 * @param object canvas Objeto canvas
-	 * @param object props Propiedades
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @param {object} props Propiedades
+	 * @return {boolean}
 	 */
 	text: function (canvas, props){
 		'use strict';
 
-		if(!JaSper.canvas.valid(canvas))
+		if(!JaSper.canvas.valid(canvas)){
 			return false;
+		}
 		var context = canvas.getContext('2d');
 
 		props.x = props.x || 100; //centro, coordenada x
@@ -846,7 +914,8 @@ JaSper.canvas = {
 			props.font = props.fontItalic + ' ' + props.fontWeight + ' ' + props.fontSize + ' ' + props.fontName;
 		}
 		props.fillText = props.fillText || 'Hello world!';
-		var x = props.x, y = props.y;
+		var x = props.x;
+		var y = props.y;
 
 		context.save();
 
@@ -861,10 +930,12 @@ JaSper.canvas = {
 			x = -(iTextWidth / 2);
 			y = (iTextHeight / 2);
 
-			if(props.scaleX !== undefined || props.scaleY !== undefined)
+			if(props.scaleX !== undefined || props.scaleY !== undefined){
 				JaSper.canvas.scale(canvas, props);
-			if(props.rotation !== undefined)
+			}
+			if(props.rotation !== undefined){
 				JaSper.canvas.rotate(canvas, props);
+			}
 		}
 
 		context.fillText(props.fillText, x, y);
@@ -872,7 +943,9 @@ JaSper.canvas = {
 		//bounding box, guarda la caja que contiene el objeto (como feedback cuando sea seleccionado)
 		//props.boundingBox = [x, y - iTextHeight, iTextWidth, iTextHeight]; //[x, y, width, height]
 		props.boundingBox = [x, y - iTextHeight, iTextWidth, iTextHeight, x + iTextWidth, y]; //[left, top, width, height, right, bottom]
-		if(props.selected != undefined && props.selected) JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
+		if(props.selected != undefined && props.selected){
+			JaSper.canvas.boundingBox(canvas, props); //elemento seleccionado, se dibuja su caja
+		}
 
 		context.restore();
 
@@ -886,7 +959,8 @@ JaSper.canvas = {
 	 *
 	 * @todo mejorar deteccion
 	 * @since 2015-01-11
-	 * @returns boolean
+	 * @param {object} canvas Objeto canvas
+	 * @return {boolean}
 	 */
 	valid: function (canvas){
 		'use strict';

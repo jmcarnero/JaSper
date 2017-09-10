@@ -17,22 +17,24 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 /*traducciones*/
 JaSper.extend(JaSper.langs, {
-"en":{
-	'ajax/ajax_1':'This browser can\'t create AJAX objects.',
-	'ajax/ajax_2':'Loading',
-	'ajax/ajax_3':'The AJAX request was empty.\nMaybe the destination URL is not accesible from this script.',
-	'ajax/ajax_4':'Unauthorized (code 401).',
-	'ajax/ajax_5':'Forbidden (code 403).',
-	'ajax/ajax_6':'Not Found (code 404).',
-	'ajax/ajax_7':'Error'},
-"es":{
-	'ajax/ajax_1':'Su navegador no puede crear objetos AJAX.',
-	'ajax/ajax_2':'Cargando',
-	'ajax/ajax_3':'La respuesta AJAX está vacía.\nPuede que la URL de destino no sea accesible desde esta máquina/dominio.',
-	'ajax/ajax_4':'No tiene autorización (código 401).',
-	'ajax/ajax_5':'Acceso no permitido (código 403).',
-	'ajax/ajax_6':'La dirección no existe (código 404).',
-	'ajax/ajax_7':'Error'}
+	'en': {
+		'ajax/ajax_1': 'This browser can\'t create AJAX objects.',
+		'ajax/ajax_2': 'Loading',
+		'ajax/ajax_3': 'The AJAX request was empty.\nMaybe the destination URL is not accesible from this script.',
+		'ajax/ajax_4': 'Unauthorized (code 401).',
+		'ajax/ajax_5': 'Forbidden (code 403).',
+		'ajax/ajax_6': 'Not Found (code 404).',
+		'ajax/ajax_7': 'Error'
+	},
+	'es': {
+		'ajax/ajax_1': 'Su navegador no puede crear objetos AJAX.',
+		'ajax/ajax_2': 'Cargando',
+		'ajax/ajax_3': 'La respuesta AJAX está vacía.\nPuede que la URL de destino no sea accesible desde esta máquina/dominio.',
+		'ajax/ajax_4': 'No tiene autorización (código 401).',
+		'ajax/ajax_5': 'Acceso no permitido (código 403).',
+		'ajax/ajax_6': 'La dirección no existe (código 404).',
+		'ajax/ajax_7': 'Error'
+	}
 });
 
 /**
@@ -75,25 +77,30 @@ cbFail: function (jsf, xhr){return;}, //function Callback a ejecutar cuando fall
 	 * @return {object}
 	 */
 	ajax: function (url, valores, metodo){
-		'use strict';
+		var cabeceras = {}; //headers
+		var asincrono = null;
+		var formatoDatos = 'text';
+		var cbEnd = null;
+		var cbStart = null;
+		var cbFail = null;
 
 		if(typeof url === 'object'){
 			var obj = url;
-			var url = obj.url || null;
-			var cabeceras = obj.cabeceras || {}; //headers
-			var valores = obj.valores || null;
-			var metodo = obj.metodo || null;
-			var asincrono = obj.asincrono || null;
-			var formatoDatos = obj.formatoDatos || 'text';
-			var cbEnd = obj.cbEnd || null;
-			var cbStart = obj.cbStart || null;
-			var cbFail = obj.cbFail || null;
+			url = obj.url || null;
+			cabeceras = obj.cabeceras || {};
+			valores = obj.valores || null;
+			metodo = obj.metodo || null;
+			asincrono = obj.asincrono || null;
+			formatoDatos = obj.formatoDatos || 'text';
+			cbEnd = obj.cbEnd || null;
+			cbStart = obj.cbStart || null;
+			cbFail = obj.cbFail || null;
 		}
 
 		//callback de fin de peticion (con exito), carga el texto devuelto en el objeto
-		cbEnd = cbEnd || function (oDomElem, oXhr){if(oDomElem.tagName == 'INPUT'){oDomElem.value = oXhr.responseText;}else{oDomElem.innerHTML = oXhr.responseText;}return;};
+		cbEnd = cbEnd || function (oDomElem, oXhr){if(oDomElem.tagName === 'INPUT'){oDomElem.value = oXhr.responseText;}else{oDomElem.innerHTML = oXhr.responseText;}return;};
 		//callback de inicio de peticion, por defecto pone en el objeto el mensaje "Cargando..." al inicio de la petición AJAX
-		cbStart = cbStart || function (oDomElem, oXhr){oDomElem.innerHTML = JaSper._t('ajax/ajax_2') + '...';return;};
+		cbStart = cbStart || function (oDomElem, oXhr){oDomElem.innerHTML = JaSper._t('ajax/ajax_2') + '...'; return null;};
 		//callback de fin de peticion (con error), muestra un mensaje en el objeto para error 404 y otro para el resto
 		cbFail = cbFail || function (oDomElem, oXhr){
 			switch(oXhr.status){
@@ -117,20 +124,20 @@ cbFail: function (jsf, xhr){return;}, //function Callback a ejecutar cuando fall
 					JaSper.log('-JaSper::ajax- ' + JaSper._t('ajax/ajax_7') + ': ' + oXhr.status + ', ' + oXhr.statusText + ' (' + oXhr.responseText + ')', 2);
 					oDomElem.innerHTML = JaSper._t('ajax/ajax_7') + ': ' + oXhr.status;
 			}
-			return;
+			return null;
 		};
 
-		this.each(function (url, cabeceras, valores, metodo, asincrono, formatoDatos){
+		this.each(function (sUrl, oCabeceras, sValores, sMetodo, bAsincrono, sFormatoDatos){
 			JaSper.ajax.send({
-				url: url, 
-				cabeceras: cabeceras, 
-				valores: valores, 
-				metodo: metodo, 
-				asincrono: asincrono, 
-				formatoDatos: formatoDatos, 
-				elementoDom: this, 
-				cbEnd: cbEnd, 
-				cbFail: cbFail, 
+				url: sUrl,
+				cabeceras: oCabeceras,
+				valores: sValores,
+				metodo: sMetodo,
+				asincrono: bAsincrono,
+				formatoDatos: sFormatoDatos,
+				elementoDom: this,
+				cbEnd: cbEnd,
+				cbFail: cbFail,
 				cbStart: cbStart
 			});
 		}, [url, cabeceras, valores, metodo, asincrono, formatoDatos]);
@@ -153,48 +160,52 @@ JaSper.ajax = {
 		'use strict';
 
 		var xmlhttp = false;
-		if(typeof XMLHttpRequest != 'undefined'){ //no IE
+		if(typeof XMLHttpRequest !== 'undefined'){ //no IE
 			xmlhttp = new XMLHttpRequest();
 		}
 		else{ //IE
 			try{
 				xmlhttp = new ActiveXObject('Msxml2.XMLHTTP');
 			}
-			catch(e){
+			catch(oErr){
 				try{
 					xmlhttp = new ActiveXObject('Microsoft.XMLHTTP');
 				}
-				catch(e2){
+				catch(oErr2){
 					try{
 						xmlhttp = new ActiveXObject('Msxml2.XMLHTTP.4.0');
 					}
-					catch(e3){
+					catch(oErr3){
 						JaSper.log('-JaSper::ajax- ' + JaSper._t('ajax/ajax_1'), 2);
 					}
 				}
 			}
 		}
 
-		if(!xmlhttp) JaSper.log('-JaSper::nuevoAjax- No se pudo crear el objeto AJAX.', 2);
+		if(!xmlhttp){
+			JaSper.log('-JaSper::nuevoAjax- No se pudo crear el objeto AJAX.', 2);
+		}
 
 		return xmlhttp;
 	},
 
 	/**
 	 * Envia peticiones AJAX
+	 *
+	 * {string} oParams.url Direccion a la que hacer la peticion ajax (obligatorio)
+	 * {Object} oParams.cabeceras Headers a enviar con la petición: -tipo:"valor"-; se intenta poner todos los enviados, aunque se puedan pisar o entrar en conflicto
+	 * {Object|string} oParams.valores Valores que se enviaran, si la peticion es POST; cadena en la forma "clave=valor&clave2=valor2" u objeto en la forma "{clave: 'valor', clave2: 'valor2'}" (en este caso se protegen los datos con "encodeURIComponent", tanto claves como valores) //TODO concatenar a la url en peticiones GET
+	 * {string} oParams.metodo Metodo de comunicacion con url (GET o POST)
+	 * {boolean} oParams.asincrono tercer parametro de "ajax.open": true -> asincrono (continua ejecucion sin esperar), false -> isocrono (espera hasta finalizar para continuar)
+	 * {string} oParams.returnData Formato en que se espera recibir los datos, por defecto "text"; otros valores: json, xml
+	 * {object} oParams.elementoDom Elemento DOM que recibira la informacion devuelta por la peticion AJAX
+	 * {object} oParams.cbEnd Callback de fin (exito) de peticion AJAX
+	 * {object} oParams.cbFail Callback de fallo de peticion AJAX
+	 * {object} oParams.cbStart Callback de inicio de peticion AJAX
 	 * 
 	 * @todo contentType: 'application/json' // application/x-www-form-urlencoded; charset=utf-8 // text/html; charset=windows-1251 // dataType
 	 * @since 2016-03-28
-	 * @param {string} oParams.url Direccion a la que hacer la peticion ajax (obligatorio)
-	 * @param {Object} oParams.cabeceras Headers a enviar con la petición: -tipo:"valor"-; se intenta poner todos los enviados, aunque se puedan pisar o entrar en conflicto
-	 * @param {Object|string} oParams.valores Valores que se enviaran, si la peticion es POST; cadena en la forma "clave=valor&clave2=valor2" u objeto en la forma "{clave: 'valor', clave2: 'valor2'}" (en este caso se protegen los datos con "encodeURIComponent", tanto claves como valores) //TODO concatenar a la url en peticiones GET
-	 * @param {string} oParams.metodo Metodo de comunicacion con url (GET o POST)
-	 * @param {boolean} oParams.asincrono tercer parametro de "ajax.open": true -> asincrono (continua ejecucion sin esperar), false -> isocrono (espera hasta finalizar para continuar)
-	 * @param {string} oParams.returnData Formato en que se espera recibir los datos, por defecto "text"; otros valores: json, xml
-	 * @param {object} oParams.elementoDom Elemento DOM que recibira la informacion devuelta por la peticion AJAX
-	 * @param {object} oParams.cbEnd Callback de fin (exito) de peticion AJAX
-	 * @param {object} oParams.cbFail Callback de fallo de peticion AJAX
-	 * @param {object} oParams.cbStart Callback de inicio de peticion AJAX
+	 * @param {string} oParams Objeto de parametros
 	 * @return {object}
 	 */
 	send: function (oParams){
@@ -214,9 +225,9 @@ JaSper.ajax = {
 		oParams.elementoDom = oParams.elementoDom || null;
 
 		//callback de fin de peticion (con exito), carga el texto devuelto en log
-		oParams.cbEnd = oParams.cbEnd || function (oDomElem, oXhr){JaSper.log(oXhr.responseText);return;};
+		oParams.cbEnd = oParams.cbEnd || function (oDomElem, oXhr){JaSper.log(oXhr.responseText); return;};
 		//callback de inicio de peticion, por defecto log del mensaje "Cargando..." al inicio de la petición AJAX
-		oParams.cbStart = oParams.cbStart || function (oDomElem, oXhr){JaSper.log(JaSper._t('ajax/ajax_2') + '...');return;};
+		oParams.cbStart = oParams.cbStart || function (oDomElem, oXhr){JaSper.log(JaSper._t('ajax/ajax_2') + '...'); return;};
 		//callback de fin de peticion (con error), muestra mensajes para error
 		oParams.cbFail = oParams.cbFail || function (oDomElem, oXhr){
 			switch(oXhr.status){
@@ -248,8 +259,8 @@ JaSper.ajax = {
 			return false;
 		}
 
-//HEAD request
-/*xmlhttp.open("HEAD", "/faq/index.html",true);
+		//HEAD request
+		/*xmlhttp.open("HEAD", "/faq/index.html",true);
 xmlhttp.onreadystatechange = function (){
 if(xmlhttp.readyState == 4){
 	alert(xmlhttp.getAllResponseHeaders());
@@ -260,13 +271,13 @@ if(xmlhttp.readyState == 4){
 }
 };
 xmlhttp.send(null);*/
-/*FIXME Passing null username, generates a login popup on Opera (#2865)
+		/*FIXME Passing null username, generates a login popup on Opera (#2865)
 if ( s.username ) oXhr.open( s.type, s.url, s.async, s.username, s.password );*/
 		oAjax.open(oParams.metodo, oParams.url, oParams.asincrono);
 
-		if(oParams.metodo == 'POST'){
+		if(oParams.metodo === 'POST'){
 			oAjax.setRequestHeader('Method', 'POST ' + oParams.url + ' HTTP/1.1');
-			oAjax.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+			oAjax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 			//oAjax.setRequestHeader("Content-length", sValores.length); //esta y la siguiente las pone el navegador automaticamente, no se deben asignar a mano (problemas de seguridad)
 			//oAjax.setRequestHeader("Connection", "close");
 		}
@@ -305,18 +316,25 @@ if ( s.username ) oXhr.open( s.type, s.url, s.async, s.username, s.password );*/
 				JaSper.log('-JaSper::ajax.send- Peticion recibida, ajax.readyState = ' + oAjax.readyState + '; ajax.responseText = ' + (!oAjax.responseText ? '' : oAjax.responseText));
 				return oParams.cbStart(oParams.elementoDom, oAjax); //callback de inicio de peticion y espera
 			}
-			else if(oAjax.readyState == 4){
-				if(oAjax.status == 200){ //respuesta correcta recibida
+			else if(oAjax.readyState === 4){
+				if(oAjax.status === 200){ //respuesta correcta recibida
 					JaSper.log('-JaSper::ajax.send- Respuesta recibida, proceso completado');
 					return oParams.cbEnd(oParams.elementoDom, oAjax); //callback de fin de peticion (CON exito)
 				}
-				else return oParams.cbFail(oParams.elementoDom, oAjax); //callback de fin de peticion (SIN exito)
+
+				return oParams.cbFail(oParams.elementoDom, oAjax); //callback de fin de peticion (SIN exito)
 			}
 		};
 
-		if(!oParams.asincrono) oCallback();
-		else if(oAjax.readyState === 4) setTimeout(oCallback, 0); //(IE6 & IE7) necesario si esta en cache y ha sido recuperado directamente
-		else oAjax.onreadystatechange = oCallback;
+		if(!oParams.asincrono){
+			oCallback();
+		}
+		else if(oAjax.readyState === 4){
+			setTimeout(oCallback, 0); //(IE6 & IE7) necesario si esta en cache y ha sido recuperado directamente
+		}
+		else{
+			oAjax.onreadystatechange = oCallback;
+		}
 
 		//delete ajax; //limpia de memoria el objeto
 	}

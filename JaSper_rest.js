@@ -69,6 +69,7 @@ JaSper.rest = {
 	 * 
 	 * @param {string} sNombre Nombre de usuario; si se omite intenta coger lo ya guardado en cookie
 	 * @param {string} sClave Clave de usuario
+	 * @param {object} oParametros Parametros
 	 * @return {string}
 	 */
 	auth: function (sNombre, sClave, oParametros){
@@ -120,9 +121,9 @@ JaSper.rest = {
 		}
 
 		oCallbacks = oCallbacks || {};
-		oCallbacks.start = oCallbacks.start || function (oXhr){console.log('Start');return;};
-		oCallbacks.end = oCallbacks.end || function (oXhr){console.log('End'/*oXhr.responseText*/);return;};
-		oCallbacks.fail = oCallbacks.fail || function (oXhr){console.log('Fail');return;};
+		oCallbacks.start = oCallbacks.start || function (oXhr){console.log('Start'); return;};
+		oCallbacks.end = oCallbacks.end || function (oXhr){console.log('End'/*oXhr.responseText*/); return;};
+		oCallbacks.fail = oCallbacks.fail || function (oXhr){console.log('Fail'); return;};
 
 		//se ejecutara cuando se cargue la libreria y solo si se consigue cargar
 		var oAjaxSend = function (){
@@ -132,15 +133,15 @@ JaSper.rest = {
 			var sReturnData = 'json';
 
 			JaSper.ajax.send({
-				url: sUrl, 
-				cabeceras: oCabeceras, 
-				valores: oValores, 
-				metodo: 'get', 
-				asincrono: null, 
-				formatoDatos: sReturnData, 
-				elementoDom: null, 
-				cbEnd: function (oDomElem, oXhr){return oCallbacks.end(oXhr);}, 
-				cbFail: function (oDomElem, oXhr){return oCallbacks.fail(oXhr);}, 
+				url: sUrl,
+				cabeceras: oCabeceras,
+				valores: oValores,
+				metodo: 'get',
+				asincrono: null,
+				formatoDatos: sReturnData,
+				elementoDom: null,
+				cbEnd: function (oDomElem, oXhr){return oCallbacks.end(oXhr);},
+				cbFail: function (oDomElem, oXhr){return oCallbacks.fail(oXhr);},
 				cbStart: function (oDomElem, oXhr){return oCallbacks.start(oXhr);}
 			});
 		};
@@ -175,8 +176,8 @@ JaSper.rest = {
 
 		oCallbacks = oCallbacks || {};
 		oCallbacks.start = oCallbacks.start || function (oXhr){console.log('Start');return;};
-		oCallbacks.end = oCallbacks.end || function (oXhr){console.log('End'/*oXhr.responseText*/);return;};
-		oCallbacks.fail = oCallbacks.fail || function (oXhr){console.log('Fail');return;};
+		oCallbacks.end = oCallbacks.end || function (oXhr){console.log('End'/*oXhr.responseText*/); return;};
+		oCallbacks.fail = oCallbacks.fail || function (oXhr){console.log('Fail'); return;};
 
 		var oAjaxSend = function (){
 			var oCabeceras = {
@@ -185,15 +186,15 @@ JaSper.rest = {
 			var sReturnData = 'json';
 
 			JaSper.ajax.send({
-				url: sUrl, 
-				cabeceras: oCabeceras, 
-				valores: oValores, 
-				metodo: 'post', 
-				asincrono: null, 
-				formatoDatos: sReturnData, 
-				elementoDom: null, 
-				cbEnd: function (oDomElem, oXhr){return oCallbacks.end(oXhr);}, 
-				cbFail: function (oDomElem, oXhr){return oCallbacks.fail(oXhr);}, 
+				url: sUrl,
+				cabeceras: oCabeceras,
+				valores: oValores,
+				metodo: 'post',
+				asincrono: null,
+				formatoDatos: sReturnData,
+				elementoDom: null,
+				cbEnd: function (oDomElem, oXhr){return oCallbacks.end(oXhr);},
+				cbFail: function (oDomElem, oXhr){return oCallbacks.fail(oXhr);},
 				cbStart: function (oDomElem, oXhr){return oCallbacks.start(oXhr);}
 			});
 		};

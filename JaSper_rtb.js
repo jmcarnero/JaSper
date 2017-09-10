@@ -17,38 +17,39 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 /*traducciones*/
 JaSper.extend(JaSper.langs, {
-'es':{
-	'Background Color': 'Color de fondo',
-	'Bold': 'Negrita',
-	'Center Align': 'Centrado',
-	'Copy': 'Copiar',
-	'Cut': 'Cortar',
-	'Font Size': 'Tamaño de fuente',
-	'Font Family': 'Fuente',
-	'Font Format': 'Formato de fuente',
-	'Foreground Color': 'Color',
-	'Horizontal Rule': 'Línea horizontal',
-	'Image': 'Imagen',
-	'Indent Text': 'Indentar',
-	'Insert Ordered List': 'Insertar lista numerada',
-	'Italic': 'Cursiva',
-	'Justify Align': 'Justificar',
-	'Left Align': 'Alinear izquierda',
-	'Link': 'Enlace',
-	'Paste': 'Pegar',
-	'Redo': 'Rehacer',
-	'Remove Indent': 'Quitar indentación',
-	'Remove Formatting': 'Quitar formato',
-	'Right Align': 'Alinear derecha',
-	'Strike Through': 'Tachar',
-	'See code': 'Ver código',
-	'Subscript': 'Subíndice',
-	'Superscript': 'Superíndice',
-	'Insert Unordered List': 'Insertar lista',
-	'Underline': 'Subrayar',
-	'Undo': 'Deshacer',
-	'Unlink': 'Quitar enlace',
-	'XHTML mode': 'Modo XHTML'}
+	'es': {
+		'Background Color': 'Color de fondo',
+		'Bold': 'Negrita',
+		'Center Align': 'Centrado',
+		'Copy': 'Copiar',
+		'Cut': 'Cortar',
+		'Font Size': 'Tamaño de fuente',
+		'Font Family': 'Fuente',
+		'Font Format': 'Formato de fuente',
+		'Foreground Color': 'Color',
+		'Horizontal Rule': 'Línea horizontal',
+		'Image': 'Imagen',
+		'Indent Text': 'Indentar',
+		'Insert Ordered List': 'Insertar lista numerada',
+		'Italic': 'Cursiva',
+		'Justify Align': 'Justificar',
+		'Left Align': 'Alinear izquierda',
+		'Link': 'Enlace',
+		'Paste': 'Pegar',
+		'Redo': 'Rehacer',
+		'Remove Indent': 'Quitar indentación',
+		'Remove Formatting': 'Quitar formato',
+		'Right Align': 'Alinear derecha',
+		'Strike Through': 'Tachar',
+		'See code': 'Ver código',
+		'Subscript': 'Subíndice',
+		'Superscript': 'Superíndice',
+		'Insert Unordered List': 'Insertar lista',
+		'Underline': 'Subrayar',
+		'Undo': 'Deshacer',
+		'Unlink': 'Quitar enlace',
+		'XHTML mode': 'Modo XHTML'
+	}
 });
 
 /**
@@ -69,11 +70,12 @@ JaSper.extend(JaSper.prototype, {
 	 * http://www.daviddurman.com/flexi-color-picker
 	 *
 	 * @since 2015-09-12
+	 * @return {object}
 	 */
 	colorPicker: function (){
 		'use strict';
 
-		var sTipo = (window.SVGAngle || document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1") ? "SVG" : "VML");
+		var sTipo = (window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1') ? 'SVG' : 'VML');
 
 		//barra de colores
 		var oSlide = JaSper.nodo.crear('div', {
@@ -127,8 +129,8 @@ JaSper.extend(JaSper.prototype, {
 				], 'http://www.w3.org/2000/svg')
 			]);
 		}
-		else if(sTipo == 'VML'){
-			if (!document.namespaces['vml']){
+		else if(sTipo === 'VML'){
+			if(!document.namespaces['vml']){
 				document.namespaces.add('vml', 'urn:schemas-microsoft-com:vml', '#default#VML');
 			}
 
@@ -160,9 +162,9 @@ JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Editor Rich Text Box
-	 * 
+	 *
 	 * El comando de un boton personalizado puede ser un fragmento de codigo en la forma: f:codigo_javascript_valido; el texto "rtbId" se sustituira por el id del objeto RTB correspondiente
-	 * 
+	 *
 	 * @since 2011-05-31
 	 * @param {object} oPreferencias Preferencias: botones -> array de botones que se mostraran (permite botones personalizados de usuario), custom -> propiedades del los botones personalizados
 	 * @return {object}
@@ -174,7 +176,7 @@ JaSper.extend(JaSper.prototype, {
 
 		var oBotones = {
 			backColor: {comando: 'HiliteColor', css: null, nombre: JaSper._t('Background Color'), tags: [], tecla: ''}, //IE usa BackColor (fuera de IE backColor pone color de fondo del elemento entero, no de la seleccion)
-			bold: {comando: 'Bold', css: {'font-weight' : 'bold'}, nombre: JaSper._t('Bold'), tags: ['B','STRONG'], tecla: 'b'},
+			bold: {comando: 'Bold', css: {'font-weight': 'bold'}, nombre: JaSper._t('Bold'), tags: ['B', 'STRONG'], tecla: 'b'},
 			center: {comando: 'JustifyCenter', css: null, nombre: JaSper._t('Center Align'), tags: [], tecla: ''},
 			fontSize: {comando: 'FontSize', css: null, nombre: JaSper._t('Font Size'), tags: [], tecla: ''}, //Changes the font size for the selection or at the insertion point. This requires an HTML font size (1-7) to be passed in as a value argument
 			fontFamily: {comando: 'FontName', css: null, nombre: JaSper._t('Font Family'), tags: [], tecla: ''}, //Changes the font name for the selection or at the insertion point. This requires a font name string ("Arial" for example) to be passed in as a value argument
@@ -183,7 +185,7 @@ JaSper.extend(JaSper.prototype, {
 			hr: {comando: 'InsertHorizontalRule', css: null, nombre: JaSper._t('Horizontal Rule'), tags: [], tecla: ''}, //Inserts a horizontal rule at the insertion point (deletes selection)
 			image: {comando: 'InsertImage', css: null, nombre: JaSper._t('Image'), tags: false, tecla: ''}, //Inserts an image at the insertion point (deletes selection). Requires the image SRC URI string to be passed in as a value argument. The URI must contain at least a single character, which may be a white space. (Internet Explorer will create a link with a null URI value.)
 			indent: {comando: 'Indent', css: null, nombre: JaSper._t('Indent Text'), tags: [], tecla: ''},
-			italic: {comando: 'Italic', css: {'font-style' : 'italic'}, nombre: JaSper._t('Italic'), tags: ['EM','I'], tecla: 'i'},
+			italic: {comando: 'Italic', css: {'font-style': 'italic'}, nombre: JaSper._t('Italic'), tags: ['EM', 'I'], tecla: 'i'},
 			justify: {comando: 'JustifyFull', css: null, nombre: JaSper._t('Justify Align'), tags: [], tecla: ''},
 			left: {comando: 'JustifyLeft', css: null, nombre: JaSper._t('Left Align'), tags: [], tecla: ''},
 			link: {comando: false, css: null, nombre: JaSper._t('Link'), tags: [], tecla: ''},
@@ -192,11 +194,11 @@ JaSper.extend(JaSper.prototype, {
 			redo: {comando: 'Redo', css: null, nombre: JaSper._t('Redo'), tags: [], tecla: ''}, //Redoes the previous undo command
 			removeFormat: {comando: 'RemoveFormat', css: null, nombre: JaSper._t('Remove Formatting'), tags: [], tecla: ''},
 			right: {comando: 'Justifyright', css: null, nombre: JaSper._t('Right Align'), tags: [], tecla: ''},
-			strikeThrough: {comando: 'StrikeThrough', css: {'text-decoration' : 'line-through'}, nombre: JaSper._t('Strike Through'), tags: [], tecla: ''},
+			strikeThrough: {comando: 'StrikeThrough', css: {'text-decoration': 'line-through'}, nombre: JaSper._t('Strike Through'), tags: [], tecla: ''},
 			subscript: {comando: 'Subscript', css: null, nombre: JaSper._t('Subscript'), tags: ['SUB'], tecla: ''},
 			superscript: {comando: 'Superscript', css: null, nombre: JaSper._t('Superscript'), tags: ['SUP'], tecla: ''},
 			ul: {comando: 'InsertUnorderedList', css: null, nombre: JaSper._t('Insert Unordered List'), tags: ['UL'], tecla: ''},
-			underline: {comando: 'Underline', css: {'text-decoration' : 'underline'}, nombre: JaSper._t('Underline'), tags: ['U'], tecla: 'u'},
+			underline: {comando: 'Underline', css: {'text-decoration': 'underline'}, nombre: JaSper._t('Underline'), tags: ['U'], tecla: 'u'},
 			undo: {comando: 'Undo', css: null, nombre: JaSper._t('Undo'), tags: [], tecla: ''}, //Undoes the last executed command
 			unlink: {comando: false, css: null, nombre: JaSper._t('Unlink'), tags: [], tecla: ''},
 			verCodigo: {comando: 'f:JaSper.rtb.verCodigo(\'rtbId\');return false;', css: null, nombre: JaSper._t('See code'), tags: [], tecla: ''}, //TODO mejorar llamadas a funciones
@@ -224,9 +226,10 @@ JaSper.extend(JaSper.prototype, {
 				JaSper.log('[JaSper::rtb] No se soportan elementos sin ID.', 1);
 				return false;
 			}
-	
+
 			var oOriginal = this; //referencia a conservar para eventos
-			var sOriginalTagName = oOriginal.tagName ? oOriginal.tagName.toLowerCase() : '', sOriginalType = oOriginal.type ? oOriginal.type.toLowerCase() : '';
+			var sOriginalTagName = oOriginal.tagName ? oOriginal.tagName.toLowerCase() : '';
+			var sOriginalType = oOriginal.type ? oOriginal.type.toLowerCase() : '';
 
 			var sOriginalTipoCont = (sOriginalTagName == 'input' && sOriginalType == 'text') ? 'value' : ((sOriginalTagName == 'textarea' && sOriginalType == 'textarea') ? 'value' : false); //Que propiedad almacenara el contenido enriquecido //TODO otros tipos permitidos?
 			if(!sOriginalTipoCont){
@@ -257,7 +260,7 @@ JaSper.extend(JaSper.prototype, {
 			}
 			oEditable.style.height = (thisY - 18) + 'px';
 			//oEditable.innerHTML = JaSper.rtb.decode_entities(this[sOriginalTipoCont]);
-			oEditable.innerHTML = (this[sOriginalTipoCont] == '' ? '<br />'  : this[sOriginalTipoCont]); //si no, pinta un cursor que ocupa todo el alto a la izquierda
+			oEditable.innerHTML = (this[sOriginalTipoCont] === '' ? '<br />' : this[sOriginalTipoCont]); //si no, pinta un cursor que ocupa todo el alto a la izquierda
 			oEditable.spellcheck || false;
 			oEditable.styleWithCSS = false; //false - crea elementos para dar formato, true - estilos en linea
 
@@ -302,11 +305,12 @@ JaSper.extend(JaSper.prototype, {
 			JaSper.event.add(oOriginal, 'blur', function (){ //cuando se muestra el codigo tambien debe actualizarse la caja de edicion rtb (que estara oculta)
 				oEditable.innerHTML = oOriginal[sOriginalTipoCont];
 			});
-		
+
 			this.parentNode.insertBefore(oContenedor, this.nextSibling);
 			oContenedor.insertBefore(this, oToolbar.nextSibling);
 		});
 
+		return this;
 	}
 
 });
@@ -338,9 +342,9 @@ JaSper.rtb = {
 			if(JaSper.funcs.isFunction(sCommand)){
 				return sCommand.call(document.getElementById(oElemId));
 			}
-			else{ //si es una cadena de texto es para execCommand
-				return document.execCommand(sCommand, false, sParamsCommand);
-			}
+
+			//si es una cadena de texto es para execCommand
+			return document.execCommand(sCommand, false, sParamsCommand);
 		}
 		catch(ex){
 			JaSper.log('[JaSper::rtb.command] No se puede ejecutar el comando [' + sCommand + '] en el elemento [' + oElemId + '].', 1);
@@ -378,11 +382,11 @@ JaSper.rtb = {
 	 * @return {string}
 	 */
 	getSeleccion: function (){
-		var sText = "";
+		var sText = '';
 		var activeEl = document.activeElement;
 		var activeElTagName = activeEl ? activeEl.tagName.toLowerCase() : null;
 
-		if((activeElTagName == 'textarea') || (activeElTagName == 'input' && /^(?:text|search|password|tel|url)$/i.test(activeEl.type)) && (typeof activeEl.selectionStart == 'number')){
+		if((activeElTagName === 'textarea') || (activeElTagName === 'input' && (/^(?:text|search|password|tel|url)$/i).test(activeEl.type)) && (typeof activeEl.selectionStart === 'number')){
 			sText = activeEl.value.slice(activeEl.selectionStart, activeEl.selectionEnd);
 		}
 		else if(window.getSelection){
@@ -411,22 +415,25 @@ JaSper.rtb = {
 		var oSeleccion = window.getSelection() || document.selection.createRange(); //segunda version para IE
 
 		if(!oNodoIni){ //devuelve lo actualmente seleccionado
-			var oNodoIni = oSeleccion.anchorNode, oNodoFin = oSeleccion.focusNode;
-			var oSelIni = oSeleccion.anchorOffset, oSelFin = oSeleccion.focusOffset;
+			var oNodoIni = oSeleccion.anchorNode;
+			var oNodoFin = oSeleccion.focusNode;
+			var oSelIni = oSeleccion.anchorOffset;
+			var oSelFin = oSeleccion.focusOffset;
 		}
 		else{ //intenta recrear la seleccion pasada
 			var oRango = document.createRange();
 			x = oNodoIni.compareDocumentPosition(oNodoFin);
 
-			if (x == 4 || (x == 0 && oSelIni < oSelFin)){
+			if(x === 4 || (x === 0 && oSelIni < oSelFin)){
 				oRango.setStart(oNodoIni, oSelIni);
 				oRango.setEnd(oNodoFin, oSelFin);
-			}else{
-				 oRango.setStart(oNodoFin, oSelFin);
-				 oRango.setEnd(oNodoIni, oSelIni);
+			}
+			else{
+				oRango.setStart(oNodoFin, oSelFin);
+				oRango.setEnd(oNodoIni, oSelIni);
 			}
 
-			oSeleccion.removeAllRanges(); 
+			oSeleccion.removeAllRanges();
 			oSeleccion.addRange(oRango);
 		}
 
@@ -453,10 +460,11 @@ JaSper.rtb = {
 		var oOriginal = document.getElementById(sId.substr(0, sId.indexOf('_rtb_div'))); //objeto fuente
 		var oElemDisplay = oOriginal.style.display;
 
-		var sOriginalTagName = oOriginal.tagName ? oOriginal.tagName.toLowerCase() : '', sOriginalType = oOriginal.type ? oOriginal.type.toLowerCase() : '';
+		var sOriginalTagName = oOriginal.tagName ? oOriginal.tagName.toLowerCase() : '';
+		var sOriginalType = oOriginal.type ? oOriginal.type.toLowerCase() : '';
 		var sOriginalTipoCont = (sOriginalTagName == 'input' && sOriginalType == 'text') ? 'value' : ((sOriginalTagName == 'textarea' && sOriginalType == 'textarea') ? 'value' : false); //*codigo repetido*
 
-		if(oElemDisplay == 'none'){
+		if(oElemDisplay === 'none'){
 			oOriginal[sOriginalTipoCont] = oRtb.innerHTML;
 
 			oRtb.style.display = oOriginal.style.display;

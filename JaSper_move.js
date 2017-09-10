@@ -29,15 +29,15 @@ JaSper.extend(JaSper.prototype, {
 	 * Movimiento de objetos
 	 * 
 	 * @since 2011-07-08
-	 * @param object props Propiedades con que se hara el movimiento
-	 * @return object
+	 * @param {object} props Propiedades con que se hara el movimiento
+	 * @return {object}
 	 */
 	move: function (props){
 		'use strict';
 
 		props = props || {};
 		props.container = props.container || false; //limita el movimiento del objeto al contendedor en que se encuentra (true es parentNode), pasar como parametro el objeto contenedor (objeto DOM)
-		props.reset = props.reset == undefined ? true : props.reset; //posicion final del objeto: true (devuelve a la posicion de inicio), false (se queda donde se suelte, ocupa el lugar de la sombra si shadow esta puesto)
+		props.reset = props.reset === undefined ? true : props.reset; //posicion final del objeto: true (devuelve a la posicion de inicio), false (se queda donde se suelte, ocupa el lugar de la sombra si shadow esta puesto)
 		props.shadow = props.shadow || false; //mientras el objeto se mueve pone un objeto sombra con su tamaño en la posicion actual (true), o se mueve sin mover el resto de objetos (false)
 		props.restrict = props.restrict || false; //limita el movimiento del objeto al eje 'x', eje 'y' o sin limites false
 
@@ -47,7 +47,7 @@ JaSper.extend(JaSper.prototype, {
 		props.onMoveStart = props.onMoveStart || false; //callback a ejecutar cuando se inicia el movimiento
 
 		var oSombra;
-		
+
 		var oEventos = { //eventos usados en dispositivos tactiles o con puntero
 			inicio: (JaSper.tactil ? 'touchstart' : 'mousedown'), //evento de inicio de movimiento
 			mueve: (JaSper.tactil ? 'touchmove' : 'mousemove'), //evento de movimiento
@@ -75,7 +75,7 @@ JaSper.extend(JaSper.prototype, {
 			return oSombra;
 		};
 
-		/* finaliza movimiento */
+		/*finaliza movimiento*/
 		var moveEnd = function (event, obj, funcs){
 			JaSper.event.preventDefault(event);
 			JaSper.event.stop(event);
@@ -93,7 +93,7 @@ JaSper.extend(JaSper.prototype, {
 				if(!props.reset){
 					obj.style.position = obj.posStyle;
 					obj = obj.parentNode.removeChild(obj);
-				
+
 					oSombra.parentNode.insertBefore(obj, oSombra);
 				}
 
@@ -116,7 +116,7 @@ JaSper.extend(JaSper.prototype, {
 			}
 		};
 
-		/* mover */
+		/*mover*/
 		var moveObject = function (event, obj){
 			JaSper.event.preventDefault(event);
 			JaSper.event.stop(event);
@@ -159,18 +159,26 @@ JaSper.extend(JaSper.prototype, {
 
 			var oObjProps = JaSper.nodo.extend(obj);
 
-			var top = oObjProps.posMoveStart['y'] + (props.restrict == 'x' ? 0 : pos['y'] - oObjProps.posPunteroInicial['y'] - oObjProps.posMoveStart['my']);
-			var left = oObjProps.posMoveStart['x'] + (props.restrict == 'y' ? 0 : pos['x'] - oObjProps.posPunteroInicial['x'] - oObjProps.posMoveStart['mx']);
+			var top = oObjProps.posMoveStart['y'] + (props.restrict === 'x' ? 0 : pos['y'] - oObjProps.posPunteroInicial['y'] - oObjProps.posMoveStart['my']);
+			var left = oObjProps.posMoveStart['x'] + (props.restrict === 'y' ? 0 : pos['x'] - oObjProps.posPunteroInicial['x'] - oObjProps.posMoveStart['mx']);
 
 			//limita el movimiento del objeto a la caja que lo contiene o a la indicada en "container"
 			if(props.container){ //TODO controlar en que direccion se mueve el raton para simplificar hacia donde se limita el movimiento
 				var bottom = oObjProps.posMoveStart['y2']; //top + oObjProps.posMoveStart['h'];
 				var right = oObjProps.posMoveStart['x2']; //left + oObjProps.posMoveStart['w'];
 
-				if(top < oObjProps.posMoveStartParent['y']) top = oObjProps.posMoveStartParent['y'];
-				if(left < oObjProps.posMoveStartParent['x']) left = oObjProps.posMoveStartParent['x'];
-				if(bottom > oObjProps.posMoveStartParent['y2']) top = oObjProps.posMoveStartParent['y2'] - oObjProps.posMoveStart['h'];
-				if(right > oObjProps.posMoveStartParent['x2']) left = oObjProps.posMoveStartParent['x2'] - oObjProps.posMoveStart['w'];
+				if(top < oObjProps.posMoveStartParent['y']){
+					top = oObjProps.posMoveStartParent['y'];
+				}
+				if(left < oObjProps.posMoveStartParent['x']){
+					left = oObjProps.posMoveStartParent['x'];
+				}
+				if(bottom > oObjProps.posMoveStartParent['y2']){
+					top = oObjProps.posMoveStartParent['y2'] - oObjProps.posMoveStart['h'];
+				}
+				if(right > oObjProps.posMoveStartParent['x2']){
+					left = oObjProps.posMoveStartParent['x2'] - oObjProps.posMoveStart['w'];
+				}
 			}
 
 			obj.style.top = top + 'px';
@@ -181,15 +189,19 @@ JaSper.extend(JaSper.prototype, {
 			$('evento').html = JaSper.event.name(event);
 		};
 
-		/* inicia movimiento */
+		/*inicia movimiento*/
 		var moveStart = function (event, obj){
 			JaSper.event.preventDefault(event);
 			JaSper.event.stop(event);
 
 			var normalclick = 1;
-			if(event.which) normalclick = event.which;
-			else if(event.button) normalclick = event.button;
-			if(normalclick != 1){
+			if(event.which){
+				normalclick = event.which;
+			}
+			else if(event.button){
+				normalclick = event.button;
+			}
+			if(normalclick !== 1){
 				return false;
 			}
 
@@ -241,6 +253,8 @@ JaSper.extend(JaSper.prototype, {
 
 		//pone los eventos que lanzaran el movimiento de cada elemento
 		this.eventAdd(oEventos.inicio, function (e){moveStart(e, this);}); //TODO eliminar este evento al finalizar el movimiento?
+
+		return this;
 	}
 
 });
@@ -253,12 +267,16 @@ JaSper.move = {
 		'use strict';
 
 		if(document.elementFromPoint){
-			var x = mouseEvent.clientX, y = mouseEvent.clientY, isRelative = true, iDesp = 0;
+			var x = mouseEvent.clientX;
+			var y = mouseEvent.clientY;
+			var isRelative = true;
+			var iDesp = 0;
+
 			if((iDesp = JaSper.css.getStyle(document, 'scrollTop')) > 0){
-				isRelative = (document.elementFromPoint(0, iDesp + JaSper.css.getStyle(window, 'height')) == null);
+				isRelative = (document.elementFromPoint(0, iDesp + JaSper.css.getStyle(window, 'height')) === null);
 			}
-			else if((iDesp = JaSper.css.getStyle(document, 'scrollLeft')) >0){
-				isRelative = (document.elementFromPoint(iDesp + JaSper.css.getStyle(window, 'width'), 0) == null);
+			else if((iDesp = JaSper.css.getStyle(document, 'scrollLeft')) > 0){
+				isRelative = (document.elementFromPoint(iDesp + JaSper.css.getStyle(window, 'width'), 0) === null);
 			}
 
 			if(!isRelative){
@@ -280,17 +298,17 @@ JaSper.move = {
 			if(oTarget.nodeType == Node.TEXT_NODE){
 				oTarget = oTarget.parentNode;
 			}
-		
+
 			//imita el comportamiento de IE devuelve devuelve tag body cuando es tag html
-			if(oTarget.nodeName.toUpperCase() == "HTML"){
-				oTarget = document.getElementsByTagName("BODY").item(0);
+			if(oTarget.nodeName.toUpperCase() === 'HTML'){
+				oTarget = document.getElementsByTagName('BODY').item(0);
 			}
 
 			return oTarget;
 		})(mouseEvent);
 	},
 
-	/* devuelve la posicion del elemento con respecto al documento (top, left, etc.) y su tamaño */
+	/*devuelve la posicion del elemento con respecto al documento (top, left, etc.) y su tamaño*/
 	posObject: function (obj){
 		'use strict';
 
@@ -319,7 +337,7 @@ JaSper.move = {
 		return pos;
 	},
 
-	/* devuelve la posicion del puntero, (array=>["x"] - ["y"]) */
+	/*devuelve la posicion del puntero, (array=>["x"] - ["y"])*/
 	//TODO devolver tanto tactil como no tactil, para permitir movimiento con raton y dedo en dispositivos tactiles
 	posPuntero: function (event){
 		'use strict';
@@ -332,8 +350,8 @@ JaSper.move = {
 			pos['y'] = event.changedTouches[0].pageY;
 		}
 		else{ //posicion con raton o puntero
-			if(navigator.userAgent.toLowerCase().indexOf("msie") >= 0){
-				/* document.body.clientLeft/clientTop es el tamaño del borde (usualmente 2px) que encierra al documento ya que en IE este no empieza en (0,0) */
+			if(navigator.userAgent.toLowerCase().indexOf('msie') >= 0){
+				/*document.body.clientLeft/clientTop es el tamaño del borde (usualmente 2px) que encierra al documento ya que en IE este no empieza en (0,0)*/
 				pos['x'] = window.event.clientX + document.body.clientLeft + document.body.scrollLeft;
 				pos['y'] = window.event.clientY + document.body.clientTop + document.body.scrollTop;
 			}

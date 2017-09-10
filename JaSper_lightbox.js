@@ -48,12 +48,12 @@ JaSper.extend(JaSper.prototype, {
 		oOps.exif = oOps.exif || null; //callback que devuelve los datos EXIF
 
 		if(!oOps.contenedor && !document.getElementById('JaSper_lightbox')){
-			oOps.contenedor = JaSper.nodo.crear('div'
-				, {className: 'JaSper_lightbox'
-					, id: 'JaSper_lightbox'
-					, title: 'JaSper Lightbox'
-					, style: "display:none;flex-direction:column;align-items:center;position:fixed;left:0px;top:0px;height:100%;width:100%;text-align:center;z-index:999999;background:rgba(221, 221, 221, 0.7) none repeat scroll 0px 0px;"} //display:flex;
-			, document.getElementsByTagName('body')[0]);
+			oOps.contenedor = JaSper.nodo.crear('div',
+				{className: 'JaSper_lightbox',
+					id: 'JaSper_lightbox',
+					title: 'JaSper Lightbox',
+					style: 'display:none;flex-direction:column;align-items:center;position:fixed;left:0px;top:0px;height:100%;width:100%;text-align:center;z-index:999999;background:rgba(221, 221, 221, 0.7) none repeat scroll 0px 0px;'} //display:flex;
+				, document.getElementsByTagName('body')[0]);
 		}
 
 		var aImgsSrc = []; //src's de las imagenes, para poder hacer carrusel con ellas
@@ -76,7 +76,7 @@ JaSper.extend(JaSper.prototype, {
 
 		oOps.contenedor.appendChild(oPie);
 
-		function fPie(oObj){ //actualiza la informacion del pie de foto con los atributos indicados
+		var fPie = function (oObj){ //actualiza la informacion del pie de foto con los atributos indicados
 			if(oObj.pie){
 				oPie.innerHTML = '<strong>' + oObj.pie.toString() + '</strong>';
 				if(oObj.desc){
@@ -88,7 +88,7 @@ JaSper.extend(JaSper.prototype, {
 				oPie.style.display = 'none';
 				oPie.innerHTML = '';
 			}
-		}
+		};
 
 		//click sobre el contenedor a la vista lo cierra
 		JaSper.event.add(oOps.contenedor, 'click', function (ev){
@@ -122,13 +122,13 @@ JaSper.extend(JaSper.prototype, {
 
 			oOps.contenedor.style.display = 'flex'; //TODO hacer con toggle?
 		}).each(function (){
-			var sAttr = (JaSper.funcs.isFunction(oOps.origen)) ? oOps.origen.call(this) : this.getAttribute(oOps.origen);
+			var sAttr = JaSper.funcs.isFunction(oOps.origen) ? oOps.origen.call(this) : this.getAttribute(oOps.origen);
 			if(sAttr){
 				if(aImgsSrc.indexOf(sAttr) < 0){ //no se guardan repetidas
 					oImg.src = sAttr; //si la ruta en codigo es relativa al asignarla al atributo src se convierte en absoluta, al hacer click en la imagen en lightbox no funciona la rotacion de imagenes al no coincidir "aImgsSrc.indexOf(sSrcAct)"
 					aImgsSrcExt[aImgsSrc.length] = {
-						tit: (JaSper.funcs.isFunction(oOps.pie)) ? oOps.pie.call(this) : this.getAttribute(oOps.pie),
-						desc: (JaSper.funcs.isFunction(oOps.descripcion)) ? oOps.descripcion.call(this) : this.getAttribute(oOps.descripcion)
+						tit: JaSper.funcs.isFunction(oOps.pie) ? oOps.pie.call(this) : this.getAttribute(oOps.pie),
+						desc: JaSper.funcs.isFunction(oOps.descripcion) ? oOps.descripcion.call(this) : this.getAttribute(oOps.descripcion)
 					};
 					aImgsSrc[aImgsSrc.length] = oImg.src;
 				}

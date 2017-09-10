@@ -17,34 +17,36 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 /*traducciones*/
 JaSper.extend(JaSper.langs, {
-"en":{
-	'valida/bic':'BIC/SWIFT bank number invalid',
-	'valida/clave':'Check that you entered the same password in both boxes',
-	'valida/email':'Invalid e-mail',
-	'valida/fechas':'Incorrect date.\nRecommended format for your dates: ',
-	'valida/fichero':'File type not allowed.',
-	'valida/iban':'IBAN bank number invalid',
-	'valida/nif1':'NIE wrong.',
-	'valida/nif2':'NIF wrong.',
-	'valida/numeros1':'Range between ',
-	'valida/numeros2':' and ',
-	'valida/obligatorio':' can not be empty.',
-	'valida/obligatorioRadio':' should have checked some option.',
-	'valida/url':'Invalid URL.\nRecommended format: "http://dominio.tld"'},
-"es":{
-	'valida/bic':'Código bancario BIC/SWIFT incorrecto',
-	'valida/clave':'Compruebe que ha escrito la misma clave en ambas casillas',
-	'valida/email':'e-mail no v\u00E1lido',
-	'valida/fechas':'Fecha incorrecta.\nFormato recomendado para las fechas: ',
-	'valida/fichero':'Tipo de fichero no permitido.',
-	'valida/iban':'Código bancario IBAN incorrecto',
-	'valida/nif1':'NIE incorrecto',
-	'valida/nif2':'NIF incorrecto',
-	'valida/numeros1':'Rango entre ',
-	'valida/numeros2':' y ',
-	'valida/obligatorio':' no puede estar vac\u00EDo.',
-	'valida/obligatorioRadio':' debe tener marcada alguna opci\u00F3n.',
-	'valida/url':'URL no v\u00E1lida.\nFormato recomendado: "http://dominio.tld"'}
+	'en': {
+		'valida/bic': 'BIC/SWIFT bank number invalid',
+		'valida/clave': 'Check that you entered the same password in both boxes',
+		'valida/email': 'Invalid e-mail',
+		'valida/fechas': 'Incorrect date.\nRecommended format for your dates: ',
+		'valida/fichero': 'File type not allowed.',
+		'valida/iban': 'IBAN bank number invalid',
+		'valida/nif1': 'NIE wrong.',
+		'valida/nif2': 'NIF wrong.',
+		'valida/numeros1': 'Range between ',
+		'valida/numeros2': ' and ',
+		'valida/obligatorio': ' can not be empty.',
+		'valida/obligatorioRadio': ' should have checked some option.',
+		'valida/url': 'Invalid URL.\nRecommended format: "http://dominio.tld"'
+	},
+	'es': {
+		'valida/bic': 'Código bancario BIC/SWIFT incorrecto',
+		'valida/clave': 'Compruebe que ha escrito la misma clave en ambas casillas',
+		'valida/email': 'e-mail no v\u00E1lido',
+		'valida/fechas': 'Fecha incorrecta.\nFormato recomendado para las fechas: ',
+		'valida/fichero': 'Tipo de fichero no permitido.',
+		'valida/iban': 'Código bancario IBAN incorrecto',
+		'valida/nif1': 'NIE incorrecto',
+		'valida/nif2': 'NIF incorrecto',
+		'valida/numeros1': 'Rango entre ',
+		'valida/numeros2': ' y ',
+		'valida/obligatorio': ' no puede estar vac\u00EDo.',
+		'valida/obligatorioRadio': ' debe tener marcada alguna opci\u00F3n.',
+		'valida/url': 'URL no v\u00E1lida.\nFormato recomendado: "http://dominio.tld"'
+	}
 });
 
 /**
@@ -65,7 +67,7 @@ JaSper.extend(JaSper.prototype, {
 	 * @param {Object} oProps Propiedades para las validaciones
 	 * @return {Object} JaSper
 	 */
-	validar: function(oProps){
+	validar: function (oProps){
 		'use strict';
 
 		oProps = oProps || {};
@@ -93,12 +95,12 @@ JaSper.extend(JaSper.prototype, {
 				JaSper.event.preventDefault(oEvent);
 				JaSper.event.stop(oEvent);
 
-				alert("Se han producido los siguientes errores:\n\n" + aErrores.join("\n"));
+				alert('Se han producido los siguientes errores:\n\n' + aErrores.join('\n'));
 
 				return false;
 			},
 			fin: oProps.fin || function (oEvent){return true;}, //se ejecuta si todo ha ido correcto, antes de submit
-			inicio: oProps.inicio || function (oEvent){return true;}, //se ejecuta al inicio de la validacion
+			inicio: oProps.inicio || function (oEvent){return true;} //se ejecuta al inicio de la validacion
 		};
 
 		var filters = {}; //validaciones
@@ -120,10 +122,10 @@ JaSper.extend(JaSper.prototype, {
 
 		this.each(function (){
 			//bloqueos de teclas, se busca en cada formulario los elementos bloqueables
-			JaSper('<input>,<textarea>', this).each(function(ev){
+			JaSper('<input>,<textarea>', this).each(function (ev){
 				var el = this;
 				if(el.className != 'undefined'){
-					var csplit = el.className.split(" ");
+					var csplit = el.className.split(' ');
 					for(var i = 0; i < csplit.length; i++){
 						if(JaSper.funcs.isFunction(filters_keys[csplit[i]])){
 							var fun = csplit[i];
@@ -142,15 +144,17 @@ JaSper.extend(JaSper.prototype, {
 
 			//evita que los select multiple pierdan todos los elementos seleccionados con un simple click
 			JaSper('select[multiple="multiple"]', this).eventAdd('mousedown', function (ev){
-				if(ev.ctrlKey) return; //no hace nada si esta pulsada la tecla control (funciomaniento normal de un select multiple)
-				
+				if(ev.ctrlKey){
+					return; //no hace nada si esta pulsada la tecla control (funciomaniento normal de un select multiple)
+				}
+
 				var aSelected = [];
-				for(var i = 0;i < this.options.length;i++){ //guarda los seleccionados
+				for(var i = 0; i < this.options.length; i++){ //guarda los seleccionados
 					aSelected[i] = this.options[i].selected;
 				}
-		
+
 				JaSper(this).eventAdd('mouseup', function _mouseup(ev){
-					for(var i = 0;i < this.options.length;i++){ //recupera los previos
+					for(var i = 0; i < this.options.length; i++){ //recupera los previos
 						this.options[i].selected = this.options[i].selected ? !aSelected[i] : aSelected[i];
 					}
 					JaSper(this).eventRemove('mouseup', _mouseup);
@@ -167,10 +171,11 @@ JaSper.extend(JaSper.prototype, {
 			if(oProps.preview && bFileReader){
 				JaSper('input[type="file"]', this).each(function (){
 					var sPreviewId = (this.dataset.previewId || this.getAttribute('data-previewId')) || null;
-					if(!sPreviewId) //no hay id en la que hacer preview
+					if(!sPreviewId){ //no hay id en la que hacer preview
 						return false;
-					else
-						sPreviewId = '#' + sPreviewId;
+					}
+
+					sPreviewId = '#' + sPreviewId;
 
 					JaSper(this).eventAdd('change', function (){
 						var obtenerTipoMIME = function obtenerTipoMIME(cabecera){ //lee el tipo MIME de la cabecera de la imagen
@@ -182,7 +187,7 @@ JaSper.extend(JaSper.prototype, {
 
 						if(oArchivo.length > 0){
 							var oLector = new FileReader();
-							oLector.onloadend = function(ev){
+							oLector.onloadend = function (ev){
 								//Envia la imagen a la pantalla
 								var origen = ev.target; //objeto FileReader
 
@@ -199,7 +204,7 @@ JaSper.extend(JaSper.prototype, {
 								}
 							};
 
-							oLector.onerror = function(ev){
+							oLector.onerror = function (ev){
 								JaSper.log(ev, 2);
 							};
 
@@ -214,16 +219,18 @@ JaSper.extend(JaSper.prototype, {
 		});
 
 		//validacion al envio
-		this.eventAdd('submit', function(oEvent){
+		this.eventAdd('submit', function (oEvent){
 			oProps.inicio(oEvent); //callback al principio de validacion
 
 			JaSper.aFormErrMens = [];
 
-			if(typeof filters == 'undefined') return;
-			JaSper('<input>,<textarea>,<select>', this).each(function(x){
+			if(typeof filters == 'undefined'){
+				return;
+			}
+			JaSper('<input>,<textarea>,<select>', this).each(function (x){
 				var el = this;
 				if(el.className != 'undefined'){
-					var csplit = el.className.split(" ");
+					var csplit = el.className.split(' ');
 					var aErrTemp = [];
 					for(var i = 0; i < csplit.length; i++){
 						if(JaSper.funcs.isFunction(filters[csplit[i]])){
@@ -236,7 +243,7 @@ JaSper.extend(JaSper.prototype, {
 
 					if(aErrTemp.length){
 						JaSper.css.addClass(el, oProps.clases.error);
-						JaSper.aFormErrMens[JaSper.aFormErrMens.length] = aErrTemp.join("\n");
+						JaSper.aFormErrMens[JaSper.aFormErrMens.length] = aErrTemp.join('\n');
 					}
 					else{
 						JaSper.css.removeClass(el, oProps.clases.error);
@@ -254,7 +261,7 @@ JaSper.extend(JaSper.prototype, {
 				//	function(){alert(this.name + ' error');}
 				//);
 				if(oProps.alert){
-					alert("Se han producido los siguientes errores:\n\n" + JaSper.aFormErrMens.join("\n"));
+					alert('Se han producido los siguientes errores:\n\n' + JaSper.aFormErrMens.join('\n'));
 				}*/
 
 				return oProps.fallo(oEvent, JaSper.aFormErrMens); //callback en fallo de validacion; debe devolver falso para cancelar el submit
@@ -274,47 +281,56 @@ JaSper.valida = {
 	/**
 	 * validador BIC (Business Identifier Codes) o SWIFT
 	 *
-	 * @param {Object} sBic Objeto con codigo BIC a validar
+	 * @param {Object} oBic Objeto con codigo BIC a validar
 	 * @return {boolean}
 	 */
-	bic: function(oBic){
+	bic: function (oBic){
 		'use strict';
 
 		var bRet = true;
 
 		oBic.value = oBic.value.toString().trim() || '';
-		if(!oBic.value) //no se hacen mas comprobaciones, vacio no es BIC
-			bRet = false;
-
-		if(! /^[a-z]{6}[0-9a-z]{2}([0-9a-z]{3})?$/i.test(oBic.value)){
+		if(!oBic.value){ //no se hacen mas comprobaciones, vacio no es BIC
 			bRet = false;
 		}
 
-		if(bRet) return false; //pass valida
-		else return JaSper._t('valida/bic'); //pass no valida
+		if(!(/^[a-z]{6}[0-9a-z]{2}([0-9a-z]{3})?$/i).test(oBic.value)){
+			bRet = false;
+		}
+
+		if(bRet){
+			return false; //pass valida
+		}
+
+		return JaSper._t('valida/bic'); //pass no valida
 	},
 
 	/**
 	 * Validacion de campos password
 	 * 
 	 * @param {Object} oClave Campo de clave original
-	 * @param {Object} objId2 Id del campo de clave repetido
+	 * @param {Object} oClave2 Campo de clave repetido
 	 * @return {string}
 	 */
 	clave: function (oClave, oClave2){
 		'use strict';
 
-		if(!oClave2)
+		if(!oClave2){
 			return false; //no se comprueba el campo de clave desde el de confirmacion
+		}
 
 		var bRet = true;
 
 
-		if(!oClave && oClave2.value != '' && oClave != oClave2.value)
+		if(!oClave && oClave2.value != '' && oClave != oClave2.value){
 			bRet = false;
+		}
 
-		if(bRet) return false; //pass valida
-		else return JaSper._t('valida/clave'); //pass no valida
+		if(bRet){
+			return false; //pass valida
+		}
+
+		return JaSper._t('valida/clave'); //pass no valida
 	},
 
 	/**
@@ -326,18 +342,22 @@ JaSper.valida = {
 	email: function (oEmail){
 		'use strict';
 
-		var bRet = true, filtro = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+		var bRet = true;
+		var filtro = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
 		oEmail.value = oEmail.value.toString().trim() || '';
 
 		if(oEmail.value != ''){
-			if(filtro.test(oEmail.value))
+			bRet = false; //e-mail no valido
+			if(filtro.test(oEmail.value)){
 				bRet = true; //e-mail valido
-			else
-				bRet = false; //e-mail no valido
+			}
 		}
 
-		if(bRet) return false;
-		else return JaSper._t('valida/email'); //e-mail no valido
+		if(bRet){
+			return false;
+		}
+
+		return JaSper._t('valida/email'); //e-mail no valido
 	},
 
 	/**
@@ -351,8 +371,9 @@ JaSper.valida = {
 	fechas: function (oFecha, formato){
 		'use strict';
 
-		if(!formato)
+		if(!formato){
 			formato = 'aaaa-mm-dd hh:mm:ss';
+		}
 
 		var bRet = false; //fecha incorrecta
 		oFecha.value = oFecha.value.toString().trim() || '';
@@ -368,8 +389,11 @@ JaSper.valida = {
 			}
 		}
 
-		if(bRet) return false;
-		else return (JaSper._t('valida/fechas') + formato); //fecha incorrecta
+		if(bRet){
+			return false;
+		}
+
+		return (JaSper._t('valida/fechas') + formato); //fecha incorrecta
 	},
 
 	/**
@@ -389,14 +413,17 @@ JaSper.valida = {
 			var aTemp = new Array();
 			aTemp = oFichero.value.split('.');
 
-			if(extensiones.indexOf(aTemp[aTemp.length - 1].toLowerCase()) >= 0)
+			bRet = false; //tipo de fichero no permitido
+			if(extensiones.indexOf(aTemp[aTemp.length - 1].toLowerCase()) >= 0){
 				bRet = true; //tipo de fichero correcto
-			else
-				bRet = false; //tipo de fichero no permitido
+			}
 		}
 
-		if(bRet) return false;
-		else return JaSper._t('valida/fichero'); //tipo de fichero no permitido
+		if(bRet){
+			return false;
+		}
+
+		return JaSper._t('valida/fichero'); //tipo de fichero no permitido
 	},
 
 	/**
@@ -407,77 +434,86 @@ JaSper.valida = {
 	 * @param {Object} oIban Codigo IBAN a validar
 	 * @return {boolean}
 	 */
-	iban: function(oIban){
+	iban: function (oIban){
 		'use strict';
 
 		var bRet = true;
 
 		oIban.value = oIban.value.toString().trim() || '';
 		if(oIban.value != ''){
-			// remove spaces and to upper case
-			var iban = oIban.value.replace(/[^a-zA-Z0-9]/img, "").toUpperCase(),
-				ibancheckdigits = "",
-				leadingZeroes = true,
-				cRest = "",
-				cOperator = "",
-				ibancheck, charAt, cChar, ibanregexp, i, p;
+			//remove spaces and to upper case
+			var iban = oIban.value.replace(/[^a-zA-Z0-9]/img, '').toUpperCase();
+			var ibancheckdigits = '';
+			var leadingZeroes = true;
+			var cRest = '';
+			var cOperator = '';
+			var ibancheck;
+			var charAt;
+			var cChar;
+			var ibanregexp;
+			var i;
+			var p;
 
-			// check the country code and find the country specific format
+			//check the country code and find the country specific format
 			var countrycode = iban.substring(0, 2);
 			var bbancountrypatterns = {
-				"AD": "\\d{8}[\\dA-Z]{12}", "AE": "\\d{3}\\d{16}", "AL": "\\d{8}[\\dA-Z]{16}", "AT": "\\d{16}", "AZ": "[\\dA-Z]{4}\\d{20}",
-				"BA": "\\d{16}", "BE": "\\d{12}", "BG": "[A-Z]{4}\\d{6}[\\dA-Z]{8}", "BH": "[A-Z]{4}[\\dA-Z]{14}", "BR": "\\d{23}[A-Z][\\dA-Z]",
-				"CH": "\\d{5}[\\dA-Z]{12}", "CR": "\\d{17}", "CY": "\\d{8}[\\dA-Z]{16}", "CZ": "\\d{20}",
-				"DE": "\\d{18}", "DK": "\\d{14}", "DO": "[A-Z]{4}\\d{20}",
-				"EE": "\\d{16}", "ES": "\\d{20}",
-				"FI": "\\d{14}", "FO": "\\d{14}", "FR": "\\d{10}[\\dA-Z]{11}\\d{2}",
-				"GB": "[A-Z]{4}\\d{14}", "GE": "[\\dA-Z]{2}\\d{16}", "GI": "[A-Z]{4}[\\dA-Z]{15}", "GL": "\\d{14}", "GR": "\\d{7}[\\dA-Z]{16}", "GT": "[\\dA-Z]{4}[\\dA-Z]{20}",
-				"HR": "\\d{17}", "HU": "\\d{24}",
-				"IE": "[\\dA-Z]{4}\\d{14}", "IL": "\\d{19}", "IS": "\\d{22}", "IT": "[A-Z]\\d{10}[\\dA-Z]{12}",
-				"KW": "[A-Z]{4}[\\dA-Z]{22}", "KZ": "\\d{3}[\\dA-Z]{13}",
-				"LB": "\\d{4}[\\dA-Z]{20}", "LI": "\\d{5}[\\dA-Z]{12}", "LT": "\\d{16}", "LU": "\\d{3}[\\dA-Z]{13}", "LV": "[A-Z]{4}[\\dA-Z]{13}",
-				"MC": "\\d{10}[\\dA-Z]{11}\\d{2}", "MD": "[\\dA-Z]{2}\\d{18}", "ME": "\\d{18}", "MK": "\\d{3}[\\dA-Z]{10}\\d{2}", "MR": "\\d{23}", "MT": "[A-Z]{4}\\d{5}[\\dA-Z]{18}", "MU": "[A-Z]{4}\\d{19}[A-Z]{3}",
-				"NL": "[A-Z]{4}\\d{10}", "NO": "\\d{11}",
-				"PK": "[\\dA-Z]{4}\\d{16}", "PL": "\\d{24}", "PS": "[\\dA-Z]{4}\\d{21}", "PT": "\\d{21}",
-				"RO": "[A-Z]{4}[\\dA-Z]{16}", "RS": "\\d{18}",
-				"SA": "\\d{2}[\\dA-Z]{18}", "SE": "\\d{20}", "SI": "\\d{15}", "SK": "\\d{20}", "SM": "[A-Z]\\d{10}[\\dA-Z]{12}",
-				"TN": "\\d{20}", "TR": "\\d{5}[\\dA-Z]{17}",
-				"VG": "[\\dA-Z]{4}\\d{16}"
+				'AD': '\\d{8}[\\dA-Z]{12}', 'AE': '\\d{3}\\d{16}', 'AL': '\\d{8}[\\dA-Z]{16}', 'AT': '\\d{16}', 'AZ': '[\\dA-Z]{4}\\d{20}',
+				'BA': '\\d{16}', 'BE': '\\d{12}', 'BG': '[A-Z]{4}\\d{6}[\\dA-Z]{8}', 'BH': '[A-Z]{4}[\\dA-Z]{14}', 'BR': '\\d{23}[A-Z][\\dA-Z]',
+				'CH': '\\d{5}[\\dA-Z]{12}', 'CR': '\\d{17}', 'CY': '\\d{8}[\\dA-Z]{16}', 'CZ': '\\d{20}',
+				'DE': '\\d{18}', 'DK': '\\d{14}', 'DO': '[A-Z]{4}\\d{20}',
+				'EE': '\\d{16}', 'ES': '\\d{20}',
+				'FI': '\\d{14}', 'FO': '\\d{14}', 'FR': '\\d{10}[\\dA-Z]{11}\\d{2}',
+				'GB': '[A-Z]{4}\\d{14}', 'GE': '[\\dA-Z]{2}\\d{16}', 'GI': '[A-Z]{4}[\\dA-Z]{15}', 'GL': '\\d{14}', 'GR': '\\d{7}[\\dA-Z]{16}', 'GT': '[\\dA-Z]{4}[\\dA-Z]{20}',
+				'HR': '\\d{17}', 'HU': '\\d{24}',
+				'IE': '[\\dA-Z]{4}\\d{14}', 'IL': '\\d{19}', 'IS': '\\d{22}', 'IT': '[A-Z]\\d{10}[\\dA-Z]{12}',
+				'KW': '[A-Z]{4}[\\dA-Z]{22}', 'KZ': '\\d{3}[\\dA-Z]{13}',
+				'LB': '\\d{4}[\\dA-Z]{20}', 'LI': '\\d{5}[\\dA-Z]{12}', 'LT': '\\d{16}', 'LU': '\\d{3}[\\dA-Z]{13}', 'LV': '[A-Z]{4}[\\dA-Z]{13}',
+				'MC': '\\d{10}[\\dA-Z]{11}\\d{2}', 'MD': '[\\dA-Z]{2}\\d{18}', 'ME': '\\d{18}', 'MK': '\\d{3}[\\dA-Z]{10}\\d{2}', 'MR': '\\d{23}', 'MT': '[A-Z]{4}\\d{5}[\\dA-Z]{18}', 'MU': '[A-Z]{4}\\d{19}[A-Z]{3}',
+				'NL': '[A-Z]{4}\\d{10}', 'NO': '\\d{11}',
+				'PK': '[\\dA-Z]{4}\\d{16}', 'PL': '\\d{24}', 'PS': '[\\dA-Z]{4}\\d{21}', 'PT': '\\d{21}',
+				'RO': '[A-Z]{4}[\\dA-Z]{16}', 'RS': '\\d{18}',
+				'SA': '\\d{2}[\\dA-Z]{18}', 'SE': '\\d{20}', 'SI': '\\d{15}', 'SK': '\\d{20}', 'SM': '[A-Z]\\d{10}[\\dA-Z]{12}',
+				'TN': '\\d{20}', 'TR': '\\d{5}[\\dA-Z]{17}',
+				'VG': '[\\dA-Z]{4}\\d{16}'
 			};
 
 			var bbanpattern = bbancountrypatterns[countrycode];
 
-			if(typeof bbanpattern === "undefined") //pais desconocido
+			if(typeof bbanpattern === 'undefined'){ //pais desconocido
 				bRet = false;
-
-			ibanregexp = new RegExp("^[A-Z]{2}\\d{2}" + bbanpattern + "$", "");
-			if(!(ibanregexp.test(iban))){
-				bRet = false; // invalid country specific format
 			}
 
-			// now check the checksum, first convert to digits
+			ibanregexp = new RegExp('^[A-Z]{2}\\d{2}' + bbanpattern + '$', '');
+			if(!(ibanregexp.test(iban))){
+				bRet = false; //invalid country specific format
+			}
+
+			//now check the checksum, first convert to digits
 			ibancheck = iban.substring(4, iban.length) + iban.substring(0, 4);
 			for(i = 0; i < ibancheck.length; i++){
 				charAt = ibancheck.charAt(i);
-				if(charAt !== "0"){
+				if(charAt !== '0'){
 					leadingZeroes = false;
 				}
 				if(!leadingZeroes){
-					ibancheckdigits += "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(charAt);
+					ibancheckdigits += '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(charAt);
 				}
 			}
 
-			// calculate the result of: ibancheckdigits % 97
+			//calculate the result of: ibancheckdigits % 97
 			for(p = 0; p < ibancheckdigits.length; p++){
 				cChar = ibancheckdigits.charAt(p);
-				cOperator = "" + cRest + "" + cChar;
+				cOperator = '' + cRest + '' + cChar;
 				cRest = cOperator % 97;
 			}
 			bRet = (cRest === 1);
 		}
 
-		if(bRet) return false;
-		else return JaSper._t('valida/iban');
+		if(bRet){
+			return false;
+		}
+
+		return JaSper._t('valida/iban');
 	},
 
 	/**
@@ -490,36 +526,44 @@ JaSper.valida = {
 	nif: function (oNif){
 		'use strict';
 
-		var bRet = true, mensaje = '';
+		var bRet = true;
+		var mensaje = '';
 
 		oNif.value = (oNif.value.toString().trim() || '').toUpperCase();
 		if(oNif.value != ''){
-			dni = oNif.value.substr(0, oNif.value.length-1); //NIF
-			if(oNif.value.charAt(0) == 'X')
+			dni = oNif.value.substr(0, oNif.value.length - 1); //NIF
+			if(oNif.value.charAt(0) == 'X'){
 				dni = dni.substr(1); //NIE
+			}
 
-			letra = oNif.value.charAt(sNif.length-1);
+			letra = oNif.value.charAt(sNif.length - 1);
 
 			if(dni.length == 8 && isNaN(letra)){
 				var control = 'TRWAGMYFPDXBNJZSQVHLCKE';
 				pos = dni % 23;
 				control = control.charAt(pos);
 
-				if(control==letra)
+				if(control==letra){
 					bRet = true; //nif correcto
+				}
 			}
 			else{
-				if(oNif.value.charAt(0) == 'X')
+				if(oNif.value.charAt(0) == 'X'){
 					mensaje += JaSper._t('valida/nif1'); //NIE
-				else
+				}
+				else{
 					mensaje += JaSper._t('valida/nif2'); //NIF
+				}
 
 				bRet = false; //nif incorrecto
 			}
 		}
 
-		if(bRet) return false;
-		else return mensaje;
+		if(bRet){
+			return false;
+		}
+
+		return mensaje;
 	},
 
 	/**
@@ -537,21 +581,26 @@ JaSper.valida = {
 
 		oNumero.value = oNumero.value.toString().trim() || '';
 		if(oNumero.value != ''){
-			if(typeof menor == 'undefined')
+			if(typeof menor == 'undefined'){
 				menor = 0;
-			if(typeof mayor == 'undefined')
+			}
+			if(typeof mayor == 'undefined'){
 				mayor = Math.pow(10, oNumero.maxLength);
+			}
 
 			var num = parseInt(oNumero.value);
 
-			if((num >= menor && num <= mayor) || oNumero == '')
+			bRet = false;
+			if((num >= menor && num <= mayor) || oNumero == ''){
 				bRet = true;
-			else
-				bRet = false;
+			}
 		}
 
-		if(bRet) return false;
-		else return (JaSper._t('valida/numeros1') + menor + JaSper._t('valida/numeros2') + mayor); //numero incorrecto
+		if(bRet){
+			return false;
+		}
+
+		return (JaSper._t('valida/numeros1') + menor + JaSper._t('valida/numeros2') + mayor); //numero incorrecto
 	},
 
 	/**
@@ -564,20 +613,26 @@ JaSper.valida = {
 	obligatorio: function (oCampo){
 		'use strict';
 
-		var bRet = true, text = '';
+		var bRet = true;
+		var text = '';
 
 		//evita problemas con elementos tipo file (por ejemplo), no se puede cambiar su valor
 		try{oCampo.value = oCampo.value.toString().trim() || '';}
 		catch(ex){JaSper.log('No se puede alterar el valor de <' + oCampo.tagName + ' id="' + oCampo.id + '" type="' + oCampo.type + '" />', 1);}
 
-		if(oCampo.value != '') bRet = true;
+		if(oCampo.value != ''){
+			bRet = true;
+		}
 		else{
 			text = JaSper('<label>', oCampo.parentNode).text(); //title for error container
 			bRet = false;
 		}
 
-		if(bRet) return false;
-		else return ('"' + text + '"' + JaSper._t('valida/obligatorio'));
+		if(bRet){
+			return false;
+		}
+
+		return ('"' + text + '"' + JaSper._t('valida/obligatorio'));
 	},
 
 	/*version para radio buttons*/
@@ -585,22 +640,29 @@ JaSper.valida = {
 		'use strict';
 
 		var bRet = true;
+		var text = null;
 
-		var cnt = -1, objName = oRadio;
-		for(var i=objName.length-1; i > -1; i--){
+		var cnt = -1;
+		var objName = oRadio;
+		for(var i = objName.length - 1; i > -1; i--){
 			if(objName[i].checked){
 				cnt = i; i = -1;
 			}
 		}
 
-		if(cnt > -1) bRet = true;
+		if(cnt > -1){
+			bRet = true;
+		}
 		else{
 			text = JaSper('<label>', oRadio.parentNode).text(); //title for error container
 			bRet = false;
 		}
 
-		if(bRet) return false;
-		else return ('"' + text + '"' + JaSper._t('valida/obligatorioRadio'));
+		if(bRet){
+			return false;
+		}
+
+		return ('"' + text + '"' + JaSper._t('valida/obligatorioRadio'));
 	},
 
 	/**
@@ -626,8 +688,9 @@ JaSper.valida = {
 		}
 		else{
 			bRet = false;
-			if(oCampo.value.indexOf(' ') != -1 && charCode == 32)
+			if(oCampo.value.indexOf(' ') != -1 && charCode == 32){
 				bRet = true;
+			}
 		}
 
 		return bRet;
@@ -648,7 +711,7 @@ JaSper.valida = {
 
 		var bRet = false;
 		ev = ev || window.event;
-		decimal = typeof(decimal) != 'undefined' ? decimal : true;
+		decimal = typeof decimal !== 'undefined' ? decimal : true;
 
 		var char_code = JaSper.event.keyCode(ev);
 		if(decimal){ //permite la entrada de numeros y punto decimal
@@ -658,17 +721,17 @@ JaSper.valida = {
 			}
 			else{
 				bRet = false;
-				if(oCampo.value.indexOf('.') != -1 && char_code == 46)
+				if(oCampo.value.indexOf('.') != -1 && char_code == 46){
 					bRet = true;
+				}
 			}
 		}
 		else{ //permite la entrada de numeros sin punto decimal
+			bRet = false;
 			if(char_code > 31 && (char_code < 48 || char_code > 57)){
 				bRet = false; //alert("no es un numero")
 				JaSper.event.preventDefault(ev); //evita la pulsacion
 			}
-			else
-				bRet = false;
 		}
 
 		return bRet;
@@ -689,14 +752,17 @@ JaSper.valida = {
 
 		oUrl.value = oUrl.value.toString().trim() || '';
 		if(oUrl.value != ''){
-			if(filtro.test(this.nodes[i].value))
+			bRet = false; //url no valida
+			if(filtro.test(this.nodes[i].value)){
 				bRet = true; //url valida
-			else
-				bRet = false; //url no valida
+			}
 		}
 
-		if(bRet) return false;
-		else return JaSper._t('valida/url');
+		if(bRet){
+			return false;
+		}
+
+		return JaSper._t('valida/url');
 	}
 
 };
@@ -706,7 +772,7 @@ JaSper.extend(JaSper.trait, {
 	//disponibles (true) o no (false) las validaciones HTML5 de formularios
 	//TODO resto de tipos y propiedades
 	html5Form: (function (){
-		var oInputTest =  document.createElement('input');
+		var oInputTest = document.createElement('input');
 
 		var oTestType = function (sType){
 			oInputTest.setAttribute('type', sType);

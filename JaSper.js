@@ -26,23 +26,24 @@ http://www.gnu.org/copyleft/gpl.html*/
  *
  * @author José M. Carnero
  * @since 2010-06-21
- * @version 3.5
+ * @version 3.6
  * @see Al final del archivo estan las extensiones necesarias de prototipos de objetos del sistema (polyfills)
  */
 (function (window, undefined){ //window como parametro acelera las referencias a window; undefined como parametro evita confilctos y se puede usar para probar contra otras indefinidas
 	'use strict';
 
-	if(window.JaSper) //evita problemas si se carga la libreria varias veces
+	if(window.JaSper){ //evita problemas si se carga la libreria varias veces
 		return;
+	}
 
 	//JaSper es la llamada estatica: JaSper.[funcion]
 	//$ -> alias, para simplificar las llamadas al selector: $('selector').funcion()
 	JaSper = window.JaSper = window.$ = function (sel, context){
-		return new JaSper.funcs.init(sel, context);
+		return new JaSper.funcs.Init(sel, context);
 	};
 
 	//version actual de la libreria
-	JaSper.version = '3.5';
+	JaSper.version = '3.6';
 
 	//metodos para tratamiento de cookies del navegador
 	JaSper.cookie = {
@@ -83,12 +84,12 @@ http://www.gnu.org/copyleft/gpl.html*/
 			var sNombreEQ = encodeURIComponent(sNombre) + '=';
 			var aCookies = document.cookie.split(';');
 
-			for(var i = 0; i < aCookies.length; i++){
-				var sCookie = aCookies[i];
+			for(var iCont = 0; iCont < aCookies.length; iCont++){
+				var sCookie = aCookies[iCont];
 				while(sCookie.charAt(0) == ' '){
 					sCookie = sCookie.substring(1, sCookie.length);
 				}
-				if(sCookie.indexOf(sNombreEQ) == 0){
+				if(sCookie.indexOf(sNombreEQ) === 0){
 					sRet = sCookie.substring(sNombreEQ.length, sCookie.length);
 				}
 			}
@@ -105,12 +106,12 @@ http://www.gnu.org/copyleft/gpl.html*/
 		has: (function (){
 			'use strict';
 
-			var bCookieEnabled = navigator.cookieEnabled ? true : false;
+			var bCookieEnabled = navigator.cookieEnabled;
 
 			//if not IE4+ nor NS6+
-			if(typeof navigator.cookieEnabled == undefined && !bCookieEnabled){
+			if(typeof navigator.cookieEnabled === 'undefined' && !bCookieEnabled){
 				document.cookie = 'testCookie=1';
-				bCookieEnabled = document.cookie.indexOf('testCookie') != -1 ? true : false;
+				bCookieEnabled = document.cookie.indexOf('testCookie') !== -1;
 
 				if(bCookieEnabled){
 					JaSper.cookie.set('testCookie', '', -1);
@@ -174,8 +175,9 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 */
 		addClass: function (oElem, cName){
 			if(typeof cName === 'string'){
-				if(oElem.className.indexOf(cName) == -1)
+				if(oElem.className.indexOf(cName) === -1){
 					oElem.className += ' ' + cName;
+				}
 			}
 		},
 
@@ -191,11 +193,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 			oElem = oElem || document.defaultView;
 			var sRet = '';
 
-			if(oElem.nodeType == 1){
+			if(oElem.nodeType === 1){
 				if(document.defaultView && document.defaultView.getComputedStyle){ //Firefox
-					sRet = document.defaultView.getComputedStyle(oElem, "")[sRegla];
+					sRet = document.defaultView.getComputedStyle(oElem, '')[sRegla];
 				}
-				else if(elem.currentStyle){ //IE
+				else if(oElem.currentStyle){ //IE
 					sRet = oElem.currentStyle[sRegla];
 				}
 				else{ //intenta devolver estilo inline
@@ -228,7 +230,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 				switch(sProp){
 					case 'display':
-						if(sActValue == 'none' || !sActValue){
+						if(sActValue === 'none' || !sActValue){
 							var oElem = document.createElement(oDOMElem.nodeName);
 							JaSper(document.body).append(oElem);
 
@@ -255,10 +257,11 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 * @param {object} oElem Objeto al que añadir la clase
 		 * @param {string} cName Nombre de la clase
 		 */
-		removeClass: function(oElem, cName){
-			if(typeof cName === "string"){
-				if(oElem.className.indexOf(cName) > -1)
+		removeClass: function (oElem, cName){
+			if(typeof cName === 'string'){
+				if(oElem.className.indexOf(cName) > -1){
 					oElem.className = oElem.className.substr(0, oElem.className.indexOf(cName) - 1) + oElem.className.substr(oElem.className.indexOf(cName) + cName.length);
+				}
 			}
 		},
 
@@ -273,7 +276,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 		setStyle: function (oElem, sCssRule, sValue){
 			oElem = (!oElem) ? document.defaultView : oElem;
 
-			if(oElem.nodeType == 1){
+			if(oElem.nodeType === 1){
 				oElem.style[sCssRule] = sValue;
 				return true;
 			}
@@ -313,24 +316,25 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 * @return {Object} JaSper
 		 */
 		add: function (oElem, sEvento, oFuncion, bCapt){
-			if(!oElem || oElem.nodeType == 3 || oElem.nodeType == 8){ //sin eventos en nodos texto y comentarios
+			if(!oElem || oElem.nodeType === 3 || oElem.nodeType === 8){ //sin eventos en nodos texto y comentarios
 				JaSper.log('[JaSper::event.add] No se asignan eventos a nodos de texto o comentarios.', 0);
 				return undefined;
 			}
 
-			if(typeof oFuncion == 'string')
+			if(typeof oFuncion === 'string'){
 				oFuncion = window[oFuncion];
+			}
 
 			bCapt = bCapt || false;
 
 			var aEvento = sEvento.split(','); //soporte para mas de un evento, separados por comas; si solo se pasa uno aparece como aEvento[0]
-			for(var i = 0; i < aEvento.length; i++){
-				sEvento = aEvento[i];
+			for(var iCont = 0; iCont < aEvento.length; iCont++){
+				sEvento = aEvento[iCont];
 
 				var aEventsCustom = ['mouseenter', 'mouseleave', 'mousewheel']; //eventos remapeados (ver mas abajo)
 
 				//verifica si se puede usar el evento //TODO mejorar la verificacion de la existencia de eventos antes de aplicarlos
-				if(aEventsCustom.indexOf(sEvento) == -1 && oElem['on' + sEvento] === undefined){
+				if(aEventsCustom.indexOf(sEvento) === -1 && oElem['on' + sEvento] === undefined){
 					//JaSper.log('[JaSper::event.add] No se puede aplicar el evento [' + sEvento + ']', 1);
 					//continue;
 					JaSper.log('[JaSper::event.add] Evento [' + sEvento + '] no estandar DOM', 1);
@@ -363,40 +367,51 @@ http://www.gnu.org/copyleft/gpl.html*/
 					}
 
 					if(window.eventTrigger){
-						oElem.addEventListener(sEvento, function (){window.eventTrigger.call(oElem, sEvento);}, bCapt);
+						oElem.addEventListener(sEvento, function (){
+							window.eventTrigger.call(oElem, sEvento);
+						}, bCapt);
 					}
-				}else if(document.attachEvent){ //ie
+				}
+				else if(document.attachEvent){ //ie
 					var clave = oElem + sEvento + oFuncion;
 
 					oElem['e' + clave] = oFuncion;
-					oElem[clave] = function (){oElem['e' + clave](window.event);};
+					oElem[clave] = function (){
+						oElem['e' + clave](window.event);
+					};
 					oElem.attachEvent('on' + sEvento, oElem[clave]);
 
 					if(window.eventTrigger){
-						var clave = oElem + sEvento + window.eventTrigger;
+						clave = oElem + sEvento + window.eventTrigger;
 
-						oElem['e' + clave] = function (){window.eventTrigger.call(oElem, sEvento);};
-						oElem[clave] = function (){oElem['e' + clave](window.event);};
+						oElem['e' + clave] = function (){
+							window.eventTrigger.call(oElem, sEvento);
+						};
+						oElem[clave] = function (){
+							oElem['e' + clave](window.event);
+						};
 						oElem.attachEvent('on' + sEvento, oElem[clave]);
 					}
-				}else{ //DOM level 0 //idea original de Simon Willison
-					var old_evt = oElem['on' + sEvento];
-					if(typeof oElem['on' + sEvento] != 'function'){
+				}
+				else{ //DOM level 0 //idea original de Simon Willison
+					var oEvtOld = oElem['on' + sEvento];
+					if(typeof oElem['on' + sEvento] !== 'function'){
 						oElem['on' + sEvento] = oFuncion;
-					}else{
+					}
+					else{
 						oElem['on' + sEvento] = function (){
-							if(old_evt){
-								old_evt();
+							if(oEvtOld){
+								oEvtOld();
 							}
 							oFuncion();
 						};
 					}
 
 					if(window.eventTrigger){
-						old_evt = oElem['on' + sEvento];
+						oEvtOld = oElem['on' + sEvento];
 						this['on' + sEvento] = function (){
-							if(old_evt){
-								old_evt();
+							if(oEvtOld){
+								oEvtOld();
 							}
 							window.eventTrigger.call(oElem, sEvento);
 						};
@@ -436,7 +451,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 			this.customEvents = this.customEvents || [];
 			oDetalles = oDetalles || {};
 
-			if(typeof this.customEvents[sEvento] == 'undefined'){
+			if(typeof this.customEvents[sEvento] === 'undefined'){
 				this.customEvents[sEvento] = new CustomEvent(sEvento, {
 					bubbles: true,
 					cancelable: true,
@@ -492,7 +507,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 				bCancelled = oElem.fireEvent('on' + sEvento, oEvento); //IE6 - IE10
 			}
 
-			return bCancelled
+			return bCancelled;
 		},
 
 		/**
@@ -503,136 +518,142 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 *
 		 * @todo completar mapa de correspondencia de teclas
 		 * @since 2011-09-08
+		 * @param {object} oEv Evento de tecla
 		 * @return {number} Codigo de la tecla (o combinacion) pulsada
 		 */
-		keyCode: function (ev){
-			ev = ev || window.event;
-			var code = ev.keyCode || ev.which, etype = ev.type.toLowerCase().replace('on', ''); //, char = String.fromCharCode(code);
+		keyCode: function (oEv){
+			oEv = oEv || window.event;
+			var iCode = oEv.keyCode || oEv.which;
+			var sEtype = oEv.type.toLowerCase().replace('on', ''); //, char = String.fromCharCode(iCode);
 
-			if(etype == 'keypress'){
-				return(code);
-			}else if(etype == 'keydown' || etype == 'keyup'){
+			if(sEtype === 'keypress'){
+				return iCode;
+			}
+			else if(sEtype === 'keydown' || sEtype === 'keyup'){
 				var keycodes = { //keycode:[ascii_normal, ascii_shiftKey, ascii_controlkey, ascii_altKey]
-					8:[8], //Backspace
-					9:[9], //Tab
-					13:[13], //Enter
-					/*16:[], //Shift
-					17:[], //Ctrl
-					18:[], //Alt
-					19:[], //Pause
-					20:[], //Caps Lock
-					27:[], //Escape
-					33:[], //Page Up
-					34:[], //Page Down
-					35:[], //End
-					36:[], //Home
-					37:[], //Arrow Left
-					38:[], //Arrow Up
-					39:[], //Arrow Right
-					40:[], //Arrow Down
-					45:[], //Insert*/
-					46:[127], //Delete
-					48:[48], //0
-					49:[49], //1
-					50:[50], //2
-					51:[51], //3
-					52:[52], //4
-					53:[53], //5
-					54:[54], //6
-					55:[55], //7
-					56:[56], //8
-					57:[57], //9
-					65:[97, 65], //A
-					66:[98, 66], //B
-					67:[99, 67], //C
-					68:[100, 68], //D
-					69:[101, 69], //E
-					70:[102, 70], //F
-					71:[103, 71], //G
-					72:[104, 72], //H
-					73:[105, 73], //I
-					74:[106, 74], //J
-					75:[107, 75], //K
-					76:[108, 76], //L
-					77:[109, 77], //M
-					78:[110, 78], //N
-					79:[111, 79], //O
-					80:[112, 80], //P
-					81:[113, 81], //Q
-					82:[114, 82], //R
-					83:[115, 83], //S
-					84:[116, 84], //T
-					85:[117, 85], //U
-					86:[118, 86], //V
-					87:[119, 87], //W
-					88:[120, 88], //X
-					89:[121, 89], //Y
-					90:[122, 90], //Z
-					/*91:[], //Left Windows
-					92:[], //Right Windows
-					93:[], //Context Menu*/
-					96:[48], //NumPad 0
-					97:[49], //NumPad 1
-					98:[50], //NumPad 2
-					99:[51], //NumPad 3
-					100:[52], //NumPad 4
-					101:[53], //NumPad 5
-					102:[54], //NumPad 6
-					103:[55], //NumPad 7
-					104:[56], //NumPad 8
-					105:[57], //NumPad 9
-					106:[42], //NumPad *
-					107:[43], //NumPad +
-					109:[45], //NumPad -
-					110:[46], //NumPad .
-					111:[47], //NumPad /
-					/*112:[], //F1
-					113:[], //F2
-					114:[], //F3
-					115:[], //F4
-					116:[], //F5
-					117:[], //F6
-					118:[], //F7
-					119:[], //F8
-					120:[], //F9
-					121:[], //F10
-					122:[], //F11
-					123:[], //F12
-					144:[], //Num Lock
-					145:[], //Scroll Lock*/
-					186:[59], //;
-					187:[61], //=
-					188:[44], //,
-					189:[45], //-
-					190:[46], //.
-					191:[47], ///
-					192:[96], //`
-					219:[91], //[
-					220:[92], //\
-					221:[93], //]
-					222:[39] //'
+					8: [8], //Backspace
+					9: [9], //Tab
+					13: [13], //Enter
+					/*16: [], //Shift
+					17: [], //Ctrl
+					18: [], //Alt
+					19: [], //Pause
+					20: [], //Caps Lock
+					27: [], //Escape
+					33: [], //Page Up
+					34: [], //Page Down
+					35: [], //End
+					36: [], //Home
+					37: [], //Arrow Left
+					38: [], //Arrow Up
+					39: [], //Arrow Right
+					40: [], //Arrow Down
+					45: [], //Insert*/
+					46: [127], //Delete
+					48: [48], //0
+					49: [49], //1
+					50: [50], //2
+					51: [51], //3
+					52: [52], //4
+					53: [53], //5
+					54: [54], //6
+					55: [55], //7
+					56: [56], //8
+					57: [57], //9
+					65: [97, 65], //A
+					66: [98, 66], //B
+					67: [99, 67], //C
+					68: [100, 68], //D
+					69: [101, 69], //E
+					70: [102, 70], //F
+					71: [103, 71], //G
+					72: [104, 72], //H
+					73: [105, 73], //I
+					74: [106, 74], //J
+					75: [107, 75], //K
+					76: [108, 76], //L
+					77: [109, 77], //M
+					78: [110, 78], //N
+					79: [111, 79], //O
+					80: [112, 80], //P
+					81: [113, 81], //Q
+					82: [114, 82], //R
+					83: [115, 83], //S
+					84: [116, 84], //T
+					85: [117, 85], //U
+					86: [118, 86], //V
+					87: [119, 87], //W
+					88: [120, 88], //X
+					89: [121, 89], //Y
+					90: [122, 90], //Z
+					/*91: [], //Left Windows
+					92: [], //Right Windows
+					93: [], //Context Menu*/
+					96: [48], //NumPad 0
+					97: [49], //NumPad 1
+					98: [50], //NumPad 2
+					99: [51], //NumPad 3
+					100: [52], //NumPad 4
+					101: [53], //NumPad 5
+					102: [54], //NumPad 6
+					103: [55], //NumPad 7
+					104: [56], //NumPad 8
+					105: [57], //NumPad 9
+					106: [42], //NumPad *
+					107: [43], //NumPad +
+					109: [45], //NumPad -
+					110: [46], //NumPad .
+					111: [47], //NumPad /
+					/*112: [], //F1
+					113: [], //F2
+					114: [], //F3
+					115: [], //F4
+					116: [], //F5
+					117: [], //F6
+					118: [], //F7
+					119: [], //F8
+					120: [], //F9
+					121: [], //F10
+					122: [], //F11
+					123: [], //F12
+					144: [], //Num Lock
+					145: [], //Scroll Lock*/
+					186: [59], //;
+					187: [61], //=
+					188: [44], //,
+					189: [45], //-
+					190: [46], //.
+					191: [47], ///
+					192: [96], //`
+					219: [91], //[
+					220: [92], //\
+					221: [93], //]
+					222: [39] //'
 				};
 
-				var shiftControlAlt = 0;
-				if(navigator.appName == "Netscape" && parseInt(navigator.appVersion, 10) == 4){ //netscape 4
-					var mString = (ev.modifiers + 32).toString(2).substring(3, 6);
-					shiftControlAlt += (mString.charAt(0) == '1') ? 1 : 0;
-					shiftControlAlt += (mString.charAt(1) == '1') ? 1 : 0;
-					shiftControlAlt += (mString.charAt(2) == '1') ? 1 : 0;
-				}else{ //resto
-					shiftControlAlt += ev.shiftKey ? 1 : 0;
-					shiftControlAlt += ev.altKey ? 1 : 0;
-					shiftControlAlt += ev.ctrlKey ? 1 : 0;
+				var iShiftControlAlt = 0;
+				if(navigator.appName === 'Netscape' && parseInt(navigator.appVersion, 10) === 4){ //netscape 4
+					var mString = (oEv.modifiers + 32).toString(2).substring(3, 6);
+					iShiftControlAlt += (mString.charAt(0) === '1') ? 1 : 0;
+					iShiftControlAlt += (mString.charAt(1) === '1') ? 1 : 0;
+					iShiftControlAlt += (mString.charAt(2) === '1') ? 1 : 0;
+				}
+				else{ //resto
+					iShiftControlAlt += oEv.shiftKey ? 1 : 0;
+					iShiftControlAlt += oEv.altKey ? 1 : 0;
+					iShiftControlAlt += oEv.ctrlKey ? 1 : 0;
 				}
 
-				if(typeof keycodes[code] != 'undefined'){
-					if(typeof keycodes[code][shiftControlAlt] != 'undefined'){
-						return(keycodes[code][shiftControlAlt]); //devuelve exacto
-					}else if(typeof keycodes[code][0] != 'undefined'){
-						return(keycodes[code][0]); //devuelve correspondencia sin modificadores
+				if(typeof keycodes[iCode] !== 'undefined'){
+					if(typeof keycodes[iCode][iShiftControlAlt] !== 'undefined'){
+						return keycodes[iCode][iShiftControlAlt]; //devuelve exacto
+					}
+					else if(typeof keycodes[iCode][0] !== 'undefined'){
+						return keycodes[iCode][0]; //devuelve correspondencia sin modificadores
 					}
 				}
-				return code; //no hay correspondencia, devuelve keycode
+
+				return iCode; //no hay correspondencia, devuelve keycode
 			}
 
 			return -1; //evento incoherente
@@ -674,7 +695,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * asignar en cada funcion afectada (las que se lancen en los eventos), donde interese
 		 *
 		 * @todo revisar
-		 * @param {event} ev Evento
+		 * @param {event} oEv Evento
 		 * @return {event} Evento
 		 */
 		name: function (oEv){
@@ -688,7 +709,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		/**
 		 * Anula la accion por defecto de un elemento, como click en <a>
 		 *
-		 * @param {event} ev Objeto evento
+		 * @param {event} oEvt Objeto evento
 		 * @return {Boolean}
 		 */
 		preventDefault: function (oEvt){
@@ -697,7 +718,8 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 			if(oEvt.preventDefault){ //modelo DOM
 				//oEvt.stopPropagation();
 				oEvt.preventDefault();
-			}else if(window.event){ //modelo MSIE
+			}
+			else if(window.event){ //modelo MSIE
 				//oEvt.keyCode = 0;  //<<< esto ayuda a que funcione bien en iExplorer
 				//oEvt.cancelBubble = true;
 				oEvt.returnValue = false;
@@ -720,7 +742,8 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		remove: function (oElem, sEvento, oFuncion, bCapt){
 			function removeBatch(oElem, sEvento, oFuncion){
 				var oObjExtend = JaSper.nodo.extend(oElem);
-				var aViejosEventos = oObjExtend.event, bRemove;
+				var aViejosEventos = oObjExtend.event;
+				var bRemove;
 				oObjExtend.event = null;
 
 				for(var sViejoEvento in aViejosEventos){
@@ -729,15 +752,16 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 						bRemove = true;
 					}
 
-					for(var i = 0; i < aViejosEventos[sViejoEvento].length; i++){
-						if(bRemove || (!oFuncion || oFuncion == aViejosEventos[sViejoEvento][i])){
+					for(var iCont = 0; iCont < aViejosEventos[sViejoEvento].length; iCont++){
+						if(bRemove || (!oFuncion || oFuncion == aViejosEventos[sViejoEvento][iCont])){
 							bRemove = true;
 						}
 
 						if(bRemove){
-							JaSper.event.remove(oElem, sViejoEvento, aViejosEventos[sViejoEvento][i]);
-						}else{
-							oObjExtend.event[sViejoEvento].push(aViejosEventos[sViejoEvento][i]);
+							JaSper.event.remove(oElem, sViejoEvento, aViejosEventos[sViejoEvento][iCont]);
+						}
+						else{
+							oObjExtend.event[sViejoEvento].push(aViejosEventos[sViejoEvento][iCont]);
 						}
 					}
 				}
@@ -749,7 +773,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 				removeBatch(oElem, sEvento, oFuncion);
 			}
 
-			if(typeof oFuncion == 'string'){
+			if(typeof oFuncion === 'string'){
 				oFuncion = window[oFuncion]; //TODO try para distinguir nombre_de_funcion de nombre_de_funcion(params) (evaluar esta ultima)
 			}
 
@@ -774,24 +798,31 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 				}
 
 				if(window.eventTrigger){
-					oElem.removeEventListener(sEvento, function (){window.eventTrigger.call(oElem, sEvento);}, bCapt);
+					oElem.removeEventListener(sEvento, function (){
+						window.eventTrigger.call(oElem, sEvento);
+					}, bCapt);
 				}
-			}else if(document.attachEvent){ //ie
+
+			}
+			else if(document.attachEvent){ //ie
 				oElem.detachEvent('on' + sEvento, oElem[sEvento + oFuncion]);
 				oElem[sEvento + oFuncion] = null;
-				oElem["e" + sEvento + oFuncion] = null;
+				oElem['e' + sEvento + oFuncion] = null;
 
 				if(window.eventTrigger){
-					oFuncion = function (){window.eventTrigger.call(oElem, sEvento);};
+					oFuncion = function (){
+						window.eventTrigger.call(oElem, sEvento);
+					};
 					oElem.detachEvent('on' + sEvento, oElem[sEvento + oFuncion]);
 					oElem[sEvento + oFuncion] = null;
-					oElem["e" + sEvento + oFuncion] = null;
+					oElem['e' + sEvento + oFuncion] = null;
 				}
-			}else{ //DOM level 0
+			}
+			else{ //DOM level 0
 				oElem['on' + sEvento] = null;
 			}
 
-			return;
+			return null;
 		},
 
 		/**
@@ -807,7 +838,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 			/*if(oEvt.type == 'mouseover') targ = oEvt.relatedTarget || oEvt.fromElement; //origen para mouseover
 			else*/ oTarg = oEvt.target || oEvt.srcElement; //w3c o ie
 
-			if(oTarg.nodeType == 3 || oTarg.nodeType == 4){ //defeat Safari bug
+			if(oTarg.nodeType === 3 || oTarg.nodeType === 4){ //defeat Safari bug
 				oTarg = oTarg.parentNode;
 			}
 
@@ -826,7 +857,8 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 
 			if(oEvt.stopPropagation){ //modelo DOM
 				oEvt.stopPropagation();
-			}else{ //modelo MSIE
+			}
+			else{ //modelo MSIE
 				oEvt.cancelBubble = true;
 			}
 
@@ -843,9 +875,10 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 			oEvt = oEvt || window.event;
 			var oDest = false;
 
-			if(oEvt.type == 'mouseout'){ //destino en mouseout
+			if(oEvt.type === 'mouseout'){ //destino en mouseout
 				oDest = oEvt.relatedTarget || oEvt.toElement;
-			}else{ //w3c o ie
+			}
+			else{ //w3c o ie
 				oDest = oEvt.target || oEvt.srcElement;
 			}
 
@@ -880,18 +913,21 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * Amplia las traducciones
 		 *
 		 * @since 2011-06-15
-		 * @param {Object} obj Objeto con nuevas traducciones, ej. {'en':{'key':'key traduction'}, 'es':{'clave':'clave traduccion'}},
+		 * @param {Object} oObj Objeto con nuevas traducciones, ej. {'en':{'key':'key traduction'}, 'es':{'clave':'clave traduccion'}},
 		 * @return {void}
 		 */
 		extendTrads: function (oObj){
 			for(var aLang in oObj){
-				if(!JaSper.langs[aLang]) JaSper.langs[aLang] = {};
+				if(!JaSper.langs[aLang]){
+					JaSper.langs[aLang] = {};
+				}
 
 				for(var sClave in oObj[aLang]){
 					JaSper.langs[aLang][sClave] = oObj[aLang][sClave];
 				}
 			}
-			return;
+
+			return null;
 		},
 
 		/**
@@ -910,7 +946,8 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 
 			//two loops one for array like objects the other for hash objects
 			//la condicion evita que se usen objetos inexistentes (revisar cuando se añade evento para una id que no existe, y luego se dispara el mismo evento para una id existente, esta dispara ambos ya que el primero se asigna a window)
-			var iCont = 0, iLen = aList.length;
+			var iCont = 0;
+			var iLen = aList.length;
 
 			if(this.isArrayLike(aList)){
 				for(iCont = 0, iLen = aList.length; iCont < iLen; iCont++){
@@ -918,7 +955,8 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 						oCallback.apply(aList[iCont], aArgs);
 					}
 				}
-			}else{
+			}
+			else{
 				for(iCont in aList){
 					if(aList[iCont]){
 						oCallback.apply(aList[iCont], aArgs);
@@ -936,21 +974,21 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * @todo revisar funcionamiento, random no garantiza unico
 		 * @since 2011-06-09
 		 * @param {integer} iLen Longitud minima del identificador
-		 * @return string
+		 * @return {string}
 		 */
 		genId: function (iLen){
 			var sGidFijo = 'JaSper_';
 			var sGid = '';
 			iLen = !iLen ? 5 : parseInt(iLen, 10);
 
-			var sChars = "0123456789abcdefghijklmnopqurstuvwxyzABCDEFGHIJKLMNOPQURSTUVWXYZ";
-			var fRnum;
+			var sChars = '0123456789abcdefghijklmnopqurstuvwxyzABCDEFGHIJKLMNOPQURSTUVWXYZ';
+			var oRnum;
 
 			while(sGid.length < iLen || document.getElementById(sGid)){
 				/*fRnum = Math.abs(Math.sin(JaSper.funcs.getTimer())) * (sChars.length - 1); //sin es ciclica, no garantiza unicos
 				sGid += chars.substr(rnum, 1 );*/
-				fRnum = Math.floor(Math.random() * (sChars.length - 1));
-				sGid += sChars.substr(fRnum, 1 );
+				oRnum = Math.floor(Math.random() * (sChars.length - 1));
+				sGid += sChars.substr(oRnum, 1);
 			}
 
 			return sGidFijo + sGid;
@@ -973,25 +1011,28 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 
 			//usa funcion nativa si existe, FF3 Safari Opera
 			if(document.getElementsByClassName){
-				if(sTag == '*'){
+				if(sTag === '*'){
 					aRet = oNode.getElementsByClassName(sClsName);
-				}else{
+				}
+				else{
 					sTag = sTag.toUpperCase();
 					var aCls = oNode.getElementsByClassName(sClsName);
 
 					for(iCont = 0, iLen = aCls.length; iCont < iLen; iCont++){
-						if(aCls[iCont].nodeName == sTag){
+						if(aCls[iCont].nodeName === sTag){
 							aRet.push(aCls[iCont]);
 						}
 					}
 				}
-			}else{ //para navegadores viejos e IE 8, a mano //usa document.all si es posible
-				var oReg = new RegExp("(^|\\s)" + sClsName.replace(/\-/,"\\-") + "(\\s|$)");
-				var aEls = (sTag == '*' && oNode.all) ? oNode.all : oNode.getElementsByTagName(sTag);
+			}
+			else{ //para navegadores viejos e IE 8, a mano //usa document.all si es posible
+				var oReg = new RegExp('(^|\\s)' + sClsName.replace(/-/, '\\-') + '(\\s|$)');
+				var aEls = (sTag === '*' && oNode.all) ? oNode.all : oNode.getElementsByTagName(sTag);
 
-				for(iCont = 0 , iLen = aEls.length; iCont < iLen; iCont++){
-					if(oReg.test(aEls[iCont].className))
+				for(iCont = 0, iLen = aEls.length; iCont < iLen; iCont++){
+					if(oReg.test(aEls[iCont].className)){
 						aRet.push(aEls[iCont]);
+					}
 				}
 			}
 
@@ -1023,7 +1064,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * @param {Object} oContext Contexto donde usar el selector
 		 * @return {Object}
 		 */
-		init: function (sSelector, oContext){
+		Init: function (sSelector, oContext){
 			//si no se pasa ningun selector se usa document
 			sSelector = sSelector || document;
 
@@ -1038,11 +1079,11 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 
 			//lenguaje para las traducciones, puede asignarse desde PHP para ser consistente con lo recibido desde el servidor
 			//si no se proporciona detecta el lenguaje del navegador (no los configurados por el usuario); si no se detecta fuerza castellano (es)
-			this.lang = JaSper.lang = JaSper.lang || (navigator.language ? navigator.language.substr(0,2) : (navigator.userLanguage ? navigator.userLanguage.substr(0,2) : 'es'));
+			this.lang = JaSper.lang = JaSper.lang || (navigator.language ? navigator.language.substr(0, 2) : (navigator.userLanguage ? navigator.userLanguage.substr(0,2) : 'es'));
 
 			//si se ha pasado una cadena (sin distincion inicial), puede ser un ID, clase CSS, tag HTML o una cadena HTML
 			if(typeof sSelector === 'string'){
-				if(sSelector.substring(0,2) =='//'){ //selector XPath
+				if(sSelector.substring(0, 2) === '//'){ //selector XPath
 					//para que se reconozca como tal debe comenzar con //
 					var oIterator = this.context.evaluate(sSelector, this.context, null, XPathResult.ANY_TYPE, null);
 					try{
@@ -1054,8 +1095,9 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 					catch(oEx){
 						JaSper.log('[JaSper::constructor] [XPath] Arbol del documento modificado durante la iteracion.', 1);
 					}
-				}else{ //selector con reglas CSS
-					var oRegSel = /^<([^> ]+)[^>]*>(?:.|\n)+?<\/\1>$|^(\#([-\w]+)|\.(\w[-\w]+)|@(\w[-\w]+))$/i; //comprueba si es cadena HTML, ID o class
+				}
+				else{ //selector con reglas CSS
+					var oRegSel = /^<([^> ]+)[^>]*>(?:.|\n)+?<\/\1>$|^(#([-\w]+)|\.(\w[-\w]+)|@(\w[-\w]+))$/i; //comprueba si es cadena HTML, ID o class
 					var oRegTag = /<([a-z1-9]+?)>,?/ig; //busca tags <SPAN> <P> <H1>
 
 					//busca un solo tag HTML, ej. <P> o <SPAN>
@@ -1065,62 +1107,73 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 						aMatch = sSelector.match(oRegTag);
 						for(var iCont = 0; iCont < aMatch.length; iCont++){
 							//devuelve todos los nodos coincidentes con el tag
-							if(typeof this.context.getElementsByTagName == 'function'){
+							if(typeof this.context.getElementsByTagName === 'function'){
 								var aTemp = this.context.getElementsByTagName(aMatch[iCont].replace(/[<>,]/g, ''));
 								try{ //slice necesita javascript 1.2
 									this.nodes = this.nodes.concat(Array.prototype.slice.call(aTemp)); //convierte en array el objeto temp y lo añade a this.nodes
 								}
-								catch(e){
+								catch(oErr){
 									for(var iCont2 = 0; iCont2 < aTemp.length; iCont2++){
 										this.nodes[this.nodes.length] = aTemp[iCont2];
 									}
 								}
-							}else{ //no se ha pasado un contexto valido
-								JaSper.log('[JaSper::constructor] "' + context.toString() + '" no es un contexto v\u00E1lido.', 1);
+							}
+							else{ //no se ha pasado un contexto valido
+								JaSper.log('[JaSper::constructor] "' + this.context.toString() + '" no es un contexto v\u00E1lido.', 1);
 							}
 						}
-					}else{
+					}
+					else{
 						//busca ID, class o cadena HTML
-						// aMatch[1] = cadena HTML - tag inicial y final
-						// aMatch[3] = ID
-						// aMatch[4] = class
-						// aMatch[5] = attribute
+						//- aMatch[1] = cadena HTML - tag inicial y final
+						//- aMatch[3] = ID
+						//- aMatch[4] = class
+						//- aMatch[5] = attribute
 						aMatch = oRegSel.exec(sSelector) || [];
 
 						if(aMatch[3]){ //id, con o sin # ej. #myid o myid
 							this.nodes[0] = document.getElementById(aMatch[3]);
-						}else if(aMatch[4]){ //nombre de clase ej. .myClass
+						}
+						else if(aMatch[4]){ //nombre de clase ej. .myClass
 							this.nodes = JaSper.funcs.getElementsByClassName(aMatch[4], this.context, '*');
-						}else if(aMatch[5]){ //atributo name ej. @myName
+						}
+						else if(aMatch[5]){ //atributo name ej. @myName
 							this.nodes = document.getElementsByName(aMatch[5]);
-						}else if(aMatch[1]){ //cadena HTML valida, ej. <P><STRONG>hello</STRONG></P>
+						}
+						else if(aMatch[1]){ //cadena HTML valida, ej. <P><STRONG>hello</STRONG></P>
 							//permite crear nodos desde el html que se le pase
 							var oDiv = JaSper.nodo.crear('div', {innerHTML: sSelector});
 							this.nodes = oDiv.childNodes;
 							document.removeChild(oDiv);
-						}else{
-							// if querySelectorAll is available for modern browsers we can use that e.g
-							// FF 3.2+, Safari 3.2+, Opera 10, Chrome 3, IE 8 (standards mode)
+						}
+						else{
+							//if querySelectorAll is available for modern browsers we can use that e.g
+							//FF 3.2+, Safari 3.2+, Opera 10, Chrome 3, IE 8 (standards mode)
 							if(document.querySelectorAll){
 								this.nodes = JaSper.funcs.selector(sSelector, this.context);
-							}else{
+							}
+							else{
+								//ninguna forma de localizar los nodos pedidos
+								this.nodes = [];
+
 								//pasarselo a Sizzle (mas eficiente con navegadores antiguos)
 								if(JaSper.find){
 									this.nodes = JaSper.find(sSelector, this.context);
-								}else{ //ninguna forma de localizar los nodos pedidos
-									this.nodes = [];
 								}
 							}
 						}
 					}
 
 				}
-			}else if(sSelector.nodeType){
-				// already got a node add
+			}
+			else if(sSelector.nodeType){
+				//already got a node add
 				this.context = this.nodes[0] = sSelector;
-			}else if(JaSper.funcs.isArray(sSelector)){
+			}
+			else if(JaSper.funcs.isArray(sSelector)){
 				this.nodes = sSelector;
-			}else{
+			}
+			else{
 				this.nodes = JaSper.funcs.makeArray(sSelector);
 			}
 
@@ -1138,13 +1191,13 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		isDOMObject: function (oObj){
 			var bWindow = (oObj === window); //el objeto window no se ajusta a ninguno de los siguientes, pero puede recibir eventos (por ejemplo) como cualquier otro elemento HTML
 
-			var bNode = (typeof Node === 'object' ?
-					oObj instanceof Node :
-						oObj && typeof oObj === 'object' && typeof oObj.nodeType === 'number' && typeof oObj.nodeName === 'string');
+			var bNode = (typeof Node === 'object'
+				? oObj instanceof Node
+				: oObj && typeof oObj === 'object' && typeof oObj.nodeType === 'number' && typeof oObj.nodeName === 'string');
 
-			var bElement = (typeof HTMLElement === 'object' ?
-					oObj instanceof HTMLElement : //DOM2
-						oObj && typeof oObj === 'object' && oObj !== null && oObj.nodeType === 1 && typeof oObj.nodeName === 'string');
+			var bElement = (typeof HTMLElement === 'object'
+				? oObj instanceof HTMLElement //DOM2
+				: oObj && typeof oObj === 'object' && oObj !== null && oObj.nodeType === 1 && typeof oObj.nodeName === 'string');
 
 			return bWindow || bNode || bElement;
 		},
@@ -1156,17 +1209,17 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * @return {Boolean}
 		 */
 		isArray: function (aElems){
-			return Object.prototype.toString.call(aElems) == '[object Array]';
+			return Object.prototype.toString.call(aElems) === '[object Array]';
 		},
 
 		/**
 		 * Objetos con propiedades tipo array (array/nodelist)
 		 *
-		 * @param {Object}
+		 * @param {Object} oObj Objeto a comprobar
 		 * @return {Boolean}
 		 */
 		isArrayLike: function (oObj){
-			// window, strings (y functions) tambien tienen 'length'
+			//window, strings (y functions) tambien tienen 'length'
 			return (oObj && oObj.length && !this.isFunction(oObj) && !this.isString(oObj) && oObj !== window);
 		},
 
@@ -1177,13 +1230,13 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * @return {Boolean}
 		 */
 		isFunction: function (oObj){
-			return ((oObj) instanceof Function);
+			return (oObj instanceof Function);
 		},
 
 		/**
 		 * Devuelve si es un numero; flotante, entero, decimal, ...
 		 *
-		 * @param {integer}
+		 * @param {integer} iNum Numero a comprobar
 		 * @return {Boolean}
 		 */
 		isNumber: function (iNum){
@@ -1197,7 +1250,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * @return {Boolean}
 		 */
 		isString: function (oObj){
-			return (typeof oObj == 'string');
+			return (typeof oObj === 'string');
 		},
 
 		/**
@@ -1208,14 +1261,15 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 */
 		makeArray: function (aIni){
 			var aRet = [];
-			if(aIni != null){
-				// window, strings (y functions) tambien tienen 'length'
+			if(aIni !== null){
+				//window, strings (y functions) tambien tienen 'length'
 				if(!this.isArrayLike(aIni)){
 					aRet[0] = aIni;
-				}else{
-					var i = aIni.length;
-					while(i){
-						aRet[--i] = aIni[i];
+				}
+				else{
+					var iCont = aIni.length;
+					while(iCont){
+						aRet[--iCont] = aIni[iCont];
 					}
 				}
 			}
@@ -1245,7 +1299,7 @@ JaSper.expr[":"] = JaSper.expr.filters;
 		 * @param {Object} oContext Contexto en el que seleccionar
 		 * @return {array} Nodos
 		 */
-		selector: function (sQuery , oContext){
+		selector: function (sQuery, oContext){
 			oContext = oContext || document;
 			var aRet = [];
 
@@ -1256,7 +1310,8 @@ JaSper.expr[":"] = JaSper.expr.filters;
 				}/*else{
 					return [];
 				}*/
-			}catch(oEx){ //fuerza devolucion de array...
+			}
+			catch(oEx){ //fuerza devolucion de array...
 				//return [];
 			}
 
@@ -1275,31 +1330,33 @@ JaSper.expr[":"] = JaSper.expr.filters;
 			if(!arguments || !arguments.length){
 				return;
 			}
-			if(arguments.length == 1){
+			if(arguments.length === 1){
 				return arguments[0]; //devuelve la cadena (primer argumento) si no se pasa nada mas
 			}
 			var sCadena = arguments[0];
 
 
-			var regExp = /(%[s%])/; //busca todos los %s o %%
-			var sust = [], cont = 0;
+			var oRegExp = /(%[s%])/; //busca todos los %s o %%
+			var aSust = [];
+			var cont = 0;
 
-			while(sust = regExp.exec(sCadena)){
-				switch(sust[1]){
-				case '%%': //%
-					sCadena = sCadena.substr(0, sust.index) + '%' + sCadena.substr(sust.index + 2);
-					break;
-				case '%s': //string
-					sCadena = sCadena.substr(0, sust.index) + arguments[++cont].toString() + sCadena.substr(sust.index + 2);
-					break;
-				case '%u': //unsigned
-					sCadena = sCadena.substr(0, sust.index) + parseInt(arguments[++cont], 10)  + sCadena.substr(sust.index + 2);
-					break;
-				default:
-					sCadena = sCadena.substr(0, sust.index) + '-tipo desconocido-' + sCadena.substr(sust.index + 2);
-				cont++;
+			while(aSust = oRegExp.exec(sCadena)){
+				switch(aSust[1]){
+					case '%%': //%
+						sCadena = sCadena.substr(0, aSust.index) + '%' + sCadena.substr(aSust.index + 2);
+						break;
+					case '%s': //string
+						sCadena = sCadena.substr(0, aSust.index) + arguments[++cont].toString() + sCadena.substr(aSust.index + 2);
+						break;
+					case '%u': //unsigned
+						sCadena = sCadena.substr(0, aSust.index) + parseInt(arguments[++cont], 10) + sCadena.substr(aSust.index + 2);
+						break;
+					default:
+						sCadena = sCadena.substr(0, aSust.index) + '-tipo desconocido-' + sCadena.substr(aSust.index + 2);
+						cont++;
 				}
 			}
+
 			return sCadena;
 		},
 
@@ -1331,16 +1388,18 @@ $('<body>').addEvent('mousewheel', function (ev){
 			var iScrollHeight = (oNodoDocument && oNodoDocument.scrollHeight) || oNodo.scrollHeight;
 			var iScrollWidth = (oNodoDocument && oNodoDocument.scrollWidth) || oNodo.scrollWidth;
 
-			(iScrollTop == 0) && (aRet[aRet.length] = 'top');
-			(iScrollLeft == 0) && (aRet[aRet.length] = 'left');
+			(iScrollTop === 0) && (aRet[aRet.length] = 'top');
+			(iScrollLeft === 0) && (aRet[aRet.length] = 'left');
 			((iScrollLeft + window.innerWidth) >= iScrollWidth) && (aRet[aRet.length] = 'right');
 			((iScrollTop + window.innerHeight) >= iScrollHeight) && (aRet[aRet.length] = 'bottom');
 
 			if(!aRet.length){
 				aRet[aRet.length] = 'center';
-			}else if(aRet.indexOf('left') == -1 && aRet.indexOf('right') == -1){
+			}
+			else if(aRet.indexOf('left') === -1 && aRet.indexOf('right') === -1){
 				aRet[aRet.length] = 'centerX';
-			}else if(aRet.indexOf('top') == -1 && aRet.indexOf('bottom') == -1){
+			}
+			else if(aRet.indexOf('top') === -1 && aRet.indexOf('bottom') === -1){
 				aRet[aRet.length] = 'centerY';
 			}
 
@@ -1377,12 +1436,12 @@ $('<body>').addEvent('mousewheel', function (ev){
 
 			//si se ha pasado una ruta no absoluta se le suma la misma ruta en que se encuentre "JaSper.js"
 			if(sRuta.indexOf('http://') === -1){
-				var temp_js = new RegExp("(^|(.*?\\/))(JaSper" + sMinificado + "\.js)(\\?|$)");
+				var oTempJs = new RegExp('(^|(.*?\\/))(JaSper' + sMinificado + '\.js)(\\?|$)');
 				var scripts = document.getElementsByTagName('script');
-				for(var i = 0, lon = scripts.length; i < lon ; i++){
-					var src = scripts[i].getAttribute('src');
+				for(var iCont = 0, lon = scripts.length; iCont < lon; iCont++){
+					var src = scripts[iCont].getAttribute('src');
 					if(src){
-						var srcMatch = src.match(temp_js);
+						var srcMatch = src.match(oTempJs);
 						if(srcMatch){
 							sRuta = srcMatch[1] + sRuta; //pone la misma ruta que "JaSper.js"
 							break;
@@ -1402,15 +1461,15 @@ $('<body>').addEvent('mousewheel', function (ev){
 				var oScriptQueue = JaSper.load.queue;
 				JaSper.load.queue = [];
 
-				for(var mt in oScriptQueue){
+				for(var oMt in oScriptQueue){
 					try{
-						(function (cb, ctx){
-							return(cb.call(ctx));
-						})(oScriptQueue[mt]['fn'], oScriptQueue[mt]['ctx']);
+						(function (oCb, ctx){
+							return oCb.call(ctx);
+						})(oScriptQueue[oMt]['fn'], oScriptQueue[oMt]['ctx']);
 					}
-					catch(ex){
-						JaSper.log('-JaSper::load.script- No se ha podido ejecutar el método: [' + ex + ']', 1);
-						JaSper.load.queue.push(mt);
+					catch(oEx){
+						JaSper.log('-JaSper::load.script- No se ha podido ejecutar el método: [' + oEx + ']', 1);
+						JaSper.load.queue.push(oMt);
 						return;
 					}
 				}
@@ -1437,7 +1496,7 @@ $('<body>').addEvent('mousewheel', function (ev){
 				oHead.insertBefore(oScript, oHead.firstChild);
 			}
 			catch(oEx){ //insertar via DOM en Safari 2.0 falla, asi que aproximacion por fuerza bruta
-				document.write('<script id="' + oScriptProps.id + '" type="' + oScriptProps.type + '" src="' + oScriptProps.src + '"><\/script>');
+				document.write('<script id="' + oScriptProps.id + '" type="' + oScriptProps.type + '" src="' + oScriptProps.src + '"></script>');
 				loadQueue();
 			}
 
@@ -1450,7 +1509,7 @@ $('<body>').addEvent('mousewheel', function (ev){
 	};
 
 	//traducciones en todos los lenguajes que sean necesarios, definidos por codigo iso 639
-	JaSper.langs = {'en':{}, 'es':{}};
+	JaSper.langs = {'en': {}, 'es': {}};
 
 	/**
 	 * Muestra mensajes de debug, si "JaSper.debug" es true
@@ -1463,41 +1522,44 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 	 * @todo mostrar el mensaje con la linea correcta en que se ha producido (no la linea de este metodo)
 	 * @since 2011-03-24
 	 * @param {string} mens Mensaje de debug a mostrar
-	 * @param {number} lev Nivel de error a mostrar; 0 -> info (por defecto), 1 -> warn, 2 -> error
+	 * @param {number} iErrLev Nivel de error a mostrar; 0 -> info (por defecto), 1 -> warn, 2 -> error
 	 * @return {void}
 	 */
-	JaSper.log = function (mens, lev){
+	JaSper.log = function (mens, iErrLev){
 		if(!JaSper.debug){
 			return false;
 		}
 
 		//intenta recuperar donde se origino el mensaje de aviso, basta con buscar desde donde se llama a este metodo
-		var sStack = '', aStack = [];
+		var sStack = '';
+		var aStack = [];
+
 		try{
 			sStack = new Error().stack; //fuerza error para generar la traza
 		}
-		catch(ex){
-			//alert("name:" + ex.name + "\nmessage:" + ex.message);
-			if(ex.stack){
-				sStack = ex.stack;
-			}else{
-				sStack = ex.message; //opera
+		catch(oEx){
+			//alert("name:" + oEx.name + "\nmessage:" + oEx.message);
+			if(oEx.stack){
+				sStack = oEx.stack;
+			}
+			else{
+				sStack = oEx.message; //opera
 
-				if(ex.stacktrace){ //resto
-					sStack = ex.stacktrace; //TODO pendiente de verificacion
+				if(oEx.stacktrace){ //resto
+					sStack = oEx.stacktrace; //TODO pendiente de verificacion
 				}
 			}
 		}
 		finally{
 			if(sStack){
 				var lineas = sStack.split('\n');
-				for(var i = 0, len = lineas.length; i < len; i++){
-					if(lineas[i].match(/^\s*[A-Za-z0-9\-_$]+/)){
-						aStack.push(lineas[i]);
+				for(var iCont = 0, len = lineas.length; iCont < len; iCont++){
+					if(lineas[iCont].match(/^\s*[A-Za-z0-9\-_$]+/)){
+						aStack.push(lineas[iCont]);
 
 						//en opera las lineas impares tienen el mensaje de error, las impares donde se ha producido
-						/*var entry = lineas[i];
-						if(lineas[i+1]) entry += ' at ' + lineas[++i];
+						/*var entry = lineas[iCont];
+						if(lineas[iCont + 1]) entry += ' at ' + lineas[++iCont];
 						aStack.push(entry);*/
 					}
 				}
@@ -1507,9 +1569,9 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 
 		mens = mens || 'JaSper debug';
 		mens += '\n[' + (aStack[1] || aStack[0]) + ']'; //hacer esta informacion opcional o solo mostrar fichero y linea de la llamada?
-		lev = lev || 0;
+		iErrLev = iErrLev || 0;
 
-		if(typeof console != 'object'){
+		if(typeof console !== 'object'){
 			//contenedor de los mensajes de debug
 			var e = document.getElementById('JaSperDebug'); //TODO en firefox adquiere los metodos de JaSper, en ie no
 			if(!e){
@@ -1518,28 +1580,31 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			}
 
 			//cada uno de los mensajes de debug
-			var m = JaSper.nodo.crear('li', {className: 'JaSperDebug' + (lev == 2 ? 'error' : (lev == 1 ? 'warn' : 'info'))});
+			var m = JaSper.nodo.crear('li', {className: 'JaSperDebug' + (iErrLev === 2 ? 'error' : (iErrLev === 1 ? 'warn' : 'info'))});
 			m.appendChild(document.createTextNode(mens));
 			JaSper('<body>').append(m, e);
-		}else{
-			if(typeof mens != 'string'){
-				console.dir(mens); //show objects
+		}
+		else{
+			var oConsole = console;
+
+			if(typeof mens !== 'string'){
+				oConsole.dir(mens); //show objects
 			}
 
-			switch(lev){
-			case 2: //error
-				console.error(mens);
-				break;
-			case 1: //warn
-				console.warn(mens);
-				break;
-			case 0: //info
-			default:
-				console.info(mens);
+			switch(iErrLev){
+				case 2: //error
+					oConsole.error(mens);
+					break;
+				case 1: //warn
+					oConsole.warn(mens);
+					break;
+				case 0: //info
+				default:
+					oConsole.info(mens);
 			}
 		}
 
-		return;
+		return null;
 	};
 
 	//funciones estaticas de nodos
@@ -1560,7 +1625,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			atributo = (atributo || '').toLowerCase();
 
 			if(oObj && atributo){
-				var sData = atributo.indexOf('data-') == 0 ? atributo.substr(5).toLowerCase() : null; //atributos tipo custom data (HTML5), ej.: data-info="ejemplo de datos"; deben usarse con DOMobject.dataset.info
+				var sData = atributo.indexOf('data-') === 0 ? atributo.substr(5).toLowerCase() : null; //atributos tipo custom data (HTML5), ej.: data-info="ejemplo de datos"; deben usarse con DOMobject.dataset.info
 
 				if(sData){
 					ret = oObj.dataset[sData] || oObj.getAttribute(atributo); //IE no se entiende bien con dataset[]
@@ -1571,13 +1636,16 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 					if(valor){
 						if(sData){
 							oObj.dataset[sData] = valor;
-						}else{
+						}
+						else{
 							oObj.setAttribute(atributo, valor);
 						}
-					}else{ //si se quiere borrar un atributo no debe hacerse con setAttribute
+					}
+					else{ //si se quiere borrar un atributo no debe hacerse con setAttribute
 						if(sData){
 							oObj.dataset[sData] = null;
-						}else{
+						}
+						else{
 							oObj.removeAttribute(atributo);
 						}
 					}
@@ -1594,10 +1662,17 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @return {Object} left, top, width y height de la caja del elemento
 		 */
 		boundingBox: function (oObj){
-			if(!oObj)
+			if(!oObj){
 				return;
+			}
 
-			var x = 0, y = 0, w = 0, h = 0, x2 = 0, y2 = 0, rect = null;
+			var x = 0;
+			var y = 0;
+			var w = 0;
+			var h = 0;
+			var x2 = 0;
+			var y2 = 0;
+			var rect = null;
 
 			if(oObj.getBoundingClientRect){ //ie, Firefox 3+, Chrome, Opera 9.5+, Safari 4+
 				rect = oObj.getBoundingClientRect();
@@ -1607,14 +1682,14 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 				w = rect.right - rect.left;
 				h = rect.bottom - rect.top;
 
-				if(navigator.appName.toLowerCase() == "microsoft internet explorer"){ //bounding rectangle incluye los bordes top y left del area de cliente
+				if(navigator.appName.toLowerCase() === 'microsoft internet explorer'){ //bounding rectangle incluye los bordes top y left del area de cliente
 					x -= document.documentElement.clientLeft;
 					y -= document.documentElement.clientTop;
 
 					var zoomFactor = (function (){ //devuelve 1 excepto para ie < 8, a niveles de zoom != 1
 						var factor = 1;
 						if(document.body.getBoundingClientRect){
-							rect = document.body.getBoundingClientRect (); //en ie < 8 rect devuelve pixel fisicos (no logicos, independientes de zoom)
+							rect = document.body.getBoundingClientRect(); //en ie < 8 rect devuelve pixel fisicos (no logicos, independientes de zoom)
 							var physicalW = rect.right - rect.left;
 							var logicalW = document.body.offsetWidth;
 
@@ -1623,20 +1698,23 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 						return factor;
 					})();
 
-					if(zoomFactor != 1){ //ie 7
+					if(zoomFactor !== 1){ //ie 7
 						x = Math.round(x / zoomFactor);
 						y = Math.round(y / zoomFactor);
 						w = Math.round(w / zoomFactor);
 						h = Math.round(h / zoomFactor);
 					}
 				}
-			}else{ //Firefox, Opera and Safari; versiones viejas
-				var offset = {x : 0, y : 0}, scrolled = {x : 0, y : 0};
+			}
+			else{ //Firefox, Opera and Safari; versiones viejas
+				var offset = {x: 0, y: 0};
+				var scrolled = {x: 0, y: 0};
+
 				while(oObj.offsetParent){
 					offset.x += oObj.offsetParent.offsetLeft;
 					offset.y += oObj.offsetParent.offsetTop;
 
-					if(oObj.offsetParent.tagName.toLowerCase () != "html"){
+					if(oObj.offsetParent.tagName.toLowerCase() !== 'html'){
 						scrolled.x += oObj.offsetParent.scrollLeft;
 						scrolled.y += oObj.offsetParent.scrollTop;
 					}
@@ -1659,7 +1737,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * Se puede especificar su padre asi como sus hijos
 		 *
 		 * @todo comprobar si se crea un elemento HTML valido
-		 * @param {string} Tag HTML
+		 * @param {string} sTag HTML
 		 * @param {Object} oProps Propiedades del elemento a crear (las claves seran los nombres de las propiedades del elemento)
 		 * @param {Object} oPadre Padre al que adjuntar el nuevo elemento, si no se recibe ninguno el elemento no se adjunta al arbol DOM
 		 * @param {Array} aHijos Cadena HTML o Uno o mas hijos para este elemento; deben ser elementos DOM, ya existentes (se puede pasar como parametro este mismo metodo construyendo un objeto nuevo)
@@ -1676,22 +1754,26 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			var oElem = null;
 			if(sNamespace){
 				oElem = document.createElementNS('http://www.w3.org/2000/svg', sTag);
-			}else{
+			}
+			else{
 				oElem = document.createElement(sTag);
 			}
 
 			function _tipo(sTipo){ //devuelve si es atributo (0) o propiedad (1) o nada (-1)
 				sTipo = sTipo || null;
-				var iRet = -1, aTipos = {className: 1, innerHTML: 1, style: 2};
+				var iRet = -1;
+				var aTipos = {className: 1, innerHTML: 1, style: 2};
 
 				if(aTipos[sTipo]){
-					if(aTipos[sTipo] == 2){ //algunos atributos pueden comportarse como propiedades; "style" si es un objeto es propiedad y no atributo
-						if(typeof sTipo == 'string'){
+					if(aTipos[sTipo] === 2){ //algunos atributos pueden comportarse como propiedades; "style" si es un objeto es propiedad y no atributo
+						if(typeof sTipo === 'string'){
 							iRet = 0;
-						}else if(typeof sTipo == 'object'){
+						}
+						else if(typeof sTipo === 'object'){
 							iRet = 1;
 						}
-					}else{
+					}
+					else{
 						iRet = aTipos[sTipo];
 					}
 				}
@@ -1712,9 +1794,10 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 					if(oProps[sProp]){ //no se comprueba si la propiedad y su valor son validos
 						var iTipo = _tipo(sProp);
 
-						if(iTipo == 1){
+						if(iTipo === 1){
 							oElem[sProp] = oProps[sProp];
-						}else{ //cualquier cosa que no sea propiedad se trata como atributo
+						}
+						else{ //cualquier cosa que no sea propiedad se trata como atributo
 							oElem.setAttribute(sProp, oProps[sProp]);
 						}
 					}
@@ -1726,14 +1809,14 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			}
 
 			if(aHijos){
-				if(typeof aHijos == 'string'){ //si es una cadena se supone que sera HTML
+				if(typeof aHijos === 'string'){ //si es una cadena se supone que sera HTML
 					oElem.innerHTML = aHijos;
 				}
 				else{
 					aHijos = JaSper.funcs.isArray(aHijos) ? aHijos : [aHijos];
 					var iLen = aHijos.length || 0;
-					for(var i = 0; i < iLen; i++){
-						oElem.appendChild(aHijos[i]);
+					for(var iCont = 0; iCont < iLen; iCont++){
+						oElem.appendChild(aHijos[iCont]);
 					}
 				}
 			}
@@ -1747,6 +1830,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 *
 		 * @param {Object} oDom Objeto DOM a extender
 		 * @param {Object} addObj Objeto con metodos que se agregaran a oDom
+		 * @return {Object}
 		 */
 		extend: function (oDom, addObj){
 			if(!JaSper.funcs.isDOMObject(oDom)){
@@ -1797,13 +1881,19 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 	 * @returns {string} Cadena traducida, original si no se encuentra traduccion
 	 */
 	JaSper._t = function (trad, lang){
-		if(!trad) return '';
+		if(!trad){
+			return '';
+		}
 		lang = lang || JaSper.lang;
 
-		if(!JaSper.funcs.isArray(trad)) trad = [trad];
-		if(JaSper.langs[lang] && JaSper.langs[lang][trad[0]]) trad[0] = JaSper.langs[lang][trad[0]];
+		if(!JaSper.funcs.isArray(trad)){
+			trad = [trad];
+		}
+		if(JaSper.langs[lang] && JaSper.langs[lang][trad[0]]){
+			trad[0] = JaSper.langs[lang][trad[0]];
+		}
 
-		return(JaSper.funcs.sprintf.apply(this, trad));
+		return JaSper.funcs.sprintf.apply(this, trad);
 	};
 
 	/**
@@ -1830,7 +1920,8 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 					if(iLapso){
 						oIdt = setTimeout(oFuncion, iLapso);
 					}
-				}else{ //ejecucion por intervalos
+				}
+				else{ //ejecucion por intervalos
 					var oIdi = setInterval(oFuncion, iIntervalo);
 					if(iLapso){
 						oIdt = setTimeout('clearInterval(' + oIdi + ')', iLapso); //final de ejecucion
@@ -1861,7 +1952,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		}
 	});
 		 *
-		 * @param {object} ops Objeto con opciones
+		 * @param {object} oOps Objeto con opciones
 		 * @return {boolean}
 		 */
 		interval: function (oOps){
@@ -1880,14 +1971,14 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 						oOps.delta = function (dt){return Math.pow(dt, 2);};
 						break;
 					case 'arco': //variacion "arco", primero a la inversa y despues directa acelear; en funcion de la intensidad (x)
-						oOps.delta = function (dt, x){x = x || 1.5;return Math.pow(dt, 2) * ((x + 1) * dt - x);};
+						oOps.delta = function (dt, x){x = x || 1.5; return Math.pow(dt, 2) * ((x + 1) * dt - x);};
 						break;
 					case 'bote': //variacion dando botes
-						oOps.delta = function (dt){for(var a = 0, b = 1; ; a += b, b /= 2){if(dt >= (7 - 4 * a) / 11){return -Math.pow((11 - 6 * a - 11 * dt) / 4, 2) + Math.pow(b, 2);}}};
+						oOps.delta = function (dt){for(var a = 0, b = 1; ;a += b, b /= 2){if(dt >= (7 - 4 * a) / 11){return -Math.pow((11 - 6 * a - 11 * dt) / 4, 2) + Math.pow(b, 2);}}};
 						//oOps.delta = oOps.delta || function (dt, x){return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);}; //variacion elastica, similar a dando botes (x define el rango inicial)
 						break;
 					case 'elastica': //variacion elastica, similar a dando botes (x define el rango inicial)
-						oOps.delta = function (dt, x){x = x || 1.5;return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);};
+						oOps.delta = function (dt, x){x = x || 1.5; return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);};
 						break;
 					case 'lineal':
 					default: //por defecto variacion lineal
@@ -1920,7 +2011,9 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 */
 		wait: function (iTiempo){
 			var now = new Date().getTime();
-			while(new Date().getTime() < now + iTiempo){;} //no hace nada durante el tiempo indicado //TODO pasar un callback?
+			while(new Date().getTime() < now + iTiempo){
+				null; //no hace nada durante el tiempo indicado //TODO pasar un callback?
+			}
 
 			return true;
 		}
@@ -1935,12 +2028,12 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 	JaSper.trait = {
 
 		//informacion del navegador
-		navigator: (navigator.userAgent.toLowerCase().match(/.+(?:rv|it|ra|ie)[\/: ]([\d.]+)/) || [0,'0'])[1], //version
-		msie: /msie/.test(navigator.userAgent.toLowerCase()) && !/opera/.test(navigator.userAgent.toLowerCase()),
-		mozilla: /mozilla/.test(navigator.userAgent.toLowerCase()) && !/(compatible|webkit)/.test(navigator.userAgent.toLowerCase()),
-		opera: /opera/.test(navigator.userAgent.toLowerCase()),
-		webkit: /webkit/.test(navigator.userAgent.toLowerCase()),
-		gecko: /gecko/.test(navigator.userAgent.toLowerCase()) && !/khtml/.test(navigator.userAgent.toLowerCase()),
+		navigator: (navigator.userAgent.toLowerCase().match(/.+(?:rv|it|ra|ie)[\/: ]([\d.]+)/) || [0, '0'])[1], //version
+		msie: (/msie/).test(navigator.userAgent.toLowerCase()) && !(/opera/).test(navigator.userAgent.toLowerCase()),
+		mozilla: (/mozilla/).test(navigator.userAgent.toLowerCase()) && !(/(compatible|webkit)/).test(navigator.userAgent.toLowerCase()),
+		opera: (/opera/).test(navigator.userAgent.toLowerCase()),
+		webkit: (/webkit/).test(navigator.userAgent.toLowerCase()),
+		gecko: (/gecko/).test(navigator.userAgent.toLowerCase()) && !(/khtml/).test(navigator.userAgent.toLowerCase()),
 
 		//guarda si es la version minificada (true) o normal (false)
 		minificado: (function (){ //comprueba si estamos con la version minificada o la normal
@@ -1959,16 +2052,16 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		//guarda si hay soporte para la API Promise
 		//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
 		promise: (function (){
-			var bPromise = typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1;
+			var bPromise = typeof Promise !== 'undefined' && Promise.toString().indexOf('[native code]') !== -1;
 			return bPromise;
 		})(),
 
 		//guarda si se esta en un dispositivo con capacidades tactiles
 		//FIXME no es completamente fiable
 		tactil: (function (){
-			var bTactil = 'ontouchstart' in window ||
-				('onmsgesturechange' in window || navigator.maxTouchPoints) || //ie10
-				false;
+			var bTactil = 'ontouchstart' in window
+				|| ('onmsgesturechange' in window || navigator.maxTouchPoints) //ie10
+				|| false;
 
 			return bTactil;
 		})()
@@ -1976,7 +2069,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 	};
 
 	//esto convierte el constructor en prototipo, permitira extender JaSper() extendiendo JaSper.prototype
-	JaSper.funcs.init.prototype = JaSper.prototype;
+	JaSper.funcs.Init.prototype = JaSper.prototype;
 
 	//puede extenderse el prototipo con los metodos encontrados en JaSper.funcs con:
 	//JaSper.extend(JaSper.prototype, JaSper.funcs);
@@ -1992,12 +2085,12 @@ JaSper.extend(JaSper.prototype, {
 	 * Debug
 	 *
 	 * @since 2011-03-24
-	 * @param debug Se muestran mensajes de debug (true) o no (false)
-	 * @returns object JaSper
+	 * @param {boolean} bDebug Se muestran mensajes de debug (true) o no (false)
+	 * @returns {object} JaSper
 	 */
-	debug: function (debug){
-		debug = debug || true;
-		JaSper.debug = debug;
+	debug: function (bDebug){
+		bDebug = bDebug || true;
+		JaSper.debug = bDebug;
 
 		return this;
 	},
@@ -2005,13 +2098,15 @@ JaSper.extend(JaSper.prototype, {
 	/**
 	 * Referencia automatica a la funcion foreach pasandole la lista de nodos, ej. $('<SPAN>').each(function (){});
 	 *
+	 * @param {Object} oCallback Callback a ejecutar
+	 * @param {boolean} aArgs Argumentos
 	 * @return {Object} JaSper
 	 */
-	each: function (callback, args){
-		args = args || undefined;
+	each: function (oCallback, aArgs){
+		aArgs = aArgs || undefined;
 
 		if(this.nodes && this.nodes.length){ //no se hace nada si no hay nodos
-			JaSper.funcs.foreach(this.nodes, callback, args);
+			JaSper.funcs.foreach(this.nodes, oCallback, aArgs);
 		}
 
 		return this;
@@ -2026,6 +2121,7 @@ JaSper.extend(JaSper.prototype, {
 	 *
 	 * @todo eliminar el evento cuando ya no sea necesario
 	 * @param {function} oFunc Funcion a ejecutar
+	 * @return {Event}
 	 */
 	ready: function (oFunc){
 		var runReady = function (){
@@ -2035,15 +2131,21 @@ JaSper.extend(JaSper.prototype, {
 		};
 
 		//if(!JaSper.trait.msie && !JaSper.trait.webkit && document.addEventListener) return document.addEventListener('DOMContentLoaded', oFunc, false);
-		if(document.addEventListener) return document.addEventListener('DOMContentLoaded', oFunc, false);
-		if(JaSper.funcs.readyFuncs.push(oFunc) > 1) return;
+		if(document.addEventListener){
+			return document.addEventListener('DOMContentLoaded', oFunc, false);
+		}
+
+		if(JaSper.funcs.readyFuncs.push(oFunc) > 1){
+			return null;
+		}
+
 		if(JaSper.trait.msie){
 			(function (){
 				var oInterval = setInterval(function (){
 					try{
 						document.documentElement.doScroll('left');
-						runReady();
 						clearInterval(oInterval);
+						runReady();
 					}
 					catch(err){/*aun no ready*/}
 				}, 5);
@@ -2051,10 +2153,12 @@ JaSper.extend(JaSper.prototype, {
 				catch(err){setTimeout(oFunc, 0);}
 				//catch (err){setTimeout(arguments.callee, 0);}*/
 			})();
-		}else if(JaSper.trait.webkit){
+		}
+		else if(JaSper.trait.webkit){
 			var oInterval = setInterval(function (){
 				if(/^(loaded|complete)$/.test(document.readyState)){
-					clearInterval(oInterval), runReady();
+					clearInterval(oInterval);
+					runReady();
 				}
 			}, 0);
 		}
@@ -2083,36 +2187,43 @@ JaSper.extend(JaSper.prototype, {
 	},
 
 	/**
-	 * recupera una regla css de document o del elemento pasado
+	 * Recupera una regla css de document o del elemento pasado
+	 *
+	 * @param {string} sCssRule Nombre de la regla
+	 * @return {Object}
 	 */
-	getStyle: function (cssRule){
+	getStyle: function (sCssRule){
 		var elem = this.nodes[0];
-		return JaSper.css.getStyle(elem, cssRule);
+		return JaSper.css.getStyle(elem, sCssRule);
 	},
 
 	/**
 	 * Elimina una clase CSS
 	 *
 	 * @since 2011-09-07
-	 * @param {string} cName Nombre de la clase
+	 * @param {string} sClassName Nombre de la clase
 	 * @return {Object} JaSper
 	 */
-	removeClass: function(cName){
+	removeClass: function (sClassName){
 		this.each(function (){
-			JaSper.css.removeClass(this, cName);
+			JaSper.css.removeClass(this, sClassName);
 		});
 
 		return this;
 	},
 
 	/**
-	 * pone una regla css de document o del elemento pasado al valor pasado
+	 * Pone una regla css de document o del elemento pasado al valor pasado
+	 *
+	 * @param {string} sCssRule Nombre de la regla
+	 * @param {string} sValue Nuevo estilo
+	 * @return {Object}
 	 */
-	setStyle: function (cssRule, value){
+	setStyle: function (sCssRule, sValue){
 		this.each(function (rul, val){
-			var elem = this;
-			return JaSper.css.setStyle(elem, rul, val);
-		}, [cssRule, value]);
+			var oThis = this;
+			return JaSper.css.setStyle(oThis, rul, val);
+		}, [sCssRule, sValue]);
 
 		return this;
 	}
@@ -2149,7 +2260,7 @@ JaSper.extend(JaSper.prototype, {
 	eventAdd: function (evento, funcion, capt){
 		this.each(function (evt, func, ct){
 			JaSper.event.add(this, evt, func, ct);
-		}, [evento, funcion]);
+		}, [evento, funcion, capt]);
 
 		return this;
 	},
@@ -2180,7 +2291,7 @@ JaSper.extend(JaSper.prototype, {
 	 */
 	eventRemove: function (evento, funcion, capt){
 		//TODO eliminar todos los eventos del elemento si no se pasan parametros
-		if(typeof funcion == 'string'){
+		if(typeof funcion === 'string'){
 			funcion = window[funcion]; //TODO try para distinguir nombre_de_funcion de nombre_de_funcion(params) (evaluar esta ultima)
 		}
 
@@ -2217,7 +2328,7 @@ JaSper.extend(JaSper.prototype, {
 		if(JaSper.funcs.isArray(oNodo)){
 			aNodos = JaSper.nodo.crear(oNodo[0], {innerHTML: oNodo[1], className: oNodo[1], id: oNodo[1]}); //TODO id -> no repetir
 		}
-		else if(typeof oNodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+		else if(typeof oNodo === 'string'){ //si es una cadena HTML puede ser un elemento o varios
 			//TODO deben clonarse los nodos resultantes de esta operacion?, de no ser asi los recibira solo el primer nodo en this.each y no podran adjuntase a mas this.each
 			//TODO tal vez deberian insertarse en la primera pasada y en las siguiente clonarse los de la primera
 			var oTempElem = JaSper.nodo.crear('div', null, null, oNodo);
@@ -2226,29 +2337,30 @@ JaSper.extend(JaSper.prototype, {
 
 		if(!oAncla){
 			this.each(function (aElems){
-				if(this.nodeType == 1){
+				if(this.nodeType === 1){
 					var aElemsLength = aElems.length;
 					var iCont = 0;
 					var oNodoNuevo = null;
 					while(iCont < aElems.length){
 						oNodoNuevo = this.appendChild(aElems[iCont]);
-						if(aElemsLength == aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+						if(aElemsLength === aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
 							iCont++;
 						}
 						//var dupNode = node.cloneNode(deep);
 					}
 				}
 			}, [aNodos]);
-		}else{
-			if(typeof oAncla == 'string'){ //se ha pasado el id y no el objeto
+		}
+		else{
+			if(typeof oAncla === 'string'){ //se ha pasado el id y no el objeto
 				oAncla = document.getElementById(oAncla);
 			}
-			if(oAncla.nodeType == 1){
+			if(oAncla.nodeType === 1){
 				var aElemsLength = aNodos.length;
 				var iCont = 0;
 				while(iCont < aNodos.length){
 					oAncla.appendChild(aNodos[iCont]);
-					if(aElemsLength == aNodos.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+					if(aElemsLength === aNodos.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
 						iCont++;
 					}
 				}
@@ -2276,10 +2388,10 @@ JaSper.extend(JaSper.prototype, {
 		this.each(function (atr, val){
 			if(val === undefined){ //no se ha pasado valor, solo consulta, se devuelve el valor del primer nodo
 				ret = JaSper.nodo.attrib(this, atr);
-				return;
-			}else{
-				JaSper.nodo.attrib(this, atr, val);
+				return null;
 			}
+
+			JaSper.nodo.attrib(this, atr, val);
 		}, [atributo, valor]);
 
 		return ret;
@@ -2293,6 +2405,7 @@ JaSper.extend(JaSper.prototype, {
 	 *
 	 * @todo solo funciona para nodos que tengan la propiedad innerHTML, extender para todos los nodos construyendo los objetos que se pasen por parametro y luego append al nodo?
 	 * @param {string} html HTML que sustituira el de los nodos
+	 * @param {string} separador Separador con el que se devuelven los nodos encontrados
 	 * @return {string} HTML encontrado
 	 */
 	html: function (html, separador){
@@ -2328,7 +2441,7 @@ JaSper.extend(JaSper.prototype, {
 		if(JaSper.funcs.isArray(oNodo)){
 			aNodos = JaSper.nodo.crear(oNodo[0], {innerHTML: oNodo[1], className: oNodo[1], id: oNodo[1]}); //TODO id -> no repetir
 		}
-		else if(typeof oNodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+		else if(typeof oNodo === 'string'){ //si es una cadena HTML puede ser un elemento o varios
 			var oTempElem = JaSper.nodo.crear('div', null, null, oNodo);
 			aNodos = oTempElem.childNodes;
 		}
@@ -2337,12 +2450,12 @@ JaSper.extend(JaSper.prototype, {
 			/*if (tn.lastChild) tn.insertBefore(e, tn.lastChild);
 			else tn.appendChild(e);*/
 
-			if(this.nodeType == 1){
+			if(this.nodeType === 1){
 				var aElemsLength = aElems.length;
 				var iCont = 0;
 				while(iCont < aElems.length){
-					this.parentNode.insertBefore(aElems[iCont], this.nextSibling)
-					if(aElemsLength == aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+					this.parentNode.insertBefore(aElems[iCont], this.nextSibling);
+					if(aElemsLength === aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
 						iCont++;
 					}
 				}
@@ -2366,18 +2479,18 @@ JaSper.extend(JaSper.prototype, {
 		if(JaSper.funcs.isArray(oNodo)){
 			aNodos = JaSper.nodo.crear(oNodo[0], {innerHTML: oNodo[1], className: oNodo[2], id: oNodo[3]}); //TODO id -> no repetir
 		}
-		else if(typeof oNodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+		else if(typeof oNodo === 'string'){ //si es una cadena HTML puede ser un elemento o varios
 			var oTempElem = JaSper.nodo.crear('div', null, null, oNodo);
 			aNodos = oTempElem.childNodes;
 		}
 
 		this.each(function (aElems){
-			if(this.nodeType == 1){
+			if(this.nodeType === 1){
 				var aElemsLength = aElems.length;
 				var iCont = 0;
 				while(iCont < aElems.length){
 					this.parentNode.insertBefore(aElems[iCont], this);
-					if(aElemsLength == aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+					if(aElemsLength === aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
 						iCont++;
 					}
 				}
@@ -2405,19 +2518,19 @@ JaSper.extend(JaSper.prototype, {
 		if(JaSper.funcs.isArray(oNodo)){
 			aNodos = JaSper.nodo.crear(oNodo[0], {innerHTML: oNodo[1], className: oNodo[1], id: oNodo[1]}); //TODO id -> no repetir
 		}
-		else if(typeof oNodo == 'string'){ //si es una cadena HTML puede ser un elemento o varios
+		else if(typeof oNodo === 'string'){ //si es una cadena HTML puede ser un elemento o varios
 			var oTempElem = JaSper.nodo.crear('div', null, null, oNodo);
 			aNodos = oTempElem.childNodes;
 		}
 
 		if(!oAncla){
 			this.each(function (aElems){
-				if(this.nodeType == 1){
+				if(this.nodeType === 1){
 					var aElemsLength = aElems.length;
 					var iCont = 0;
 					while(iCont < aElems.length){
 						this.insertBefore(aElems[iCont], this.firstChild);
-						if(aElemsLength == aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+						if(aElemsLength === aElems.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
 							iCont++;
 						}
 					}
@@ -2425,15 +2538,15 @@ JaSper.extend(JaSper.prototype, {
 			}, [aNodos]);
 		}
 		else{
-			if(typeof oAncla == 'string'){ //se ha pasado el id y no el objeto
+			if(typeof oAncla === 'string'){ //se ha pasado el id y no el objeto
 				oAncla = document.getElementById(oAncla);
 			}
-			if(oAncla.nodeType == 1){
+			if(oAncla.nodeType === 1){
 				var aElemsLength = aNodos.length;
 				var iCont = 0;
 				while(iCont < aNodos.length){
 					oAncla.insertBefore(aNodos[iCont], oAncla.firstChild);
-					if(aElemsLength == aNodos.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
+					if(aElemsLength === aNodos.length){ //en casos como nodeList los nodos se traslandan del array a su posicion con appendChild, con lo cual cambia la longitud del array
 						iCont++;
 					}
 				}
@@ -2450,7 +2563,7 @@ JaSper.extend(JaSper.prototype, {
 	 * @param {Object} oNodo Elemento a eliminar
 	 * @return {Object} JaSper
 	 */
-	remove: function (oNodo) {
+	remove: function (oNodo){
 		//var el = this.get(oEl);
 		this.each(function (oEl){
 			oEl.parentNode.removeChild(oEl);
@@ -2472,7 +2585,7 @@ JaSper.extend(JaSper.prototype, {
 	text: function (sText, sSeparador){
 		var ret = [];
 		sText = sText || '';
-		separador = sSeparador || '';
+		sSeparador = sSeparador || '';
 
 		//TODO comprobar cross browser
 		//TODO devolver value para elementos de formulario?
@@ -2539,7 +2652,9 @@ JaSper.extend(JaSper.prototype, {
 
 		if(library){
 			var tempCall = (function (oObj, aAs){
-				return(function (){oObj[sMethod].apply(oObj, aAs);});
+				return function (){
+					oObj[sMethod].apply(oObj, aAs);
+				};
 			})(this, aArgs);
 
 			JaSper.load.queue.push({'fn': tempCall, 'ctx': this});
@@ -2550,47 +2665,47 @@ JaSper.extend(JaSper.prototype, {
 		return this;
 	},
 
-	/* Animaciones de elementos DOM mediante propiedades CSS */
-	fade: function (){return(this.loadMethod('fade', arguments, 'anim'));},
-	hide: function (){return(this.loadMethod('hide', arguments, 'anim'));},
-	show: function (){return(this.loadMethod('show', arguments, 'anim'));},
-	toggle: function (){return(this.loadMethod('toggle', arguments, 'anim'));},
+	/*Animaciones de elementos DOM mediante propiedades CSS*/
+	fade: function (){return this.loadMethod('fade', arguments, 'anim');},
+	hide: function (){return this.loadMethod('hide', arguments, 'anim');},
+	show: function (){return this.loadMethod('show', arguments, 'anim');},
+	toggle: function (){return this.loadMethod('toggle', arguments, 'anim');},
 
-	/* AJAX */
-	ajax: function (){return(this.loadMethod('ajax', arguments));},
+	/*AJAX*/
+	ajax: function (){return this.loadMethod('ajax', arguments);},
 
-	/* Beautifier */
-	beautify: function (){return(this.loadMethod('beautify', arguments));},
+	/*Beautifier*/
+	beautify: function (){return this.loadMethod('beautify', arguments);},
 
-	/* Canvas */
-	animate: function (){return(this.loadMethod('animate', arguments, 'canvas'));},
-	canvas: function (){return(this.loadMethod('canvas', arguments, 'canvas'));},
+	/*Canvas*/
+	animate: function (){return this.loadMethod('animate', arguments, 'canvas');},
+	canvas: function (){return this.loadMethod('canvas', arguments, 'canvas');},
 
-	/* Carga dinamica de elementos de pagina */
-	carga: function (){return(this.loadMethod('carga', arguments, 'pages'));},
+	/*Carga dinamica de elementos de pagina*/
+	carga: function (){return this.loadMethod('carga', arguments, 'pages');},
 
-	/* Visor de imagenes en detalle */
-	lightbox: function (){return(this.loadMethod('lightbox', arguments));},
+	/*Visor de imagenes en detalle*/
+	lightbox: function (){return this.loadMethod('lightbox', arguments);},
 
-	/* Fechas o relacionadas con fechas */
-	countdown: function (){return(this.loadMethod('countdown', arguments, 'datetime'));},
-	datePicker: function (){return(this.loadMethod('datePicker', arguments, 'datetime'));},
+	/*Fechas o relacionadas con fechas*/
+	countdown: function (){return this.loadMethod('countdown', arguments, 'datetime');},
+	datePicker: function (){return this.loadMethod('datePicker', arguments, 'datetime');},
 
-	/* Movimiento de elementos */
-	move: function (){return(this.loadMethod('move', arguments));},
+	/*Movimiento de elementos*/
+	move: function (){return this.loadMethod('move', arguments);},
 
-	/* Sistema de valoracion, Rating */
-	rating: function (){return(this.loadMethod('rating', arguments));},
+	/*Sistema de valoracion, Rating*/
+	rating: function (){return this.loadMethod('rating', arguments);},
 
-	/* Rich Text Box */
-	rtb: function (){return(this.loadMethod('rtb', arguments, 'rtb'));},
-	colorPicker: function (){return(this.loadMethod('colorPicker', arguments, 'rtb'));},
+	/*Rich Text Box*/
+	rtb: function (){return this.loadMethod('rtb', arguments, 'rtb');},
+	colorPicker: function (){return this.loadMethod('colorPicker', arguments, 'rtb');},
 
-	/* Validacion de formularios */
-	validar: function (){return(this.loadMethod('validar', arguments));},
+	/*Validacion de formularios*/
+	validar: function (){return this.loadMethod('validar', arguments);},
 
-	/* Peticiones a servidor REST */
-	rest: function (){return(this.loadMethod('rest', arguments));}
+	/*Peticiones a servidor REST*/
+	rest: function (){return this.loadMethod('rest', arguments);}
 });
 
 /**************
@@ -2665,7 +2780,7 @@ if(!Object.keys){
 	return sRet;
 }*/
 
-
+//TODO
 if(!window.requestAnimationFrame){
 	window.requestAnimationFrame = (function(callback){
 		return window.webkitRequestAnimationFrame 

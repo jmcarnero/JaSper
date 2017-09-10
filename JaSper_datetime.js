@@ -35,11 +35,12 @@ JaSper.extend(JaSper.prototype, {
 	 * @todo añadir semanas por mes (variable), meses (28, 29, 30 o 31 dias) y años
 	 * @param {integer} iPeriodo Numero de segundos a ir descontando //se calcula con respecto al inicio unix del tiempo, 1970-01-01, si es negativo o mayor que el numero de segundos hasta la actualidad dara problemas
 	 * @param {function} fCallback lanza esta funcion para cada parte de tiempo, ej.: para los segundos la lanzara 60 veces por minuto, pasandole como primer parametro el segundo actual (de 1 a 60) y segundo el divisor (en este caso 60, total de segundos); this dentro del callback sera el span correspondiente (en el ej. seria el de segundos)
+	 * @return {object}
 	 */
 	countdown: function (iPeriodo, fCallback){
 		'use strict';
 
-		iPeriodo = iPeriodo || Date.now() / 1000 + 100;
+		iPeriodo = (iPeriodo || Date.now() / 1000) + 100;
 
 		var oCallback = function (oObj, iTiempo, iTotal){
 			if(fCallback){
@@ -77,13 +78,13 @@ JaSper.extend(JaSper.prototype, {
 				oCallback(oObjs.hor, oTiemposParciales.hor, 24);
 			}
 			if(oTiemposTotales.dia){
-					oObjs.dia.innerHTML = Math.floor(oTiemposTotales.dia);
-					//oCallback(oObjs.dia, oTiemposParciales.dia, 30);
-					oCallback(oObjs.dia, Math.floor(oTiemposTotales.dia), 365); //TODO toma como referencia la duracion de un año, cambiar?
+				oObjs.dia.innerHTML = Math.floor(oTiemposTotales.dia);
+				//oCallback(oObjs.dia, oTiemposParciales.dia, 30);
+				oCallback(oObjs.dia, Math.floor(oTiemposTotales.dia), 365); //TODO toma como referencia la duracion de un año, cambiar?
 			}
 
 			var callCountdown = setTimeout(function (){oPinta(oObjs, iPeriodo);}, 1000); //espera un segundo
-		}
+		};
 
 		this.each(function (){
 			var oCont = JaSper.nodo.crear('p', {class: 'JaSper countdown'}, this);
@@ -105,7 +106,7 @@ JaSper.extend(JaSper.prototype, {
 	/**
 	 * Construye un selector de fechas
 	 * 
-	 * @param {props} Propiedades del selector de fechas
+	 * @param {object} props Propiedades del selector de fechas
 	 * @return {Object} JaSper
 	 */
 	datePicker: function (props){
@@ -124,9 +125,10 @@ JaSper.extend(JaSper.prototype, {
 		var append = function (oElem, sHtml, sId){
 			var elem = JaSper.nodo.crear('div', {innerHTML: sHtml, class: sId});
 
-			if(oElem.nodeType == 1)
+			if(oElem.nodeType === 1){
 				return oElem.parentNode.appendChild(elem);
-		}
+			}
+		};
 
 		//devuelve un array con fechaBotonMesAnterior, fechaActual, fechaBotonMesSiguiente
 		//tomando como fecha actual la que recibe por parametro
@@ -134,13 +136,13 @@ JaSper.extend(JaSper.prototype, {
 			var aPartesFecha = {t: fecha, a: fecha.getFullYear(), m: fecha.getMonth() + 1, d: fecha.getDate()};
 
 			var sMesAnterior = aPartesFecha.a + '-' + ('00' + (aPartesFecha.m - 1)).slice(-2) + '-01'; //fecha para el boton de mes anterior
-			if(aPartesFecha.m == 1){ //cambia de anio si el mes sale de rango
-				var sMesAnterior = (aPartesFecha.a - 1) + '-12-01';
+			if(aPartesFecha.m === 1){ //cambia de anio si el mes sale de rango
+				sMesAnterior = (aPartesFecha.a - 1) + '-12-01';
 			}
 
 			var sMesSiguiente = aPartesFecha.a + '-' + ('00' + (aPartesFecha.m + 1)).slice(-2) + '-01'; //fechas para el boton de mes siguiente
-			if(aPartesFecha.m == 12){ //cambia de anio si el mes sale de rango
-				var sMesSiguiente = (aPartesFecha.a + 1) + '-01-01';
+			if(aPartesFecha.m === 12){ //cambia de anio si el mes sale de rango
+				sMesSiguiente = (aPartesFecha.a + 1) + '-01-01';
 			}
 
 			return [sMesAnterior, aPartesFecha.a + ' - ' + props.mesesCorto[aPartesFecha.m], sMesSiguiente];
@@ -174,7 +176,10 @@ JaSper.extend(JaSper.prototype, {
 				var sSemana = '<tr>';
 
 				for(var j = 0; j < props.semanaCorta.length; j++){
-					var sClase, iAnio = aPartesFecha.a, iMes = aPartesFecha.m, iDia = i + j + 1;
+					var sClase;
+					var iAnio = aPartesFecha.a;
+					var iMes = aPartesFecha.m;
+					var iDia = i + j + 1;
 
 					if(iDia <= 0){
 						iDia = iDiasEnMesPasado + iDia;
@@ -232,7 +237,9 @@ JaSper.extend(JaSper.prototype, {
 		};
 
 		this.each(function (sDP, sCont){
-			var sDataTag = 'data-' + sCont, oInput = this, oContenedor = append(this, sDP, sCont);
+			var sDataTag = 'data-' + sCont;
+			var oInput = this;
+			var oContenedor = append(this, sDP, sCont);
 
 			JaSper(oInput).eventAdd('click', function (ev){
 				oContenedor.style.display = 'block';
@@ -241,8 +248,8 @@ JaSper.extend(JaSper.prototype, {
 			var eMuestraTabla = function (ev){ //onclick en cualquier dia del calendario
 				oContenedor.style.display = 'none';
 				oInput.value = JaSper.nodo.attrib(this, sDataTag);
-			}
-	
+			};
+
 			JaSper('tbody td.mesPasado, tbody td.mesActual, tbody td.mesSiguiente', oContenedor).eventAdd('click', eMuestraTabla); //TODO cambiar de mes al darle a un dia de otro mes?
 
 			JaSper('caption span.butMesAnterior, caption span.butMesSiguiente', oContenedor).eventAdd('click', function (ev){
@@ -265,8 +272,9 @@ JaSper.extend(JaSper.prototype, {
 
 	/**
 	 * Construye un selector de horas
-	 * 
-	 * @param {props} Propiedades del selector de horas
+	 *
+	 * @todo inacabado
+	 * @param {object} props Propiedades del selector de horas
 	 * @return {Object} JaSper
 	 */
 	timePicker: function (props){
@@ -292,8 +300,8 @@ JaSper.datetime = {
 	/**
 	 * Devuelve cuantos dias tiene un mes
 	 *
-	 * @param {integer|Date} year Anio u objeto fecha
-	 * @param {integer} month Mes
+	 * @param {integer|Date} anio Anio u objeto fecha
+	 * @param {integer} mes Mes
 	 * @return {number}
 	 */
 	diasEnMes: function (anio, mes){
@@ -304,8 +312,9 @@ JaSper.datetime = {
 			anio = anio.getFullYear();
 		}
 
-		if(!JaSper.funcs.isNumber(anio) || !JaSper.funcs.isNumber(mes))
+		if(!JaSper.funcs.isNumber(anio) || !JaSper.funcs.isNumber(mes)){
 			return false;
+		}
 
 		//compensan si se pasan cantidades de meses fuera de rango
 		var resto = Math.ceil((mes - 11) / 12);
@@ -334,6 +343,6 @@ JaSper.datetime = {
 
 		var day = fecha.getDay();
 		return day === 0 || day === 6;
-	},
+	}
 
 };

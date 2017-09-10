@@ -17,12 +17,14 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 /*traducciones*/
 JaSper.extend(JaSper.langs, {
-"en":{
-	'rating_1':'Without Javascript.',
-	'rating_2':'Id updated: %s, value: %s<br />Your vote: %s'},
-"es":{
-	'rating_1':'Sin Javascript.',
-	'rating_2':'Actualizada id: %s, con valor: %s<br />Tu voto: %s'}
+	'en': {
+		'rating_1': 'Without Javascript.',
+		'rating_2': 'Id updated: %s, value: %s<br />Your vote: %s'
+	},
+	'es': {
+		'rating_1': 'Sin Javascript.',
+		'rating_2': 'Actualizada id: %s, con valor: %s<br />Tu voto: %s'
+	}
 });
 
 /**
@@ -43,12 +45,15 @@ JaSper.extend(JaSper.prototype, {
 	 * Crea estrellas en el elemento seleccionado y los eventos necesarios para su funcionamiento
 	 * La id del elemento contenedor se pasa por AJAX para ser guardada en base de datos con la puntuacion (o el tratamiento que quiera darsele)
 	 *
-	 * @param object props Propiedades que recibira
+	 * @param {object} properties Propiedades que recibira
+	 * @return {object}
 	 */
 	rating: function (properties){
 		'use strict';
 
-		if(typeof properties !== 'object') var properties = {};
+		if(typeof properties !== 'object'){
+			var properties = {};
+		}
 
 		properties.classPrefix = properties.classPrefix || 'JaSper_rating'; //prefijo para los nombres de las clases css; tambien se asigna esto como nombre de clase a todos los elementos seleccionados
 		properties.classInactive = properties.classPrefix + (properties.classInactive || '_inactive'); //clase css para estrellas inactivas
@@ -61,7 +66,9 @@ JaSper.extend(JaSper.prototype, {
 		properties.onClick = properties.onClick || false; //callback a ejecutar cuando se pulsa alguna estrella; dentro del callback this es el objeto pulsado, y tiene la propiedad "rating" con su valor
 
 		this.each(function (props){
-			if(!this.id) this.id = JaSper.funcs.genId();
+			if(!this.id){
+				this.id = JaSper.funcs.genId();
+			}
 			if(this.className.indexOf(props.classPrefix) == -1){
 				this.className += ' ' + properties.classPrefix;
 				this.style.width = props.total * props.size; //TODO deberia fijarse el ancho del fondo repetido, no el del contenedor
@@ -69,12 +76,11 @@ JaSper.extend(JaSper.prototype, {
 
 			var starIds = ''; //cadena con las id's de las estrellas generadas, se usa en los eventos //var starIds = '#' + this.id + '_rs_1,#' + this.id + '_rs_2,#' + this.id + '_rs_3,#' + this.id + '_rs_4,#' + this.id + '_rs_5';
 
-			
 			//alert(JaSper.funcs.getCSSRule('.rating_star').style.backgroundImage);
 			//this.style.width = (props.total * 30) + 'px';
 
 			var outHtml = ''; //HTML con las estrellas
-			for(var idNum = 1;idNum <= props.total;idNum++){
+			for(var idNum = 1; idNum <= props.total; idNum++){
 				outHtml += '<div id="' + this.id + '_' + props.classPrefix + '_' + idNum + '" class="' + props.classInactive + '" style="margin:0 0 0 ' + ((idNum - 1) * props.size) + 'px;"></div>'; //el margen fuerza a que se coloquen en orden horizontal, //TODO hacer opcional la orientacion
 				starIds += ('#' + this.id + '_' + props.classPrefix + '_' + idNum + ',');
 			}
@@ -85,16 +91,15 @@ JaSper.extend(JaSper.prototype, {
 			var objContId = this.id + '_' + props.classPrefix + '_'; //id sin numero; comun a todos las estrellas
 
 			//carga inicial de valores
-			for(var j = 1;j <= props.total;j++){
-				if(j <= props.rating) document.getElementById(objContId + j).className = props.classActive;
-				else document.getElementById(objContId + j).className = props.classInactive;
+			for(var j = 1; j <= props.total; j++){
+				document.getElementById(objContId + j).className = (j <= props.rating) ? props.classActive : props.classInactive;
 			}
 
 			//evento de encima de estrellas
 			JaSper(starIds).eventAdd('mouseover', function (){
 				var idNum = this.id.substr(objContId.length); //parte numerica
 
-				for(var j=1;j <= idNum;j++){
+				for(var j = 1; j <= idNum; j++){
 					document.getElementById(objContId + j).className = props.classOver;
 				}
 			});
@@ -103,30 +108,32 @@ JaSper.extend(JaSper.prototype, {
 			JaSper(starIds).eventAdd('mouseout', function (){
 				var idNum = this.id.substr(objContId.length); //parte numerica
 
-				for(var j=1;j <= idNum;j++){
-					if(j <= props.rating) document.getElementById(objContId + j).className = props.classActive;
-					else document.getElementById(objContId + j).className = props.classInactive;
+				for(var j = 1; j <= idNum; j++){
+					document.getElementById(objContId + j).className = (j <= props.rating) ? props.classActive : props.classInactive;
 				}
 			});
 
 			//evento de click en estrellas
 			JaSper(starIds).eventAdd('click', function (){
 				this.rating = this.id.substr(objContId.length); //parte numerica
-				if(this.rating == props.rating) this.rating = props.rating = 0; //si se vuelve a pulsar el numero que ya estaba seleccionado se pone a cero el valor
+				if(this.rating == props.rating){
+					this.rating = props.rating = 0; //si se vuelve a pulsar el numero que ya estaba seleccionado se pone a cero el valor
+				}
 				props.rating = this.rating; //deja marcado el valor que se haya pulsado
 
-				for(var j = 1;j <= props.total;j++){
-					if(j <= this.rating) document.getElementById(objContId + j).className = props.classActive;
-					else document.getElementById(objContId + j).className = props.classInactive;
+				for(var j = 1; j <= props.total; j++){
+					document.getElementById(objContId + j).className = (j <= this.rating) ? props.classActive : props.classInactive;
 				}
 
 				//dentro del callback this es el objeto pulsado, y tiene la propiedad "rating" con su valor
-				if(typeof props.onClick === 'function') props.onClick.call(this);
+				if(typeof props.onClick === 'function'){
+					props.onClick.call(this);
+				}
 			});
 
 		}, [properties]);
 
-		return(this);
+		return this;
 	},
 
 	/**

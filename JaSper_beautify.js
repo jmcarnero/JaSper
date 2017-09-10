@@ -112,24 +112,24 @@ JaSper.beautify = {
 		var aFragmentos = JaSper.beautify.tokenizer(sTexto, oReglas);
 
 		var aStack = []; //pila de anidacion de elementos, ul, ol, etc
-		function controlStack(sElemento){ //controla el stack
+		var controlStack = function (sElemento){ //controla el stack
 			var sRet = '';
 			var sStackLast = aStack[aStack.length - 1] || '';
 
-			if(sElemento == 'ol' && sStackLast != 'ol'){
+			if(sElemento === 'ol' && sStackLast !== 'ol'){
 				sRet = '<ol>';
 				aStack.push('ol');
 			}
-			else if(sElemento == 'ul' && sStackLast != 'ul'){
+			else if(sElemento === 'ul' && sStackLast !== 'ul'){
 				sRet = '<ul>';
 				aStack.push('ul');
 			}
-			else if(!sElemento && (sStackLast == 'ol' || sStackLast == 'ul')){
+			else if(!sElemento && (sStackLast === 'ol' || sStackLast === 'ul')){
 				sRet = '</' + aStack.pop() + '>';
 			}
 
 			return sRet;
-		}
+		};
 
 		for(var iCont = 0, iFin = aFragmentos.length; iCont < iFin; iCont++){
 			//aFragmentos[iCont] = JaSper.funcs.htmlEntities(aFragmentos[iCont]);
@@ -146,7 +146,7 @@ JaSper.beautify = {
 			else if(aFragmentos[iCont].indexOf('\v') == 0){
 				aFragmentos[iCont] = controlStack() + '<p>' + aFragmentos[iCont].replace('\v', '') + '</p>';
 			}
-			else {
+			else{
 				aFragmentos[iCont] = controlStack() + aFragmentos[iCont];
 			}
 

@@ -84,29 +84,30 @@ JaSper.extend(JaSper.prototype, {
 
 		this.each(function (){
 			//TODO deberia aceptar otros tipos de nodo?
-			if(this.nodeType != 1) return; //solo nodos tipo ELEMENT_NODE
+			if(this.nodeType !== 1){
+				return; //solo nodos tipo ELEMENT_NODE
+			}
 
 			var sActDisplay = JaSper.css.getStyle(this, 'display');
 
 			if(iFade){
-				var sTipoFade = sTipo || (sActDisplay == 'none' ? 'show' : 'hide');
+				var sTipoFade = sTipo || (sActDisplay === 'none' ? 'show' : 'hide');
 				return JaSper.anim.fade(this, sTipoFade, iFade);
 			}
-			else{
-				JaSper.css.original(this, 'display');
 
-				if(sTipo){ //si se pide "hide" o "show" se pone sActDisplay al inverso para que toggle haga el efecto deseado
-					sActDisplay = sTipo == 'hide' ? 'none' : JaSper.nodo.extend(this).css.original.display;
-				}
-				else if(sActDisplay != 'none'){
-					sActDisplay = 'none';
-				}
-				else{
-					sActDisplay = JaSper.nodo.extend(this).css.original.display;
-				}
+			JaSper.css.original(this, 'display');
 
-				JaSper.css.setStyle(this, 'display', sActDisplay);
+			if(sTipo){ //si se pide "hide" o "show" se pone sActDisplay al inverso para que toggle haga el efecto deseado
+				sActDisplay = sTipo === 'hide' ? 'none' : JaSper.nodo.extend(this).css.original.display;
 			}
+			else if(sActDisplay !== 'none'){
+				sActDisplay = 'none';
+			}
+			else{
+				sActDisplay = JaSper.nodo.extend(this).css.original.display;
+			}
+
+			JaSper.css.setStyle(this, 'display', sActDisplay);
 		});
 
 		return this;
@@ -128,11 +129,15 @@ JaSper.anim = {
 	fade: function (oDOMElem, sTipo, iMiliSec, iIntervalo){
 		'use strict';
 
-		if(oDOMElem.nodeType != 1) return false; //solo nodos tipo ELEMENT_NODE
+		if(oDOMElem.nodeType !== 1){
+			return false; //solo nodos tipo ELEMENT_NODE
+		}
 
 		iMiliSec = iMiliSec || 300;
 		iIntervalo = iIntervalo || 50;
-		var bIn = (sTipo || 'show') === 'show', iOpacidad = bIn ? 0 : 1/*, iSalto = iIntervalo / iMiliSec*/;
+		var bIn = (sTipo || 'show') === 'show';
+		var iOpacidad = bIn ? 0 : 1;
+		//var iSalto = iIntervalo / iMiliSec;
 
 		JaSper.css.original(oDOMElem, 'display');
 		//JaSper.css.original(oDOMElem, 'fontSize');
@@ -140,38 +145,43 @@ JaSper.anim = {
 		if(bIn){
 			oDOMElem.style.display = JaSper.nodo.extend(oDOMElem).css.original.display;
 
-			if(oDOMElem.filters !== undefined) //IE <= 8
-				oDOMElem.filters.item("DXImageTransform.Microsoft.Alpha").opacity = iOpacidad * 100;
-			else
+			if(oDOMElem.filters !== undefined){//IE <= 8
+				oDOMElem.filters.item('DXImageTransform.Microsoft.Alpha').opacity = iOpacidad * 100;
+			}
+			else{
 				oDOMElem.style.opacity = iOpacidad;
+			}
 		}
 
 		var bFin = JaSper.time.interval({
 			intervalo: iIntervalo,
 			duracion: iMiliSec,
-			accion: function(fDelta){
+			accion: function (fDelta){
 				var iOpacidad = bIn ? fDelta : 1 - fDelta;
-		
-				if(oDOMElem.filters !== undefined)
-					oDOMElem.filters.item("DXImageTransform.Microsoft.Alpha").opacity = iOpacidad * 100;
-				else
+
+				if(oDOMElem.filters !== undefined){
+					oDOMElem.filters.item('DXImageTransform.Microsoft.Alpha').opacity = iOpacidad * 100;
+				}
+				else{
 					oDOMElem.style.opacity = iOpacidad;
-		
+				}
+
 				//oDOMElem.style.fontSize = iOpacidad * parseFloat(JaSper.nodo.extend(oDOMElem).css.original.fontSize); //TODO corregir, el cambio de fontSize afectara a todos los elementos contenidos en oDOMElem, que no nocesariamente tendran el mismo tamaño de texto
 
-				if(iOpacidad <= 0)
+				if(iOpacidad <= 0){
 					oDOMElem.style.display = 'none';
+				}
 			}
 		});
 
 		return bFin;
-	},
+	}
 
 	/**
 	 * @todo resto de direcciones y punto de inicio
 	 * @todo alternativa a transition (es CSS3)
 	 */
-	/*slide: function (oDOMElem, sTipo, iMiliSec){
+	/*, slide: function (oDOMElem, sTipo, iMiliSec){
 		'use strict';
 
 		if(oDOMElem.nodeType != 1) return false; //solo nodos tipo ELEMENT_NODE
@@ -207,16 +217,17 @@ JaSper.extend(JaSper.css, {
 
 		var oStyle = (document.body || document.documentElement).style;
 
-		if(typeof oStyle[sProp] == 'string'){
+		if(typeof oStyle[sProp] === 'string'){
 			return true;
 		}
 
 		var aVars = ['Moz', 'webkit', 'Webkit', 'Khtml', 'O', 'ms'];
 		sProp = sProp.charAt(0).toUpperCase() + sProp.substr(1);
 
-		for(var i=0; i < aVars.length; i++){
-			if(typeof oStyle[aVars[i] + sProp] == 'string')
+		for(var iCont = 0; iCont < aVars.length; iCont++){
+			if(typeof oStyle[aVars[iCont] + sProp] === 'string'){
 				return true;
+			}
 		}
 
 		return false;
