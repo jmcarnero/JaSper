@@ -38,8 +38,8 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 	//JaSper es la llamada estatica: JaSper.[funcion]
 	//$ -> alias, para simplificar las llamadas al selector: $('selector').funcion()
-	JaSper = window.JaSper = window.$ = function (sel, context){
-		return new JaSper.funcs.Init(sel, context);
+	JaSper = window.JaSper = window.$ = function (sSel, oContext){
+		return new JaSper.funcs.Init(sSel, oContext);
 	};
 
 	//version actual de la libreria
@@ -86,7 +86,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 
 			for(var iCont = 0; iCont < aCookies.length; iCont++){
 				var sCookie = aCookies[iCont];
-				while(sCookie.charAt(0) == ' '){
+				while(sCookie.charAt(0) === ' '){
 					sCookie = sCookie.substring(1, sCookie.length);
 				}
 				if(sCookie.indexOf(sNombreEQ) === 0){
@@ -171,12 +171,12 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 *
 		 * @since 2011-09-07
 		 * @param {object} oElem Objeto al que añadir la clase
-		 * @param {string} cName Nombre de la clase
+		 * @param {string} sName Nombre de la clase
 		 */
-		addClass: function (oElem, cName){
-			if(typeof cName === 'string'){
-				if(oElem.className.indexOf(cName) === -1){
-					oElem.className += ' ' + cName;
+		addClass: function (oElem, sName){
+			if(typeof sName === 'string'){
+				if(oElem.className.indexOf(sName) === -1){
+					oElem.className += ' ' + sName;
 				}
 			}
 		},
@@ -255,14 +255,29 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 *
 		 * @since 2011-09-07
 		 * @param {object} oElem Objeto al que añadir la clase
-		 * @param {string} cName Nombre de la clase
+		 * @param {string} sName Nombre de la clase
 		 */
-		removeClass: function (oElem, cName){
-			if(typeof cName === 'string'){
-				if(oElem.className.indexOf(cName) > -1){
-					oElem.className = oElem.className.substr(0, oElem.className.indexOf(cName) - 1) + oElem.className.substr(oElem.className.indexOf(cName) + cName.length);
+		removeClass: function (oElem, sName){
+			if(typeof sName === 'string'){
+				if(oElem.className.indexOf(sName) > -1){
+					oElem.className = oElem.className.substr(0, oElem.className.indexOf(sName) - 1) + oElem.className.substr(oElem.className.indexOf(sName) + sName.length);
 				}
 			}
+		},
+
+		/**
+		 * Devuelve la posicion de scroll, tanto vertical como horizontal
+		 *
+		 * @return {object}
+		 */
+		scrollPos: function (){
+			var oTipo = null;
+
+			return {
+				x: (((oTipo = document.documentElement) || (oTipo = document.body.parentNode)) && typeof oTipo.scrollLeft === 'number' ? oTipo : document.body).scrollLeft,
+				y: (((oTipo = document.documentElement) || (oTipo = document.body.parentNode)) && typeof oTipo.scrollTop === 'number' ? oTipo : document.body).scrollTop
+
+			};
 		},
 
 		/**
@@ -282,6 +297,32 @@ http://www.gnu.org/copyleft/gpl.html*/
 			}
 
 			return false;
+		},
+
+		/**
+		 * Devuelve la posición y dimensiones de la parte visible de la página
+		 *
+		 * @return {object}
+		 */
+		viewport: function (){
+			var iTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+			var iLeft = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
+			//document.body.offsetWidth
+			var iWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth; //w3c, ie6, ie4
+			var iHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
+			return {
+				top: iTop,
+				bottom: iTop + iHeight,
+				left: iLeft,
+				right: iLeft + iWidth,
+				width: iWidth,
+				height: iHeight,
+				resolution: {
+					width: window.screen.width,
+					height: window.screen.height
+				}
+			};
 		}
 
 	};
@@ -293,7 +334,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 	 *
 	 * Para controlar el movimiento de la rueda:
 	 * <code>
-	$('<p>').addEvent('mousewheel', function (ev){
+	$('<p>').eventAdd('mousewheel', function (ev){
 		var rolled = 0;
 		if('wheelDelta' in ev) {
 			rolled = ev.wheelDelta; //devuelve 3 (se ha movido la rueda hacia arriba) o -3 (rueda hacia abajo)
@@ -313,12 +354,12 @@ http://www.gnu.org/copyleft/gpl.html*/
 		 * @param {string} sEvento Nombre del evento, ej: "click" (como "onclick" sin "on"); pueden pasarse varios, separados por comas ('click,mouseup,submit'), evidentemente a todos se asignara el mismo callback
 		 * @param {Function} oFuncion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
 		 * @param {Boolean} bCapt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
-		 * @return {Object} JaSper
+		 * @return {boolean}
 		 */
 		add: function (oElem, sEvento, oFuncion, bCapt){
 			if(!oElem || oElem.nodeType === 3 || oElem.nodeType === 8){ //sin eventos en nodos texto y comentarios
 				JaSper.log('[JaSper::event.add] No se asignan eventos a nodos de texto o comentarios.', 0);
-				return undefined;
+				return false;
 			}
 
 			if(typeof oFuncion === 'string'){
@@ -351,20 +392,25 @@ http://www.gnu.org/copyleft/gpl.html*/
 					//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
 					switch(sEvento){
 						case 'mouseenter':
-							oElem.addEventListener('mouseover', JaSper.event.mouseEnter(oFuncion), bCapt);
+							sEvento = 'mouseover';
+							oFuncion = JaSper.event.mouseEnter(oFuncion);
 							break;
 						case 'mouseleave':
-							oElem.addEventListener('mouseout', JaSper.event.mouseEnter(oFuncion), bCapt);
+							sEvento = 'mouseout';
+							oFuncion = JaSper.event.mouseEnter(oFuncion);
 							break;
 						case 'mousewheel':
 							//recoger el movimiento de la rueda con "ev.wheelDelta = ev.wheelDelta || -(ev.detail);" (3 rueda arriba, -3 rueda abajo) //el valor varia segun navegador
-							if(JaSper.trait.gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
-								sEvento = 'DOMMouseScroll';
-								oFuncion = JaSper.event.mouseWheel(oFuncion);
-							}
+							sEvento = 'onwheel' in document.createElement('div')
+								? 'wheel' //Modern browsers support "wheel"
+								: document.onmousewheel !== undefined
+									? 'mousewheel' //Webkit and IE support at least "mousewheel"
+									: 'DOMMouseScroll'; //let's assume that remaining browsers are older Firefox
+							oFuncion = JaSper.event.mouseWheel(oFuncion);
+							break;
 						default: //resto de eventos
-							oElem.addEventListener(sEvento, oFuncion, bCapt);
 					}
+					oElem.addEventListener(sEvento, oFuncion, bCapt);
 
 					if(window.eventTrigger){
 						oElem.addEventListener(sEvento, function (){
@@ -373,24 +419,24 @@ http://www.gnu.org/copyleft/gpl.html*/
 					}
 				}
 				else if(document.attachEvent){ //ie
-					var clave = oElem + sEvento + oFuncion;
+					var sClave = oElem + sEvento + oFuncion;
 
-					oElem['e' + clave] = oFuncion;
-					oElem[clave] = function (){
-						oElem['e' + clave](window.event);
+					oElem['e' + sClave] = oFuncion;
+					oElem[sClave] = function (){
+						oElem['e' + sClave](window.event);
 					};
-					oElem.attachEvent('on' + sEvento, oElem[clave]);
+					oElem.attachEvent('on' + sEvento, oElem[sClave]);
 
 					if(window.eventTrigger){
-						clave = oElem + sEvento + window.eventTrigger;
+						sClave = oElem + sEvento + window.eventTrigger;
 
-						oElem['e' + clave] = function (){
+						oElem['e' + sClave] = function (){
 							window.eventTrigger.call(oElem, sEvento);
 						};
-						oElem[clave] = function (){
-							oElem['e' + clave](window.event);
+						oElem[sClave] = function (){
+							oElem['e' + sClave](window.event);
 						};
-						oElem.attachEvent('on' + sEvento, oElem[clave]);
+						oElem.attachEvent('on' + sEvento, oElem[sClave]);
 					}
 				}
 				else{ //DOM level 0 //idea original de Simon Willison
@@ -419,7 +465,7 @@ http://www.gnu.org/copyleft/gpl.html*/
 				}
 			}
 
-			return;
+			return true;
 		},
 
 		/**
@@ -530,7 +576,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 				return iCode;
 			}
 			else if(sEtype === 'keydown' || sEtype === 'keyup'){
-				var keycodes = { //keycode:[ascii_normal, ascii_shiftKey, ascii_controlkey, ascii_altKey]
+				var oKeycodes = { //keycode:[ascii_normal, ascii_shiftKey, ascii_controlkey, ascii_altKey]
 					8: [8], //Backspace
 					9: [9], //Tab
 					13: [13], //Enter
@@ -633,10 +679,10 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 
 				var iShiftControlAlt = 0;
 				if(navigator.appName === 'Netscape' && parseInt(navigator.appVersion, 10) === 4){ //netscape 4
-					var mString = (oEv.modifiers + 32).toString(2).substring(3, 6);
-					iShiftControlAlt += (mString.charAt(0) === '1') ? 1 : 0;
-					iShiftControlAlt += (mString.charAt(1) === '1') ? 1 : 0;
-					iShiftControlAlt += (mString.charAt(2) === '1') ? 1 : 0;
+					var sMString = (oEv.modifiers + 32).toString(2).substring(3, 6);
+					iShiftControlAlt += sMString.charAt(0) === '1' ? 1 : 0;
+					iShiftControlAlt += sMString.charAt(1) === '1' ? 1 : 0;
+					iShiftControlAlt += sMString.charAt(2) === '1' ? 1 : 0;
 				}
 				else{ //resto
 					iShiftControlAlt += oEv.shiftKey ? 1 : 0;
@@ -644,12 +690,12 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 					iShiftControlAlt += oEv.ctrlKey ? 1 : 0;
 				}
 
-				if(typeof keycodes[iCode] !== 'undefined'){
-					if(typeof keycodes[iCode][iShiftControlAlt] !== 'undefined'){
-						return keycodes[iCode][iShiftControlAlt]; //devuelve exacto
+				if(typeof oKeycodes[iCode] !== 'undefined'){
+					if(typeof oKeycodes[iCode][iShiftControlAlt] !== 'undefined'){
+						return oKeycodes[iCode][iShiftControlAlt]; //devuelve exacto
 					}
-					else if(typeof keycodes[iCode][0] !== 'undefined'){
-						return keycodes[iCode][0]; //devuelve correspondencia sin modificadores
+					else if(typeof oKeycodes[iCode][0] !== 'undefined'){
+						return oKeycodes[iCode][0]; //devuelve correspondencia sin modificadores
 					}
 				}
 
@@ -660,14 +706,14 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		},
 
 		mouseEnter: function (oFunc){
-			var isAChildOf = function (_parent, _child){
-				if(_parent === _child){
+			var isAChildOf = function (oParent, oChild){ //TODO se puede sustituir por nodo.ancestros()?
+				if(oParent === oChild){
 					return false;
 				}
-				while(_child && _child !== _parent){
-					_child = _child.parentNode;
+				while(oChild && oChild !== oParent){
+					oChild = oChild.parentNode;
 				}
-				return _child === _parent;
+				return oChild === oParent;
 			};
 
 			return function (oEv){
@@ -740,25 +786,25 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * @return {Object} JaSper
 		 */
 		remove: function (oElem, sEvento, oFuncion, bCapt){
-			function removeBatch(oElem, sEvento, oFuncion){
-				var oObjExtend = JaSper.nodo.extend(oElem);
+			var removeBatch = function (oElemInt, sEventoInt, oFuncionInt){
+				var oObjExtend = JaSper.nodo.extend(oElemInt);
 				var aViejosEventos = oObjExtend.event;
 				var bRemove;
 				oObjExtend.event = null;
 
 				for(var sViejoEvento in aViejosEventos){
 					bRemove = false;
-					if(!sEvento || sEvento == sViejoEvento){
+					if(!sEventoInt || sEventoInt === sViejoEvento){
 						bRemove = true;
 					}
 
 					for(var iCont = 0; iCont < aViejosEventos[sViejoEvento].length; iCont++){
-						if(bRemove || (!oFuncion || oFuncion == aViejosEventos[sViejoEvento][iCont])){
+						if(bRemove || (!oFuncionInt || oFuncionInt === aViejosEventos[sViejoEvento][iCont])){
 							bRemove = true;
 						}
 
 						if(bRemove){
-							JaSper.event.remove(oElem, sViejoEvento, aViejosEventos[sViejoEvento][iCont]);
+							JaSper.event.remove(oElemInt, sViejoEvento, aViejosEventos[sViejoEvento][iCont]);
 						}
 						else{
 							oObjExtend.event[sViejoEvento].push(aViejosEventos[sViejoEvento][iCont]);
@@ -766,8 +812,8 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 					}
 				}
 
-				JaSper.nodo.extend(oElem, oObjExtend);
-			}
+				JaSper.nodo.extend(oElemInt, oObjExtend);
+			};
 
 			if(!sEvento || !oFuncion){
 				removeBatch(oElem, sEvento, oFuncion);
@@ -783,19 +829,24 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 				//eventos mouseenter, mouseleave y mousewheel sobre una idea original encontrada en http://blog.stchur.com
 				switch(sEvento){
 					case 'mouseenter':
-						oElem.removeEventListener('mouseover', JaSper.event.mouseEnter(oFuncion), bCapt);
+						sEvento = 'mouseover';
+						oFuncion = JaSper.event.mouseEnter(oFuncion);
 						break;
 					case 'mouseleave':
-						oElem.removeEventListener('mouseout', JaSper.event.mouseEnter(oFuncion), bCapt);
+						sEvento = 'mouseout';
+						oFuncion = JaSper.event.mouseEnter(oFuncion);
 						break;
 					case 'mousewheel':
-						if(JaSper.trait.gecko){ //si estamos en un navegador Gecko, el nombre y manejador de evento requieren ajustes
-							sEvento = 'DOMMouseScroll';
-							oFuncion = JaSper.event.mouseWheel(oFuncion);
-						}
+						sEvento = 'onwheel' in document.createElement('div')
+							? 'wheel' //Modern browsers support "wheel"
+							: document.onmousewheel !== undefined
+								? 'mousewheel' //Webkit and IE support at least "mousewheel"
+								: 'DOMMouseScroll'; //let's assume that remaining browsers are older Firefox
+						oFuncion = JaSper.event.mouseWheel(oFuncion);
+						break;
 					default: //resto de eventos
-						oElem.removeEventListener(sEvento, oFuncion, bCapt);
 				}
+				oElem.removeEventListener(sEvento, oFuncion, bCapt);
 
 				if(window.eventTrigger){
 					oElem.removeEventListener(sEvento, function (){
@@ -1027,7 +1078,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 			}
 			else{ //para navegadores viejos e IE 8, a mano //usa document.all si es posible
 				var oReg = new RegExp('(^|\\s)' + sClsName.replace(/-/, '\\-') + '(\\s|$)');
-				var aEls = (sTag === '*' && oNode.all) ? oNode.all : oNode.getElementsByTagName(sTag);
+				var aEls = sTag === '*' && oNode.all ? oNode.all : oNode.getElementsByTagName(sTag);
 
 				for(iCont = 0, iLen = aEls.length; iCont < iLen; iCont++){
 					if(oReg.test(aEls[iCont].className)){
@@ -1068,40 +1119,50 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 			//si no se pasa ningun selector se usa document
 			sSelector = sSelector || document;
 
-			//this.version = JaSper.version = 'JaSper v3.4',
-			this.version = JaSper.version,
-			this.nodes = this.nodes || [],
-			//this.funcs = {}, //funciones estaticas generales
-			//this.event = {}, //funciones estaticas de eventos
+			this.version = JaSper.version;
+			this.nodes = this.nodes || [];
+			//this.funcs = {}; //funciones estaticas generales
+			//this.event = {}; //funciones estaticas de eventos
 			this.context = oContext || window.document; //contexto por defecto es document
 
 			JaSper.debug = JaSper.debug || false; //TODO revisar si debe ser una variable global; al ser global el valor se conserva hasta que se cambia explicitamente
 
 			//lenguaje para las traducciones, puede asignarse desde PHP para ser consistente con lo recibido desde el servidor
 			//si no se proporciona detecta el lenguaje del navegador (no los configurados por el usuario); si no se detecta fuerza castellano (es)
-			this.lang = JaSper.lang = JaSper.lang || (navigator.language ? navigator.language.substr(0, 2) : (navigator.userLanguage ? navigator.userLanguage.substr(0,2) : 'es'));
+			this.lang = JaSper.lang = JaSper.lang || (navigator.language ? navigator.language.substr(0, 2) : (navigator.userLanguage ? navigator.userLanguage.substr(0, 2) : 'es'));
 
 			//si se ha pasado una cadena (sin distincion inicial), puede ser un ID, clase CSS, tag HTML o una cadena HTML
 			if(typeof sSelector === 'string'){
-				if(sSelector.substring(0, 2) === '//'){ //selector XPath
-					//para que se reconozca como tal debe comenzar con //
-					var oIterator = this.context.evaluate(sSelector, this.context, null, XPathResult.ANY_TYPE, null);
-					try{
-						var oThisNode;
-						while(oThisNode = oIterator.iterateNext()){
-							this.nodes.push(oThisNode);
+				var aXpathIni = ['//', './']; //inicios de cadena validos para aceptar un selector como XPath, todos de dos caracteres
+
+				if(aXpathIni.indexOf(sSelector.substring(0, 2)) !== -1){ //selector XPath
+					if(typeof this.context.evaluate !== 'undefined'){
+						try{
+							var oIterator = this.context.evaluate(sSelector, this.context, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+
+							try{
+								var oThisNode;
+								while(oThisNode = oIterator.iterateNext()){
+									this.nodes.push(oThisNode);
+								}
+							}
+							catch(oEx){
+								JaSper.log('[OrchardWeb::constructor] [XPath] Arbol del documento modificado durante la iteracion.', 1);
+							}
+						}
+						catch(oEx){
+							JaSper.log('[OrchardWeb::constructor] Expresión [XPath] inválida.', 2);
 						}
 					}
-					catch(oEx){
-						JaSper.log('[JaSper::constructor] [XPath] Arbol del documento modificado durante la iteracion.', 1);
+					else{
+						JaSper.log('[OrchardWeb::constructor] Tu navegador no tiene soporte [XPath].', 2);
 					}
 				}
 				else{ //selector con reglas CSS
 					var oRegSel = /^<([^> ]+)[^>]*>(?:.|\n)+?<\/\1>$|^(#([-\w]+)|\.(\w[-\w]+)|@(\w[-\w]+))$/i; //comprueba si es cadena HTML, ID o class
-					var oRegTag = /<([a-z1-9]+?)>,?/ig; //busca tags <SPAN> <P> <H1>
 
-					//busca un solo tag HTML, ej. <P> o <SPAN>
-					//o una lista de ellos separada por comas, ej. <h1>,<div>,<strong>
+					//busca un solo tag HTML, ej. <P> o <SPAN> o una lista de ellos separada por comas, ej. <h1>,<div>,<strong>
+					var oRegTag = /<([a-z1-9]+?)>,?/ig;
 					var aMatch = oRegTag.exec(sSelector);
 					if(aMatch && aMatch[1]){
 						aMatch = sSelector.match(oRegTag);
@@ -1146,21 +1207,14 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 							this.nodes = oDiv.childNodes;
 							document.removeChild(oDiv);
 						}
-						else{
-							//if querySelectorAll is available for modern browsers we can use that e.g
+						else if(document.querySelectorAll){
 							//FF 3.2+, Safari 3.2+, Opera 10, Chrome 3, IE 8 (standards mode)
-							if(document.querySelectorAll){
-								this.nodes = JaSper.funcs.selector(sSelector, this.context);
-							}
-							else{
-								//ninguna forma de localizar los nodos pedidos
-								this.nodes = [];
-
-								//pasarselo a Sizzle (mas eficiente con navegadores antiguos)
-								if(JaSper.find){
-									this.nodes = JaSper.find(sSelector, this.context);
-								}
-							}
+							this.nodes = JaSper.funcs.selector(sSelector, this.context);
+						}
+						else{
+							this.nodes = JaSper.find
+								? JaSper.find(sSelector, this.context) //pasarselo a Sizzle (mas eficiente con navegadores antiguos)
+								: []; //ninguna forma de localizar los nodos pedidos
 						}
 					}
 
@@ -1189,15 +1243,15 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * @return {Boolean}
 		 */
 		isDOMObject: function (oObj){
-			var bWindow = (oObj === window); //el objeto window no se ajusta a ninguno de los siguientes, pero puede recibir eventos (por ejemplo) como cualquier otro elemento HTML
+			var bWindow = oObj === window; //el objeto window no se ajusta a ninguno de los siguientes, pero puede recibir eventos (por ejemplo) como cualquier otro elemento HTML
 
-			var bNode = (typeof Node === 'object'
+			var bNode = typeof Node === 'object'
 				? oObj instanceof Node
-				: oObj && typeof oObj === 'object' && typeof oObj.nodeType === 'number' && typeof oObj.nodeName === 'string');
+				: oObj && typeof oObj === 'object' && typeof oObj.nodeType === 'number' && typeof oObj.nodeName === 'string';
 
-			var bElement = (typeof HTMLElement === 'object'
+			var bElement = typeof HTMLElement === 'object'
 				? oObj instanceof HTMLElement //DOM2
-				: oObj && typeof oObj === 'object' && oObj !== null && oObj.nodeType === 1 && typeof oObj.nodeName === 'string');
+				: oObj && typeof oObj === 'object' && oObj !== null && oObj.nodeType === 1 && typeof oObj.nodeName === 'string';
 
 			return bWindow || bNode || bElement;
 		},
@@ -1220,7 +1274,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 */
 		isArrayLike: function (oObj){
 			//window, strings (y functions) tambien tienen 'length'
-			return (oObj && oObj.length && !this.isFunction(oObj) && !this.isString(oObj) && oObj !== window);
+			return oObj && oObj.length && !this.isFunction(oObj) && !this.isString(oObj) && oObj !== window;
 		},
 
 		/**
@@ -1230,7 +1284,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * @return {Boolean}
 		 */
 		isFunction: function (oObj){
-			return (oObj instanceof Function);
+			return oObj instanceof Function;
 		},
 
 		/**
@@ -1250,7 +1304,7 @@ this.customEvents[sEvento] = new CustomEvent(sEvento, {
 		 * @return {Boolean}
 		 */
 		isString: function (oObj){
-			return (typeof oObj === 'string');
+			return typeof oObj === 'string';
 		},
 
 		/**
@@ -1328,7 +1382,7 @@ JaSper.expr[":"] = JaSper.expr.filters;
 		 */
 		sprintf: function (){
 			if(!arguments || !arguments.length){
-				return;
+				return undefined;
 			}
 			if(arguments.length === 1){
 				return arguments[0]; //devuelve la cadena (primer argumento) si no se pasa nada mas
@@ -1338,7 +1392,7 @@ JaSper.expr[":"] = JaSper.expr.filters;
 
 			var oRegExp = /(%[s%])/; //busca todos los %s o %%
 			var aSust = [];
-			var cont = 0;
+			var iCont = 0;
 
 			while(aSust = oRegExp.exec(sCadena)){
 				switch(aSust[1]){
@@ -1346,14 +1400,14 @@ JaSper.expr[":"] = JaSper.expr.filters;
 						sCadena = sCadena.substr(0, aSust.index) + '%' + sCadena.substr(aSust.index + 2);
 						break;
 					case '%s': //string
-						sCadena = sCadena.substr(0, aSust.index) + arguments[++cont].toString() + sCadena.substr(aSust.index + 2);
+						sCadena = sCadena.substr(0, aSust.index) + arguments[++iCont].toString() + sCadena.substr(aSust.index + 2);
 						break;
 					case '%u': //unsigned
-						sCadena = sCadena.substr(0, aSust.index) + parseInt(arguments[++cont], 10) + sCadena.substr(aSust.index + 2);
+						sCadena = sCadena.substr(0, aSust.index) + parseInt(arguments[++iCont], 10) + sCadena.substr(aSust.index + 2);
 						break;
 					default:
 						sCadena = sCadena.substr(0, aSust.index) + '-tipo desconocido-' + sCadena.substr(aSust.index + 2);
-						cont++;
+						iCont++;
 				}
 			}
 
@@ -1429,21 +1483,21 @@ $('<body>').addEvent('mousewheel', function (ev){
 			var sScriptId = 'JaSper_script_' + sRuta.replace(/[^a-zA-Z\d_]+/, '');
 			if(document.getElementById(sScriptId)){
 				JaSper.log('-JaSper::load.script- Script (id->' + sScriptId + ') ya cargado.', 0);
-				return; //ya cargado
+				return false; //ya cargado
 			}
 
 			var sMinificado = bMinificar ? JaSper.trait.minificado : ''; //sufijo cuando se trabaja con la version minificada
 
 			//si se ha pasado una ruta no absoluta se le suma la misma ruta en que se encuentre "JaSper.js"
 			if(sRuta.indexOf('http://') === -1){
-				var oTempJs = new RegExp('(^|(.*?\\/))(JaSper' + sMinificado + '\.js)(\\?|$)');
-				var scripts = document.getElementsByTagName('script');
-				for(var iCont = 0, lon = scripts.length; iCont < lon; iCont++){
-					var src = scripts[iCont].getAttribute('src');
-					if(src){
-						var srcMatch = src.match(oTempJs);
-						if(srcMatch){
-							sRuta = srcMatch[1] + sRuta; //pone la misma ruta que "JaSper.js"
+				var oTempJs = new RegExp('(^|(.*?\\/))(JaSper' + sMinificado + '\\.js)(\\?|$)');
+				var oScripts = document.getElementsByTagName('script');
+				for(var iCont = 0, iLon = oScripts.length; iCont < iLon; iCont++){
+					var sSrc = oScripts[iCont].getAttribute('src');
+					if(sSrc){
+						var aSrcMatch = sSrc.match(oTempJs);
+						if(aSrcMatch){
+							sRuta = aSrcMatch[1] + sRuta; //pone la misma ruta que "JaSper.js"
 							break;
 						}
 					}
@@ -1455,7 +1509,7 @@ $('<body>').addEvent('mousewheel', function (ev){
 			 */
 			var loadQueue = function (){ //podria recibir como parametro el propio script cargado (oScript){
 				if(!JaSper.load.queue){ //nada que hacer si no hay funciones
-					return;
+					return false;
 				}
 
 				var oScriptQueue = JaSper.load.queue;
@@ -1463,14 +1517,14 @@ $('<body>').addEvent('mousewheel', function (ev){
 
 				for(var oMt in oScriptQueue){
 					try{
-						(function (oCb, ctx){
-							return oCb.call(ctx);
-						})(oScriptQueue[oMt]['fn'], oScriptQueue[oMt]['ctx']);
+						(function (oCb, oCtx){
+							return oCb.call(oCtx);
+						})(oScriptQueue[oMt].fn, oScriptQueue[oMt].ctx);
 					}
 					catch(oEx){
 						JaSper.log('-JaSper::load.script- No se ha podido ejecutar el método: [' + oEx + ']', 1);
 						JaSper.load.queue.push(oMt);
-						return;
+						return false;
 					}
 				}
 			};
@@ -1521,11 +1575,11 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 	 *
 	 * @todo mostrar el mensaje con la linea correcta en que se ha producido (no la linea de este metodo)
 	 * @since 2011-03-24
-	 * @param {string} mens Mensaje de debug a mostrar
+	 * @param {string} sMens Mensaje de debug a mostrar
 	 * @param {number} iErrLev Nivel de error a mostrar; 0 -> info (por defecto), 1 -> warn, 2 -> error
 	 * @return {void}
 	 */
-	JaSper.log = function (mens, iErrLev){
+	JaSper.log = function (sMens, iErrLev){
 		if(!JaSper.debug){
 			return false;
 		}
@@ -1552,14 +1606,14 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		}
 		finally{
 			if(sStack){
-				var lineas = sStack.split('\n');
-				for(var iCont = 0, len = lineas.length; iCont < len; iCont++){
-					if(lineas[iCont].match(/^\s*[A-Za-z0-9\-_$]+/)){
-						aStack.push(lineas[iCont]);
+				var aLineas = sStack.split('\n');
+				for(var iCont = 0, iLen = aLineas.length; iCont < iLen; iCont++){
+					if(aLineas[iCont].match(/^\s*[A-Za-z0-9\-_$]+/)){
+						aStack.push(aLineas[iCont]);
 
 						//en opera las lineas impares tienen el mensaje de error, las impares donde se ha producido
-						/*var entry = lineas[iCont];
-						if(lineas[iCont + 1]) entry += ' at ' + lineas[++iCont];
+						/*var entry = aLineas[iCont];
+						if(aLineas[iCont + 1]) entry += ' at ' + aLineas[++iCont];
 						aStack.push(entry);*/
 					}
 				}
@@ -1567,40 +1621,40 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			}
 		}
 
-		mens = mens || 'JaSper debug';
-		mens += '\n[' + (aStack[1] || aStack[0]) + ']'; //hacer esta informacion opcional o solo mostrar fichero y linea de la llamada?
+		sMens = sMens || 'JaSper debug';
+		sMens += '\n[' + (aStack[1] || aStack[0]) + ']'; //hacer esta informacion opcional o solo mostrar fichero y linea de la llamada?
 		iErrLev = iErrLev || 0;
 
 		if(typeof console !== 'object'){
 			//contenedor de los mensajes de debug
-			var e = document.getElementById('JaSperDebug'); //TODO en firefox adquiere los metodos de JaSper, en ie no
-			if(!e){
-				e = JaSper.nodo.crear('ul', {className: 'JaSperDebug ', id: 'JaSperDebug'}); //TODO id -> diferenciar id's, por si se crea mas de uno
-				JaSper('<body>').insertAfter(e);
+			var oElem = document.getElementById('JaSperDebug'); //TODO en firefox adquiere los metodos de JaSper, en ie no
+			if(!oElem){
+				oElem = JaSper.nodo.crear('ul', {className: 'JaSperDebug ', id: 'JaSperDebug'}); //TODO id -> diferenciar id's, por si se crea mas de uno
+				JaSper('<body>').insertAfter(oElem);
 			}
 
 			//cada uno de los mensajes de debug
-			var m = JaSper.nodo.crear('li', {className: 'JaSperDebug' + (iErrLev === 2 ? 'error' : (iErrLev === 1 ? 'warn' : 'info'))});
-			m.appendChild(document.createTextNode(mens));
-			JaSper('<body>').append(m, e);
+			var oMens = JaSper.nodo.crear('li', {className: 'JaSperDebug' + (iErrLev === 2 ? 'error' : (iErrLev === 1 ? 'warn' : 'info'))});
+			oMens.appendChild(document.createTextNode(sMens));
+			JaSper('<body>').append(oMens, oElem);
 		}
 		else{
 			var oConsole = console;
 
-			if(typeof mens !== 'string'){
-				oConsole.dir(mens); //show objects
+			if(typeof sMens !== 'string'){
+				oConsole.dir(sMens); //show objects
 			}
 
 			switch(iErrLev){
 				case 2: //error
-					oConsole.error(mens);
+					oConsole.error(sMens);
 					break;
 				case 1: //warn
-					oConsole.warn(mens);
+					oConsole.warn(sMens);
 					break;
 				case 0: //info
 				default:
-					oConsole.info(mens);
+					oConsole.info(sMens);
 			}
 		}
 
@@ -1611,125 +1665,174 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 	JaSper.nodo = {
 
 		/**
+		 * Busca y devuelve los padres del elemento pasado
+		 *
+		 * Si se pasa el segundo argumento (otro nodo) devuelve los nodos entre ambos, en caso de que el segundo sea ancestro del primero (en el grado que sea)
+		 * Si el primer argumento no es descendiente del segundo devuelve null
+		 * Si no se pasa segundo argumento devuelve todos los ancestros entre el primero y document.body
+		 * Devuelve un array en orden: [oOrigenPadre, oOrigenPadrePadre, ...]
+		 *
+		 * @todo si el primer argumento es document.body o ancestro los da como validos y sigue hasta salirse
+		 * @param {object} oOrigen Nodo del que se devolveran sus ancestros
+		 * @param {object} oHasta Nodo ascendiente hasta el que se devolveran ancestros, opcional
+		 * @return {array}
+		 */
+		ancestros: function (oOrigen, oHasta){
+			if(!oOrigen){
+				JaSper.log('-JaSper::nodo.ancestros- No se ha pasado ningun nodo', 0);
+				return false;
+			}
+
+			var bEncontrado = false; //bandera para marcar si se ha encontrado oHasta
+			oHasta = oHasta || document.body;
+			var aNodos = [];
+
+			var oUltimoPadre = oOrigen.parentNode;
+			while(oUltimoPadre){
+				aNodos.push(oUltimoPadre);
+				if(oUltimoPadre === oHasta){
+					bEncontrado = true;
+					break;
+				}
+				oUltimoPadre = oUltimoPadre.parentNode;
+			}
+
+			if(!bEncontrado){
+				aNodos = [];
+			}
+
+			return aNodos;
+		},
+
+		/**
 		 * Cambia o consulta atributos de elementos
 		 * No confundir con consulta/asignacion de estilos CSS
 		 *
 		 * @todo si se intenta cambiar una propiedad (como value) deberia cambiarse directamente (elem.value = 'valor'); bien controlando los casos o enviando a metodos especificos
 		 * @param {Object} oObj Objeto DOM sobre el que consultar/cambiar el atributo
-		 * @param {string} atributo Atributo a cambiar/consultar
-		 * @param {string} valor Nuevo valor para el atributo, si no se pasa nada se devuelve el valor actual
+		 * @param {string} sAtributo Atributo a cambiar/consultar
+		 * @param {string} sValor Nuevo valor para el atributo, si no se pasa nada se devuelve el valor actual
 		 * @return {string} Valor actual (en consulta) o valor antiguo (en asignacion)
 		 */
-		attrib: function (oObj, atributo, valor){
-			var ret = null;
-			atributo = (atributo || '').toLowerCase();
+		attrib: function (oObj, sAtributo, sValor){
+			var sRet = null;
+			sAtributo = (sAtributo || '').toLowerCase();
 
-			if(oObj && atributo){
-				var sData = atributo.indexOf('data-') === 0 ? atributo.substr(5).toLowerCase() : null; //atributos tipo custom data (HTML5), ej.: data-info="ejemplo de datos"; deben usarse con DOMobject.dataset.info
+			if(oObj && sAtributo){
+				var sData = sAtributo.indexOf('data-') === 0 ? sAtributo.substr(5).toLowerCase() : null; //atributos tipo custom data (HTML5), ej.: data-info="ejemplo de datos"; deben usarse con DOMobject.dataset.info
 
 				if(sData){
-					ret = oObj.dataset[sData] || oObj.getAttribute(atributo); //IE no se entiende bien con dataset[]
+					sRet = oObj.dataset[sData] || oObj.getAttribute(sAtributo); //IE no se entiende bien con dataset[]
 				}
-				ret = ret || oObj.getAttribute(atributo); //consulta, se devuelve el valor; el actual o antiguo (si a continuacion se pone nuevo)
+				sRet = sRet || oObj.getAttribute(sAtributo); //consulta, se devuelve el valor; el actual o antiguo (si a continuacion se pone nuevo)
 
-				if(valor !== undefined){
-					if(valor){
+				if(sValor !== undefined){
+					if(sValor){
 						if(sData){
-							oObj.dataset[sData] = valor;
+							oObj.dataset[sData] = sValor;
 						}
 						else{
-							oObj.setAttribute(atributo, valor);
+							oObj.setAttribute(sAtributo, sValor);
 						}
 					}
-					else{ //si se quiere borrar un atributo no debe hacerse con setAttribute
-						if(sData){
-							oObj.dataset[sData] = null;
-						}
-						else{
-							oObj.removeAttribute(atributo);
-						}
+					else if(sData){ //si se quiere borrar un atributo no debe hacerse con setAttribute
+						oObj.dataset[sData] = null;
+					}
+					else{
+						oObj.removeAttribute(sAtributo);
 					}
 				}
 			}
 
-			return ret;
+			return sRet;
 		},
 
 		/**
 		 * Devuelve la posicion y tamaño de la caja imaginaria (bounding box) que rodea al elemento pasado
 		 *
 		 * @param {Object} oObj Objeto DOM del que calcular su caja
+    	 * @param {boolean} bRelativo Si true devuelve posicion relativa a viewport (por defecto, comportamiento natural de "getBoundingClientRect", si false devuelve posicion respecto al documento
 		 * @return {Object} left, top, width y height de la caja del elemento
 		 */
-		boundingBox: function (oObj){
+		boundingBox: function (oObj, bRelativo){
 			if(!oObj){
-				return;
+				return {};
 			}
+			bRelativo = typeof bRelativo === 'undefined' ? true : Boolean(bRelativo);
 
-			var x = 0;
-			var y = 0;
-			var w = 0;
-			var h = 0;
-			var x2 = 0;
-			var y2 = 0;
-			var rect = null;
+			var iXcoord = 0;
+			var iYcoord = 0;
+			var iWidth = 0;
+			var iHeight = 0;
+			var iXcoord2 = 0;
+			var iYcoord2 = 0;
+			var oRect = null;
 
 			if(oObj.getBoundingClientRect){ //ie, Firefox 3+, Chrome, Opera 9.5+, Safari 4+
-				rect = oObj.getBoundingClientRect();
+				oRect = oObj.getBoundingClientRect();
 
-				x = rect.left;
-				y = rect.top;
-				w = rect.right - rect.left;
-				h = rect.bottom - rect.top;
+				iXcoord = oRect.left;
+				iYcoord = oRect.top;
+				iWidth = oRect.right - oRect.left;
+				iHeight = oRect.bottom - oRect.top;
 
-				if(navigator.appName.toLowerCase() === 'microsoft internet explorer'){ //bounding rectangle incluye los bordes top y left del area de cliente
-					x -= document.documentElement.clientLeft;
-					y -= document.documentElement.clientTop;
+				if(JaSper.trait.msie){ //bounding rectangle incluye los bordes top y left del area de cliente
+					iXcoord -= document.documentElement.clientLeft;
+					iYcoord -= document.documentElement.clientTop;
 
 					var zoomFactor = (function (){ //devuelve 1 excepto para ie < 8, a niveles de zoom != 1
-						var factor = 1;
+						var iFactor = 1;
 						if(document.body.getBoundingClientRect){
-							rect = document.body.getBoundingClientRect(); //en ie < 8 rect devuelve pixel fisicos (no logicos, independientes de zoom)
-							var physicalW = rect.right - rect.left;
-							var logicalW = document.body.offsetWidth;
+							oRect = document.body.getBoundingClientRect(); //en ie < 8 rect devuelve pixel fisicos (no logicos, independientes de zoom)
+							var iPhysicalW = oRect.right - oRect.left;
+							var iLogicalW = document.body.offsetWidth;
 
-							factor = Math.round((physicalW / logicalW) * 100) / 100; //el nivel de zoom level es un porcentaje (entero)
+							iFactor = Math.round(iPhysicalW / iLogicalW * 100) / 100; //el nivel de zoom level es un porcentaje (entero)
 						}
-						return factor;
+						return iFactor;
 					})();
 
 					if(zoomFactor !== 1){ //ie 7
-						x = Math.round(x / zoomFactor);
-						y = Math.round(y / zoomFactor);
-						w = Math.round(w / zoomFactor);
-						h = Math.round(h / zoomFactor);
+						iXcoord = Math.round(iXcoord / zoomFactor);
+						iYcoord = Math.round(iYcoord / zoomFactor);
+						iWidth = Math.round(iWidth / zoomFactor);
+						iHeight = Math.round(iHeight / zoomFactor);
 					}
 				}
 			}
 			else{ //Firefox, Opera and Safari; versiones viejas
-				var offset = {x: 0, y: 0};
-				var scrolled = {x: 0, y: 0};
+				var oOffset = {x: 0, y: 0};
+				var oScrolled = {x: 0, y: 0};
 
 				while(oObj.offsetParent){
-					offset.x += oObj.offsetParent.offsetLeft;
-					offset.y += oObj.offsetParent.offsetTop;
+					oOffset.x += oObj.offsetParent.offsetLeft;
+					oOffset.y += oObj.offsetParent.offsetTop;
 
 					if(oObj.offsetParent.tagName.toLowerCase() !== 'html'){
-						scrolled.x += oObj.offsetParent.scrollLeft;
-						scrolled.y += oObj.offsetParent.scrollTop;
+						oScrolled.x += oObj.offsetParent.scrollLeft;
+						oScrolled.y += oObj.offsetParent.scrollTop;
 					}
 				}
 
-				x = offset.x - scrolled.x;
-				y = offset.y - scrolled.y;
-				w = oObj.offsetWidth;
-				h = oObj.offsetHeight;
+				iXcoord = oOffset.x - oScrolled.x;
+				iYcoord = oOffset.y - oScrolled.y;
+				iWidth = oObj.offsetWidth;
+				iHeight = oObj.offsetHeight;
 			}
 
-			x2 = x + w;
-			y2 = y + h;
+			iXcoord2 = iXcoord + iWidth;
+			iYcoord2 = iYcoord + iHeight;
 
-			return {top: y, bottom: y2, left: x, right: x2, width: w, height: h, boundingClientRect: rect};
+			if(!bRelativo){
+				var oScroll = JaSper.css.scrollPos();
+
+				iXcoord += oScroll.x;
+				iXcoord2 += oScroll.x;
+				iYcoord += oScroll.y;
+				iYcoord2 += oScroll.y;
+			}
+
+			return {top: iYcoord, bottom: iYcoord2, left: iXcoord, right: iXcoord2, width: iWidth, height: iHeight, boundingClientRect: oRect};
 		},
 
 		/**
@@ -1759,7 +1862,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 				oElem = document.createElement(sTag);
 			}
 
-			function _tipo(sTipo){ //devuelve si es atributo (0) o propiedad (1) o nada (-1)
+			var propTipo = function (sTipo){ //devuelve si es atributo (0) o propiedad (1) o nada (-1)
 				sTipo = sTipo || null;
 				var iRet = -1;
 				var aTipos = {className: 1, innerHTML: 1, style: 2};
@@ -1779,7 +1882,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 				}
 
 				return iRet;
-			}
+			};
 
 			if(oProps){
 				if(oProps.id && document.getElementById(oProps.id)){ //si la id no es unica si ignora //TODO crear una id unica?
@@ -1792,7 +1895,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 
 				for(var sProp in oProps){
 					if(oProps[sProp]){ //no se comprueba si la propiedad y su valor son validos
-						var iTipo = _tipo(sProp);
+						var iTipo = propTipo(sProp);
 
 						if(iTipo === 1){
 							oElem[sProp] = oProps[sProp];
@@ -1825,14 +1928,83 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		},
 
 		/**
+		 * Devuelve si el elemento pasado es tocable (visible y no enmascarado); si se encuentra parcial o totalmente en viewport y se puede tocar
+		 *
+		 * Puede estar parcial o totalmente a la vista
+		 * De momento busca el centro de la parte expuesta del elemento
+		 *
+		 * @param {Object} oObj Objeto DOM a comprobar visibilidad
+		 * @return {boolean} true si es visible
+		 */
+		expuesto: function (oObj){
+			var oThis = this;
+
+			//calcula el cuadro ocupado por un elemento dentro del viewport
+			var boxPositionInViewport = function (oElBB){
+				var oCoords = oThis.boundingBox(oElBB, false);
+				var oViewport = JaSper.css.viewport();
+
+				if(oViewport.top > oCoords.bottom || oCoords.top > oViewport.bottom){ //no es visible, la caja se sale por arriba o por abajo
+					oCoords.top = null;
+					oCoords.bottom = null;
+					oCoords.height = null;
+				}
+				else{
+					if(oViewport.top > oCoords.top){ //top esta por encima de viewport
+						oCoords.top = oViewport.top;
+					}
+					if(oCoords.bottom > oViewport.bottom){ //bottom esta por debajo de viewport
+						oCoords.bottom = oViewport.bottom;
+					}
+					oCoords.height = oCoords.bottom - oCoords.top; //recalculo por si ha cambiado cualquiera de las dos
+				}
+
+				if(oViewport.left > oCoords.right || oCoords.left > oViewport.right){ //no es visible, la caja se sale por arriba o por abajo
+					oCoords.left = null;
+					oCoords.right = null;
+					oCoords.width = null;
+				}
+				else{
+					if(oViewport.left > oCoords.left){ //left esta a la izquierda de viewport
+						oCoords.left = oViewport.left;
+					}
+					if(oCoords.right > oViewport.right){ //right esta a la derecha de viewport
+						oCoords.right = oViewport.right;
+					}
+					oCoords.width = oCoords.right - oCoords.left; //recalculo por si ha cambiado cualquiera de las dos
+				}
+
+				return oCoords;
+			};
+
+			if(JaSper.css.getStyle(oObj, 'display') !== 'none' && JaSper.css.getStyle(oObj, 'visibility') !== 'hidden'){
+				var oRealCoords = boxPositionInViewport(oObj);
+
+				if(oRealCoords.width && oRealCoords.height){
+					var oScroll = JaSper.css.scrollPos();
+					var iCoordX = Math.round(oRealCoords.left + (oRealCoords.width / 2) - oScroll.x); //se hace la comprobacion sobre el punto medio de la parte visible de la caja
+					var iCoordY = Math.round(oRealCoords.top + (oRealCoords.height / 2) - oScroll.y);
+
+					var oVisibleElem = document.elementFromPoint(iCoordX, iCoordY);
+					if(oVisibleElem){
+						var bIsVisibleElem = oVisibleElem === oObj;
+						return Boolean(bIsVisibleElem || this.ancestros(oVisibleElem, oObj).length);
+					}
+				}
+			}
+
+			return false;
+		},
+
+		/**
 		 * Extiende un elemento DOM con propiedades JaSper
 		 * Si no se pasa el segundo parametro devuelve el estado actual de las propiedades extendidas JaSper
 		 *
 		 * @param {Object} oDom Objeto DOM a extender
-		 * @param {Object} addObj Objeto con metodos que se agregaran a oDom
+		 * @param {Object} oAddObj Objeto con metodos que se agregaran a oDom
 		 * @return {Object}
 		 */
-		extend: function (oDom, addObj){
+		extend: function (oDom, oAddObj){
 			if(!JaSper.funcs.isDOMObject(oDom)){
 				JaSper.log('[JaSper::nodo.extend] Se está intentando extender un nodo no DOM', 1);
 				return false;
@@ -1841,9 +2013,9 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			var sExtendProp = 'JaSper'; //nombre de la propiedad que recogera las propiedades extendidas JaSper
 			oDom[sExtendProp] = oDom[sExtendProp] || {};
 
-			if(addObj){
-				for(var a in addObj){
-					oDom[sExtendProp][a] = addObj[a];
+			if(oAddObj){
+				for(var sProp in oAddObj){
+					oDom[sExtendProp][sProp] = oAddObj[sProp];
 				}
 			}
 
@@ -1876,24 +2048,24 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 	 * NO permite encadenado de metodos
 	 *
 	 * @todo optimizar codigo
-	 * @param {array} trad Clave de la traduccion a devolver y parametros que requiera, ej. 'clave a traducir'; otro ej. ['%s a %s', 'clave', 'traducir'], la clave que se busca para la traduccion es el parametro unico o el primer indice y el resto del array parametros para sprintf
-	 * @param {string} lang Lenguaje al que traducir, si no se pasa ninguno se toma el de JaSper.lang
+	 * @param {array} aTrad Clave de la traduccion a devolver y parametros que requiera, ej. 'clave a traducir'; otro ej. ['%s a %s', 'clave', 'traducir'], la clave que se busca para la traduccion es el parametro unico o el primer indice y el resto del array parametros para sprintf
+	 * @param {string} sLang Lenguaje al que traducir, si no se pasa ninguno se toma el de JaSper.lang
 	 * @returns {string} Cadena traducida, original si no se encuentra traduccion
 	 */
-	JaSper._t = function (trad, lang){
-		if(!trad){
+	JaSper._t = function (aTrad, sLang){
+		if(!aTrad){
 			return '';
 		}
-		lang = lang || JaSper.lang;
+		sLang = sLang || JaSper.lang;
 
-		if(!JaSper.funcs.isArray(trad)){
-			trad = [trad];
+		if(!JaSper.funcs.isArray(aTrad)){
+			aTrad = [aTrad];
 		}
-		if(JaSper.langs[lang] && JaSper.langs[lang][trad[0]]){
-			trad[0] = JaSper.langs[lang][trad[0]];
+		if(JaSper.langs[sLang] && JaSper.langs[sLang][aTrad[0]]){
+			aTrad[0] = JaSper.langs[sLang][aTrad[0]];
 		}
 
-		return JaSper.funcs.sprintf.apply(this, trad);
+		return JaSper.funcs.sprintf.apply(this, aTrad);
 	};
 
 	/**
@@ -1912,7 +2084,7 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @return {Object} JaSper
 		 */
 		call: function (oFuncion, iIntervalo, iLapso){
-			if(!!oFuncion){ //si no hay nada que ejecutar se sale
+			if(oFuncion){ //si no hay nada que ejecutar se sale
 
 				var oIdt = null;
 
@@ -1965,24 +2137,24 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 			oOps.intervalo = oOps.intervalo || 40; //25 fps por defecto
 			oOps.duracion = oOps.duracion || 300;
 			oOps.delta = oOps.delta || '';
-			if(typeof oOps.delta == 'string'){
+			if(typeof oOps.delta === 'string'){
 				switch(oOps.delta){
 					case 'cuadratica': //variacion cuadratica (cuanto mayor sea el exponente mayor la aceleracion)
-						oOps.delta = function (dt){return Math.pow(dt, 2);};
+						oOps.delta = function (iDift){return Math.pow(iDift, 2);};
 						break;
-					case 'arco': //variacion "arco", primero a la inversa y despues directa acelear; en funcion de la intensidad (x)
-						oOps.delta = function (dt, x){x = x || 1.5; return Math.pow(dt, 2) * ((x + 1) * dt - x);};
+					case 'arco': //variacion "arco", primero a la inversa y despues directa acelear; en funcion de la intensidad (iPot)
+						oOps.delta = function (iDift, iPot){iPot = iPot || 1.5; return Math.pow(iDift, 2) * ((iPot + 1) * iDift - iPot);};
 						break;
 					case 'bote': //variacion dando botes
-						oOps.delta = function (dt){for(var a = 0, b = 1; ;a += b, b /= 2){if(dt >= (7 - 4 * a) / 11){return -Math.pow((11 - 6 * a - 11 * dt) / 4, 2) + Math.pow(b, 2);}}};
+						oOps.delta = function (iDift){for(var iRangA = 0, iRangB = 1; ; iRangA += iRangB, iRangB /= 2){if(iDift >= (7 - 4 * iRangA) / 11){return -Math.pow((11 - 6 * iRangA - 11 * iDift) / 4, 2) + Math.pow(iRangB, 2);}}};
 						//oOps.delta = oOps.delta || function (dt, x){return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);}; //variacion elastica, similar a dando botes (x define el rango inicial)
 						break;
-					case 'elastica': //variacion elastica, similar a dando botes (x define el rango inicial)
-						oOps.delta = function (dt, x){x = x || 1.5; return Math.pow(2, 10 * (dt - 1)) * Math.cos(20 * Math.PI * x / 3 * dt);};
+					case 'elastica': //variacion elastica, similar a dando botes (iIni define el rango inicial)
+						oOps.delta = function (iDift, iIni){iIni = iIni || 1.5; return Math.pow(2, 10 * (iDift - 1)) * Math.cos(20 * Math.PI * iIni / 3 * iDift);};
 						break;
 					case 'lineal':
 					default: //por defecto variacion lineal
-						oOps.delta = function (dt){return dt;};
+						oOps.delta = function (iDift){return iDift;};
 				}
 			}
 
@@ -2010,8 +2182,8 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 		 * @return {boolean}
 		 */
 		wait: function (iTiempo){
-			var now = new Date().getTime();
-			while(new Date().getTime() < now + iTiempo){
+			var oNow = new Date().getTime();
+			while(new Date().getTime() < oNow + iTiempo){
 				null; //no hace nada durante el tiempo indicado //TODO pasar un callback?
 			}
 
@@ -2037,11 +2209,11 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
 
 		//guarda si es la version minificada (true) o normal (false)
 		minificado: (function (){ //comprueba si estamos con la version minificada o la normal
-			var scripts = document.getElementsByTagName('script'); //document.scripts?
+			var aScripts = document.getElementsByTagName('script'); //document.scripts?
 			var sCadenaMin = '_min';
 
-			for(var i = 0;i < scripts.length; i++){
-				if(scripts[i].src.indexOf('JaSper_min.js') > 0){
+			for(var iCont = 0; iCont < aScripts.length; iCont++){
+				if(aScripts[iCont].src.indexOf('JaSper_min.js') > 0){
 					return sCadenaMin; //version minificada
 				}
 			}
@@ -2080,6 +2252,27 @@ $('#capa').setDebug(true).ajax('ej_respuesta.php');
  * Extendiendo el prototipo
  */
 JaSper.extend(JaSper.prototype, {
+
+	/**
+	 * Busca y devuelve los padres del primer elemento del selector
+	 *
+	 * Si se pasa el segundo argumento (otro nodo) devuelve los nodos entre ambos, en caso de que el segundo sea ancestro del primero (en el grado que sea)
+	 * Si el primer argumento no es descendiente del segundo devuelve array vacio
+	 * Si no se pasa segundo argumento devuelve todos los ancestros entre el primero y document.body
+	 * Devuelve un array en orden: [oOrigenPadre, oOrigenPadrePadre, ...]
+	 *
+	 * NO permite encadenado de metodos
+	 *
+	 * @todo si el primer argumento es document.body o ancestro los da como validos y sigue hasta salirse
+	 * @param {object} oHasta Nodo ascendiente hasta el que se devolveran ancestros, opcional
+	 * @return {array}
+	 */
+	ancestros: function (oHasta){
+		oHasta = oHasta ? JaSper(oHasta).nodes[0] : document.body;
+		var oElem = this.nodes[0];
+
+		return JaSper.nodo.ancestros(oElem, oHasta);
+	},
 
 	/**
 	 * Debug
@@ -2139,25 +2332,26 @@ JaSper.extend(JaSper.prototype, {
 			return null;
 		}
 
+		var iInterval = 0;
 		if(JaSper.trait.msie){
 			(function (){
-				var oInterval = setInterval(function (){
+				iInterval = setInterval(function (){
 					try{
 						document.documentElement.doScroll('left');
-						clearInterval(oInterval);
+						clearInterval(iInterval);
 						runReady();
 					}
-					catch(err){/*aun no ready*/}
+					catch(oEx){/*console.log('ready', oEx); //aun no ready*/}
 				}, 5);
 				/*try{document.documentElement.doScroll('left'); JaSper.funcs.runReady();}
-				catch(err){setTimeout(oFunc, 0);}
-				//catch (err){setTimeout(arguments.callee, 0);}*/
+				catch(oEx){setTimeout(oFunc, 0);}
+				//catch (oEx){setTimeout(arguments.callee, 0);}*/
 			})();
 		}
 		else if(JaSper.trait.webkit){
-			var oInterval = setInterval(function (){
+			iInterval = setInterval(function (){
 				if(/^(loaded|complete)$/.test(document.readyState)){
-					clearInterval(oInterval);
+					clearInterval(iInterval);
 					runReady();
 				}
 			}, 0);
@@ -2175,12 +2369,12 @@ JaSper.extend(JaSper.prototype, {
 	 * Añade una clase CSS
 	 *
 	 * @since 2011-09-07
-	 * @param {string} cName Nombre de la clase
+	 * @param {string} sName Nombre de la clase
 	 * @return {Object} JaSper
 	 */
-	addClass: function (cName){
+	addClass: function (sName){
 		this.each(function (){
-			JaSper.css.addClass(this, cName);
+			JaSper.css.addClass(this, sName);
 		});
 
 		return this;
@@ -2193,8 +2387,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object}
 	 */
 	getStyle: function (sCssRule){
-		var elem = this.nodes[0];
-		return JaSper.css.getStyle(elem, sCssRule);
+		var oElem = this.nodes[0];
+		return JaSper.css.getStyle(oElem, sCssRule);
 	},
 
 	/**
@@ -2220,9 +2414,9 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object}
 	 */
 	setStyle: function (sCssRule, sValue){
-		this.each(function (rul, val){
+		this.each(function (sRul, sVal){
 			var oThis = this;
-			return JaSper.css.setStyle(oThis, rul, val);
+			return JaSper.css.setStyle(oThis, sRul, sVal);
 		}, [sCssRule, sValue]);
 
 		return this;
@@ -2252,15 +2446,15 @@ JaSper.extend(JaSper.prototype, {
 	 *
 	 * Permite eventos personalizados, que deberan ser disparados con $(obj).eventFire('nombre_evento'); o JaSper.event.fire(obj, 'nombre_evento');
 	 *
-	 * @param {string} evento Nombre del evento, ej: "click" (como "onclick" sin "on")
-	 * @param {Function} funcion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
-	 * @param {boolean} capt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
+	 * @param {string} sEvento Nombre del evento, ej: "click" (como "onclick" sin "on")
+	 * @param {Function} oFuncion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
+	 * @param {boolean} bCapt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
 	 * @return {Object} JaSper
 	 */
-	eventAdd: function (evento, funcion, capt){
-		this.each(function (evt, func, ct){
-			JaSper.event.add(this, evt, func, ct);
-		}, [evento, funcion, capt]);
+	eventAdd: function (sEvento, oFuncion, bCapt){
+		this.each(function (sEvt, oFunc, bCt){
+			JaSper.event.add(this, sEvt, oFunc, bCt);
+		}, [sEvento, oFuncion, bCapt]);
 
 		return this;
 	},
@@ -2274,8 +2468,8 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {Object} JaSper
 	 */
 	eventFire: function (sEvento, oDetalles){
-		this.each(function (evt, dets){
-			JaSper.event.fire(this, evt, dets);
+		this.each(function (sEvt, oDets){
+			JaSper.event.fire(this, sEvt, oDets);
 		}, [sEvento, oDetalles]);
 
 		return this;
@@ -2284,22 +2478,22 @@ JaSper.extend(JaSper.prototype, {
 	/**
 	 * Elimina eventos.
 	 *
-	 * @param {string} evento Nombre del evento, ej: "click" (como "onclick" sin "on")
-	 * @param {Function} funcion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
-	 * @param {boolean} capt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
+	 * @param {string} sEvento Nombre del evento, ej: "click" (como "onclick" sin "on")
+	 * @param {Function} oFuncion Funcion que se lanzara con el evento; cadena de nombre de funcion o nombre de la funcion sin mas, tambien se permiten funciones anonimas: "function (){ alert('hello!'); }"
+	 * @param {boolean} bCapt Captura el evento cuando entra (fase de captura, true) o cuando sale (burbujeo, false, por defecto)
 	 * @return {Object} JaSper
 	 */
-	eventRemove: function (evento, funcion, capt){
+	eventRemove: function (sEvento, oFuncion, bCapt){
 		//TODO eliminar todos los eventos del elemento si no se pasan parametros
-		if(typeof funcion === 'string'){
-			funcion = window[funcion]; //TODO try para distinguir nombre_de_funcion de nombre_de_funcion(params) (evaluar esta ultima)
+		if(typeof oFuncion === 'string'){
+			oFuncion = window[oFuncion]; //TODO try para distinguir nombre_de_funcion de nombre_de_funcion(params) (evaluar esta ultima)
 		}
 
-		capt = capt || false;
+		bCapt = bCapt || false;
 
-		this.each(function (evt, func, ct){
-			JaSper.event.remove(this, evt, func, ct);
-		}, [evento, funcion, capt]);
+		this.each(function (sEvt, oFunc, bCt){
+			JaSper.event.remove(this, sEvt, oFunc, bCt);
+		}, [sEvento, oFuncion, bCapt]);
 
 		return this;
 	}
@@ -2378,23 +2572,23 @@ JaSper.extend(JaSper.prototype, {
 	 *
 	 * @todo si se intenta cambiar una propiedad (como value) deberia cambiarse directamente (elem.value = 'valor'); bien controlando los casos o enviando a metodos especificos
 	 * @since 2015-06-11
-	 * @param {string} atributo Atributo a cambiar/consultar
-	 * @param {string} valor Nuevo valor para el atributo, si no se pasa nada se devuelve el valor actual
+	 * @param {string} sAtributo Atributo a cambiar/consultar
+	 * @param {string} sValor Nuevo valor para el atributo, si no se pasa nada se devuelve el valor actual
 	 * @return {string} Valor del atributo del primer elemento
 	 */
-	attrib: function (atributo, valor){
-		var ret = valor;
+	attrib: function (sAtributo, sValor){
+		var sRet = sValor;
 
-		this.each(function (atr, val){
-			if(val === undefined){ //no se ha pasado valor, solo consulta, se devuelve el valor del primer nodo
-				ret = JaSper.nodo.attrib(this, atr);
-				return null;
+		this.each(function (sAtr, sVal){
+			if(typeof sVal === 'undefined'){ //no se ha pasado valor, solo consulta, se devuelve el valor del primer nodo
+				sRet = JaSper.nodo.attrib(this, sAtr);
+				return;
 			}
 
-			JaSper.nodo.attrib(this, atr, val);
-		}, [atributo, valor]);
+			JaSper.nodo.attrib(this, sAtr, sVal);
+		}, [sAtributo, sValor]);
 
-		return ret;
+		return sRet;
 	},
 
 	/**
@@ -2404,27 +2598,27 @@ JaSper.extend(JaSper.prototype, {
 	 * NO permite encadenado de metodos
 	 *
 	 * @todo solo funciona para nodos que tengan la propiedad innerHTML, extender para todos los nodos construyendo los objetos que se pasen por parametro y luego append al nodo?
-	 * @param {string} html HTML que sustituira el de los nodos
-	 * @param {string} separador Separador con el que se devuelven los nodos encontrados
+	 * @param {string} sHtml HTML que sustituira el de los nodos
+	 * @param {string} sSeparador Separador con el que se devuelven los nodos encontrados
 	 * @return {string} HTML encontrado
 	 */
-	html: function (html, separador){
-		var ret = [];
-		html = html || '';
-		separador = separador || '';
+	html: function (sHtml, sSeparador){
+		var aRet = [];
+		sHtml = sHtml || '';
+		sSeparador = sSeparador || '';
 
-		this.each(function (h){
-			if(!!this.innerHTML){ //si el nodo no tiene la propiedad innerHTML no se hace nada
+		this.each(function (sHt){
+			if(typeof this.innerHTML !== 'undefined'){ //si el nodo no tiene la propiedad innerHTML no se hace nada
 				//TODO separar las cadenas HTML encontradas para un posterior split?
-				ret[ret.length] = this.innerHTML; //guarda el HTML actual del nodo
+				aRet.push(this.innerHTML); //guarda el HTML actual del nodo
 
-				if(h){ //sustituye con el HTML pasado por parametro
-					this.innerHTML = h;
+				if(sHt){ //sustituye con el HTML pasado por parametro
+					this.innerHTML = sHt;
 				}
 			}
-		}, [html]);
+		}, [sHtml]);
 
-		return ret.join(separador);
+		return aRet.join(sSeparador);
 	},
 
 	/**
@@ -2583,24 +2777,24 @@ JaSper.extend(JaSper.prototype, {
 	 * @return {string} Texto encontrado
 	 */
 	text: function (sText, sSeparador){
-		var ret = [];
+		var aRet = [];
 		sText = sText || '';
 		sSeparador = sSeparador || '';
 
 		//TODO comprobar cross browser
 		//TODO devolver value para elementos de formulario?
-		this.each(function (sT){
-			if(!!this.textContent){ //si el nodo no tiene la propiedad text no se hace nada
+		this.each(function (sTxt){
+			if(typeof this.textContent !== 'undefined'){ //si el nodo no tiene la propiedad text no se hace nada
 				//TODO separar las cadenas encontradas para un posterior split?
-				ret[ret.length] = this.textContent || this.nodeValue; //guarda el texto actual del nodo
+				aRet[aRet.length] = this.textContent || this.nodeValue; //guarda el texto actual del nodo
 
-				if(sT){ //sustituye con el texto pasado por parametro
-					this.textContent = sT;
+				if(sTxt){ //sustituye con el texto pasado por parametro
+					this.textContent = sTxt;
 				}
 			}
 		}, [sText]);
 
-		return ret.join(sSeparador);
+		return aRet.join(sSeparador);
 	}
 
 });
@@ -2622,13 +2816,13 @@ JaSper.extend(JaSper.prototype, {
 	 * @todo decidir si devolver algo
 	 * @param {string} sMethod Nombre del metodo
 	 * @param {array} aArgs Argumentos del metodo
-	 * @param {string} library JS a cargar
+	 * @param {string} sLibrary JS a cargar
 	 * @return {Object} JaSper
 	 */
-	loadMethod: function (sMethod, aArgs, library){
-		library = library || sMethod;
+	loadMethod: function (sMethod, aArgs, sLibrary){
+		sLibrary = sLibrary || sMethod;
 
-		switch(library){
+		switch(sLibrary){
 			case 'ajax':
 			case 'anim':
 			case 'beautify':
@@ -2640,26 +2834,26 @@ JaSper.extend(JaSper.prototype, {
 			case 'rating':
 			case 'rest':
 			case 'rtb':
-				library = 'JaSper_' + library + JaSper.trait.minificado + '.js';
+				sLibrary = 'JaSper_' + sLibrary + JaSper.trait.minificado + '.js';
 				break;
 			case 'validar':
-				library = 'JaSper_formazo' + JaSper.trait.minificado + '.js';
+				sLibrary = 'JaSper_formazo' + JaSper.trait.minificado + '.js';
 				break;
 			default:
-				library = false;
+				sLibrary = false;
 				JaSper.log('-JaSper::loadMethod- Intenta cargar dinamicamente una librería desconocida para el metodo: ' + sMethod, 1);
 		}
 
-		if(library){
-			var tempCall = (function (oObj, aAs){
+		if(sLibrary){
+			var oTempCall = (function (oObj, aAs){
 				return function (){
 					oObj[sMethod].apply(oObj, aAs);
 				};
 			})(this, aArgs);
 
-			JaSper.load.queue.push({'fn': tempCall, 'ctx': this});
+			JaSper.load.queue.push({'fn': oTempCall, 'ctx': this});
 			//JaSper.load.script('packer.php?scriptJs=' + library); //version con empaquetador/minificador "class.JavaScriptPacker.php"
-			JaSper.load.script(library, true); //version sin empaquetador
+			JaSper.load.script(sLibrary, true); //version sin empaquetador
 		}
 
 		return this;
@@ -2716,7 +2910,9 @@ if(!Array.prototype.indexOf){
 	//No existe en versiones viejas de IE; existe en Firefox, pero no en MOZ
 	Array.prototype.indexOf = function (obj){
 		for(var i = 0, len = this.length; i < len; i++){
-			if(this[i] == obj) return i;
+			if(this[i] == obj){
+				return i;
+			}
 		}
 		return -1;
 	};
@@ -2732,14 +2928,14 @@ if(!String.prototype.trim){
 
 //From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
 if(!Object.keys){
-	Object.keys = (function(){
+	Object.keys = (function (){
 		'use strict';
 		var hasOwnProperty = Object.prototype.hasOwnProperty,
-		hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
-		dontEnums = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'],
-		dontEnumsLength = dontEnums.length;
+			hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
+			dontEnums = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'],
+			dontEnumsLength = dontEnums.length;
 
-		return function(obj){
+		return function (obj){
 			if(typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)){
 				throw new TypeError('Object.keys called on non-object');
 			}
@@ -2782,12 +2978,12 @@ if(!Object.keys){
 
 //TODO
 if(!window.requestAnimationFrame){
-	window.requestAnimationFrame = (function(callback){
-		return window.webkitRequestAnimationFrame 
-			|| window.mozRequestAnimationFrame 
-			|| window.oRequestAnimationFrame 
-			|| window.msRequestAnimationFrame 
-			|| function(callback){window.setTimeout(callback, 1000 / 60);return new Date().getTime();}; //TODO callback has one single argument, a DOMHighResTimeStamp, which indicates the current time (the time returned from "performance.now()") for when requestAnimationFrame starts to fire callbacks
+	window.requestAnimationFrame = (function (callback){
+		return window.webkitRequestAnimationFrame
+			|| window.mozRequestAnimationFrame
+			|| window.oRequestAnimationFrame
+			|| window.msRequestAnimationFrame
+			|| function (callback){window.setTimeout(callback, 1000 / 60); return new Date().getTime();}; //TODO callback has one single argument, a DOMHighResTimeStamp, which indicates the current time (the time returned from "performance.now()") for when requestAnimationFrame starts to fire callbacks
 	})();
 }
 
